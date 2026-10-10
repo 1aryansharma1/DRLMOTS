@@ -34,9 +34,9 @@
 
 # | P0.1 | Inspect all 26 PDF pages, figures, equations, Algorithm 1 and experiment tables | VERIFIED | PDF text extracted and key visuals on pages 8–12 and 14 inspected |
 
-# | P0.2 | Build structured source extraction, parameter table, equations and ambiguity list | IMPLEMENTED | See `paper\_requirements.md`; review is pending |
+# | P0.2 | Build structured source extraction, parameter table, equations and ambiguity list | IMPLEMENTED | See `paper\\\_requirements.md`; review is pending |
 
-# | P0.3 | Create paper-to-module traceability matrix | IMPLEMENTED | Requirements R001–R040 in `paper\_requirements.md` |
+# | P0.3 | Create paper-to-module traceability matrix | IMPLEMENTED | Requirements R001–R040 in `paper\\\_requirements.md` |
 
 # | P0.4 | Record unresolved assumptions/contradictions without silently filling them | IMPLEMENTED | See `assumptions.md` |
 
@@ -50,9 +50,9 @@
 
 # | P1.4 | Run dependency/import smoke test | VERIFIED | 7 tests passed; `pip check` reports no broken requirements |
 
-# | P1.5 | Check core imports and Torch device availability | IN PROGRESS | Imports passed in tests; record the explicit device check before verification |
+# | P1.5 | Check core imports and Torch device availability | VERIFIED | Core imports passed; Python 3.11.9 and dependency versions confirmed; PyTorch CPU available; CUDA unavailable |
 
-# | P1.6 | Record dependency versions and environment notes | IN PROGRESS | Lock file generated; confirm committed lock contents and environment version output |
+# | P1.6 | Record dependency versions and environment notes | VERIFIED | `requirements-lock.txt` is tracked and matches `pip freeze --exclude-editable`; `pip check` reports no broken requirements |
 
 # | P2.1 | Create repository/package/test directory structure | VERIFIED | Project structure created |
 
