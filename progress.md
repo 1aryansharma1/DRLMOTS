@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** Phase 3 - data structures. P3.1 (Task model and validation tests) is VERIFIED. No simulator or DQN implementation yet.
+**Current stage:** Phase 3 - data structures. P3.1 and P3.2 are VERIFIED. P3.3-P3.5 remain pending. No simulator or DQN implementation yet.
 
 ## Status legend
 
@@ -32,8 +32,8 @@
 | P2.4 | Add package entry point or smoke test as needed | VERIFIED | `drlmots` package import succeeds |
 | P2.5 | Verify pytest discovery and basic tests | VERIFIED | Initial `python -m pytest -v`: 7 passed |
 | P3.1 | Define Task fields from source-supported requirements | VERIFIED | `src/drlmots/entities.py` implements `Task` and `TaskStatus`; Task tests and the full suite passed (25 total). Task-length units and exact resource schema remain unresolved |
-| P3.2 | Define VM, host and resource data structures | NOT STARTED | Next task; inspect paper-supported fields before implementation |
-| P3.3 | Define fog/cloud topology structures | NOT STARTED | Pending review of topology requirements and supported fields |
+| P3.2 | Define VM, host and resource data structures | VERIFIED | `Host`, `VM`, and `ResourceTier` implemented in `src/drlmots/entities.py`; resource validation tests pass; full suite: 54 passed. Bandwidth units and unspecified capacities remain unresolved |
+| P3.3 | Define fog/cloud topology structures | NOT STARTED | Next task; review source-supported topology fields before implementation |
 | P3.4 | Define and test valid task-status transitions | NOT STARTED | Status values exist; transition rules are not implemented yet |
 | P3.5 | Validate resource and configuration ranges | NOT STARTED | Existing configuration tests cover initial checks; Phase 3 resource validation remains pending |
 
@@ -51,7 +51,7 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 25-test suite verifies project setup, configuration validation, and the Task data structure. It does not establish that the simulator, DQN algorithm, or the paper's reported results have been reproduced.
+The current 54-test suite verifies project setup, configuration validation, and Task, Host, and VM data structures. It does not establish that the simulator, DQN algorithm, or the paper's reported results have been reproduced.
 
 ## Resume protocol
 

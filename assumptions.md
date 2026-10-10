@@ -106,6 +106,13 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 * **Status:** OPEN audit item.
 * **Decision rule:** Keep the source's raw numbers and independently recalculated percentages side-by-side in a later result-audit artifact. Do not tune the simulator to reproduce suspicious values.
 
+## A-016 — Bandwidth unit interpretation
+
+- **Question:** What precise unit is intended by the paper's host bandwidth notation `1000 MBPS` and VM bandwidth notation `200 MBPS`?
+- **Paper says:** The reported simulation setup gives host bandwidth as `1000 MBPS` and VM bandwidth as `200 MBPS`.
+- **Status:** PENDING.
+- **Decision rule:** Preserve the reported numeric values and original notation in the source record. Do not silently reinterpret the capitalization or convert the values to another unit. If calculations require a specific unit, document and test that interpretation separately before using it in simulation.
+
 ## Decision log format
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
@@ -181,4 +188,3 @@ This sequence isolates basic software errors before introducing stochastic workl
 
 
 The paper's unresolved items remain OPEN/PENDING unless separately resolved with evidence. This decision defines the implementation order only; it does not close those scientific or methodological questions.
-
