@@ -1,0 +1,42 @@
+
+# DRLMOTS default configuration.
+# null means the paper does not specify an unambiguous value yet.
+
+schema_version: 1
+
+seed: null
+
+topology:
+  access_point_count: null
+  end_node_count: null
+  fog_node_count: null
+  cloud_datacenter_count: null
+  vms_per_fog_node: null
+  cloud_vm_count: null
+
+workload:
+  task_count: null
+  task_size_kb_range: [20, 150]
+  task_length_unit: null
+  arrival_distribution: null
+  data_source: synthetic
+
+dqn:
+  gamma: 0.95
+  epsilon_start: null
+  epsilon_min: 0.01
+  epsilon_decay: 0.01
+  learning_rate: null
+  replay_capacity: null
+  batch_size: null
+  target_sync_interval: null
+  episodes: null
+
+unresolved:
+  - "seed policy"
+  - "exact topology counts and VM counts"
+  - "task length unit and arrival distribution"
+  - "initial epsilon: paper contains conflicting values"
+  - "learning rate, replay capacity, batch size, target sync interval"
+  - "episode count: paper reports conflicting values"
+  - "reward interpretation and scaling"

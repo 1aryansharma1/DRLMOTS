@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drlmots"
+version = "0.1.0"
+description = "DRLMOTS task scheduling research simulator for cloud-fog environments"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+
+dependencies = [
+    "simpy>=4.1,<5",
+    "numpy>=1.26,<3",
+    "torch>=2.5,<3",
+    "PyYAML>=6,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
