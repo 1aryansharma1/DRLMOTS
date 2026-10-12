@@ -24,6 +24,8 @@ original DRLMOTS paper against the existing extraction.
 - `implementation_plan.md` — phased execution roadmap with microtask IDs and verification gates.
 - `assumptions.md` — decisions that must remain explicit and configurable.
 - `progress.md` — verified state and next microtask.
+- [PROGRESS_REPORT.md](PROGRESS_REPORT.md) — dated delivery report, verification results, and remaining work.
+- [HANDOFF.md](HANDOFF.md) — collaborator starting point, module map, and the next task's acceptance criteria.
 
 ## Core approach
 

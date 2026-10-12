@@ -5,6 +5,12 @@ Phase 3 is verified for the current data/configuration model. Deterministic subs
 of Phases 4-5 are verified. Random workload generation, the full paper topology,
 resource feasibility, and DQN implementation remain pending.
 
+**Working status (2026-10-13):** v0.1 implementation is complete. v0.2 has not
+started; its first task is P4.3, seeded synthetic workload generation. No contributor
+assignment is recorded. The verified implementation commit is `993344d`.
+Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
+[PROGRESS_REPORT.md](PROGRESS_REPORT.md) for the dated delivery report.
+
 ## Status legend
 
 - NOT STARTED
