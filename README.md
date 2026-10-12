@@ -31,6 +31,7 @@ original DRLMOTS paper against the existing extraction.
 - `progress.md` — verified state and next microtask.
 - [PROGRESS_REPORT.md](PROGRESS_REPORT.md) — dated delivery report, verification results, and remaining work.
 - [HANDOFF.md](HANDOFF.md) — collaborator starting point, module map, and the next task's acceptance criteria.
+- [NEXT_STEPS.md](NEXT_STEPS.md) — complete remaining-work checklist, pickup order, open decisions, and handoff rules.
 
 ## Core approach
 

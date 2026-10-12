@@ -10,6 +10,9 @@ complete, implemented and verified by Codex for ashishjha20. Configuration-drive
 topology is now VERIFIED by the same contributor. No implementation task is active;
 next is explicit resource feasibility and placement behavior, with owner unassigned.
 The verified v0.1 implementation commit is `993344d`.
+Latest verified implementation: `e97a14d` (configured topology); seeded workloads:
+`7ebf8d6`. The complete remaining backlog and immediate pickup checklist are in
+[NEXT_STEPS.md](NEXT_STEPS.md).
 Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for the dated delivery report.
 

@@ -2,10 +2,13 @@
 
 **Last updated:** 2026-10-13
 **Current checkpoint:** v0.2 seeded workload/configured-topology checkpoints VERIFIED;
-v0.1 foundation is commit `993344d`.
+latest verified implementation is `e97a14d` on `main`; v0.1 foundation is `993344d`.
 **Next task:** explicit resource feasibility and placement behavior for v0.2.
 **Task ownership:** both checkpoints completed by Codex for ashishjha20; next task unassigned. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
+
+**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its resource
+feasibility checklist, then follow the ordered backlog. No implementation task is active.
 
 ## Read this first
 
@@ -15,6 +18,7 @@ in `progress.md` when starting so another contributor can see what is in progres
 4. [assumptions.md](assumptions.md): open scientific questions; A-017 defines v0.1.
 5. [implementation_plan.md](implementation_plan.md): version gates and full roadmap.
 6. [paper_requirements.md](paper_requirements.md): recorded DRLMOTS source extraction.
+7. [NEXT_STEPS.md](NEXT_STEPS.md): all remaining work through DQN and final evaluation.
 
 The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
 10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes

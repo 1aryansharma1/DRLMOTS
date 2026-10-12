@@ -2,9 +2,14 @@
 
 **Report date:** 2026-10-13 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** v0.2 configured topology; prior seeded checkpoint `7ebf8d6`.
+**Implementation checkpoint:** `e97a14d` - v0.2 configured topology;
+prior seeded checkpoint `7ebf8d6`.
 **Working status:** v0.1 complete; v0.2 in progress. P4.3/P4.6 seeded workload checkpoint
 and configuration-driven topology are verified. Resource/placement behavior is next.
+
+**Pickup status:** no active implementation task; next owner unassigned. The complete
+ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
+resource-feasibility acceptance criteria and later source/DQN/evaluation gates.
 
 ## Latest checkpoint - configured topology
 
