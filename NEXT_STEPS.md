@@ -1,9 +1,11 @@
 # Remaining work and pickup checklist
 
 **Updated:** 2026-10-13
-**Latest verified implementation:** `4f4307f` - v0.2.0 explicit resource model.
+**Latest verified implementation:** `2083faa` - v0.2.1 professor demo;
+resource foundation `4f4307f`.
 **Working state:** no implementation task is active; the next task is unassigned.
-**Milestone:** v0.1 and v0.2 synthetic baseline scopes verified; v0.3 and v1.0 pending.
+**Milestone:** v0.1/v0.2 synthetic baseline and v0.2.1 demo software checks verified;
+v0.3 and v1.0 pending. Demo delivered for 1aryansharma1 / Aryan Sharma.
 
 ## What already works
 
@@ -14,10 +16,16 @@
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
 - [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
 - [x] Running-task resource reservation/release, trace and final balances without leaks.
-- [x] Verified baseline suite: 367 tests pass; dependency check is clean.
+- [x] Verified suite with demo dependencies: 378 tests pass; dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
 - [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
   eight resource events; old baseline outcomes/config/workload fingerprints preserved.
+- [x] Paired least-queue/first-fit comparisons with shared input checks and safe resources.
+- [x] Offline professor report, three scenarios, 15 SVG/15 PNG figures and talk track.
+- [x] Offline JavaScript control/export test in a DOM stub; wheel contains HTML template.
+- [ ] Manually preview the generated HTML in a normal browser at desktop/mobile widths
+  before presenting. The agent browser tool disallowed local-file preview; this check
+  is independent of starting state/action work. See PROFESSOR_DEMO.md.
 
 These checks establish the current synthetic baseline, not the paper's full algorithm
 or experimental results. See [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for evidence.
@@ -72,9 +80,9 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 | 12 | P10 / A-009 | Replay, valid-action exploration, terminal targets, target synchronization and learning settings | Capacity/sampling, numeric targets, epsilon bounds and finite gradient/update tests |
 | 13 | P11 | Agent/environment transition boundary, one experience per decision, terminal handling | Tiny complete episode; consistent state/action/reward/next-state/done; no task loss |
 | 14 | P12 | Seeded training loop, logs, checkpoints and bounded CPU smoke training | No NaNs; checkpoint reload matches outputs; complete run manifest |
-| 15 | P13 / A-012 | Fair comparator policies and paired-workload evaluation | Shared workloads/resources/metrics/seeds; approximate baselines clearly labelled |
+| 15 | Full P13 / A-012 | Extend verified simple paired comparisons to justified paper comparators, learned policy and repeated-seed evaluation | Shared workloads/resources/metrics/seeds; approximate baselines clearly labelled |
 | 16 | P14 / A-015 | Stable raw task/run result tables and independent percentage audit | Row accounting, provenance, correct arithmetic and repeated-seed summaries |
-| 17 | P15 | Plots, comparison tables and analysis | Regenerated from saved data, correct units/sample counts and limitations |
+| 17 | Full P15 | Extend demo figures into experiment/task-count sweeps and analysis | Regenerated from saved data, correct units/sample counts and limitations |
 | 18 | P16 | Clean setup, repeatable end-to-end checks, complete requirement audit and final report | All applicable gates verified or explicitly open; no unsupported reproduction claim |
 
 ## Source and training decisions still open
@@ -90,7 +98,7 @@ reward sign/normalization; energy units/coefficients; fault-tolerance interpreta
 initial epsilon, episode counts and unspecified DQN settings; real dataset identity;
 exact CNN/LSTM/GGCN baselines; task-count conflicts and reported improvement arithmetic.
 The synthetic per-VM resource model does not resolve the paper's physical capacities
-or mapping. See assumptions A-001 through A-020 and retain the unresolved entries.
+or mapping. See assumptions A-001 through A-021 and retain the unresolved entries.
 
 ## Before handing off again
 

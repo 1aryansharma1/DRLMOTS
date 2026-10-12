@@ -117,6 +117,36 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-021 - Paired synthetic policies and professor demonstration
+
+- **Date:** 2026-10-13. **Status:** DECIDED for a synthetic demonstration only.
+- **Scope:** User-requested v0.2.1 professor checkpoint, early P13.1 sanity comparison;
+  no completion of full paper baselines or experimental plots is implied.
+- **Policies:** After A-020 resource/queue filtering, least queue minimizes running
+  plus waiting count and ties by VM ID; first fit picks the minimum eligible VM ID.
+  Both drain each VM FCFS, preserve completion-before-arrival ordering and reserve
+  only running tasks. These policies are neither learned nor paper comparator replicas.
+- **Fairness:** Generate each preset from the same effective config/settings for each
+  policy; check identical workload/config hashes, exactly-once task accounting and
+  restored resource balances. Policy identity is saved separately from input hashes.
+- **Presets:** Preserve config topology/unit catalogue/demand profile. Use seed 42:
+  worked = six simultaneous 1000-byte/20-kB tasks; seeded = 100 tasks, intervals
+  uniform 0-3 ms, lengths integer-uniform 500-2000 bytes, data uniform 20-150 kB;
+  pressure = 25 simultaneous tasks with the seeded length/data ranges.
+- **Metrics:** Makespan is latest successful finish from time zero. Average completion
+  and waiting times use successful tasks only; no successes means null averages.
+  VM occupancy is sum of service durations divided by makespan (zero if makespan is
+  zero), not physical CPU utilization. Show rejection counts alongside every timing
+  comparison; different rejected work can lower makespan without better service.
+- **Artifacts:** Offline HTML switches precomputed reports; regeneration reruns the
+  simulator. Export raw JSON and SVG/PNG figures; no RL training or live cloud claim.
+- **Evidence:** 378 tests passed; dependency check clean; paired seed-42 resource preset
+  gives 96/4 least-queue and 91/9 first-fit completions/failures. DOM-stub control/export
+  check passed; representative PNGs inspected. Actual browser/mobile layout requires
+  manual preview because the browser tool disallowed local-file navigation.
+- **Remaining:** Original-source audit, state/action/reward, DQN, real dataset,
+  energy/reliability, physical host budgets and repeated-seed evaluation stay open.
+
 ## A-020 - Explicit per-VM resource feasibility and accounting
 
 - **Date:** 2026-10-13.

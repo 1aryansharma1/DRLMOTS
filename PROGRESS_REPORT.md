@@ -2,16 +2,60 @@
 
 **Report date:** 2026-10-13 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `4f4307f` - v0.2.0 explicit resource model;
+**Implementation checkpoint:** `2083faa` - v0.2.1 professor demo;
+resource model `4f4307f`;
 prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
-**Working status:** v0.1 and v0.2 synthetic baseline scopes verified. State/action
+**Working status:** v0.1/v0.2 baseline and v0.2.1 professor-demo software scope verified.
+Demo implemented by Codex for **1aryansharma1 / Aryan Sharma**; commit identity uses
+the account's GitHub noreply email, repository-local credential selection uses that
+account, and Git Credential Manager authorization succeeded. State/action
 contract design is next for v0.3; no implementation task is active.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
 state/action acceptance criteria and later source/DQN/evaluation gates.
 
-## Latest checkpoint - v0.2.0 resource-aware baseline
+## Latest checkpoint - v0.2.1 professor demo
+
+The user requested a practical professor demonstration before continuing learning.
+The offline report now compares least queue and first fit on identical workloads and
+resource constraints; it shows explicit failures, timings, VM occupancy, execution
+timelines, outcomes and provenance. Selectors switch precomputed runs. No learned
+policy, physical cloud deployment or paper reproduction claim is made.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-demo-lock.txt
+.\.venv\Scripts\python.exe -m pip install --no-deps -e .
+.\.venv\Scripts\python.exe -m drlmots.demo --config configs/resources.yaml
+```
+
+| Preset | Least queue done/failed | First fit done/failed |
+|---|---|---|
+| Worked example (6 simultaneous tasks) | 4 / 2 | 4 / 2 |
+| Seeded workload (100 tasks, seed 42) | 96 / 4 | 91 / 9 |
+| Queue pressure (25 simultaneous tasks) | 4 / 21 | 4 / 21 |
+
+Seeded successful makespan: 155.1273394932697 ms versus 154.5713394932697 ms;
+average completion time: 3.5399653116546155 versus 3.757690860833562 ms. First fit
+rejects more work, so a smaller makespan alone is not better performance. These are
+one-seed synthetic observations. Input hashes match and all resources are restored
+in each pair. A-021 documents policies, presets and successful-task metric semantics.
+
+Generated artifacts: self-contained `outputs/demos/drlmots-demo.html`, full
+`comparison.json`, 15 SVG and 15 PNG figures. They are ignored by Git and regenerated
+from committed source. PROFESSOR_DEMO.md includes setup, a five-minute talk track,
+metric explanations, likely questions and exact limitations. The optional dependency
+lock extends the unchanged base lock; the wheel packages the HTML template.
+
+Actual verification: **378 tests passed**, clean dependency check, valid SVG/tooltips,
+safe embedded JSON for HTML-like identifiers, paired resource/accounting/replay,
+hand-calculated placement timelines and actual generator CLI. Representative timeline,
+comparison and occupancy PNGs were visually inspected. Node's offline DOM-stub check
+passed all six selections and three JSON exports; it does not verify layout. The
+browser tool disallowed local-file preview, so desktop/mobile layout needs manual
+preview before presenting. No task is active; state/action design remains next.
+
+## Previous checkpoint - v0.2.0 resource-aware baseline
 
 Tasks now use explicit per-VM capacity eligibility. A shared unit catalogue describes
 every named resource; capacities and demands are finite/positive. Missing capacity is
@@ -121,7 +165,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 367 tests above:
+virtual environment before its publication. The latest suite is 378 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -159,12 +203,13 @@ by Git; the command recreates the example. No training results or checkpoints ex
 - Source-audited resource values and physical VM-to-host allocation remain unresolved.
   Explicit synthetic per-VM feasibility/reservation is implemented, with no inferred host budget.
 - Paper priorities, thresholds, state/action encoding, reward, energy/fault metrics,
-  DQN training, checkpoints, baselines and comparative evaluation: pending.
+  DQN training/checkpoints and full paper comparators/evaluation: pending. Two simple
+  synthetic policies and paired demo evaluation are now verified under A-021.
 - The original DRLMOTS source needs an independent audit against `paper_requirements.md`.
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-020.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-021.
 
 ## Next delivery
 

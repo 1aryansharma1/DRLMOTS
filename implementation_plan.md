@@ -14,6 +14,7 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 |---|---|---|
 | 0.1 | P3.3-P3.5; P4.1-P4.2; fixed-list P4.6; deterministic P5.2-P5.6/P5.8 | VERIFIED: Phase 3 passed 136 tests before simulation; final suite 194 passed; exact 3-task example; `pip check` clean |
 | 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | VERIFIED for A-020 synthetic baseline: package 0.2.0, 367 tests pass; no paper/physical-model claim |
+| 0.2.1 | User-requested professor demo: paired simple policies, offline report, figures and walkthrough | VERIFIED software checkpoint `2083faa`: 378 tests; browser layout manual check; A-021 |
 | 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Next: P6.1/P7.2 state/action contract; no training before assumptions/metric gates pass |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
@@ -41,6 +42,14 @@ FCFS/least-load/VM-ID rules remain, CPU units do not change service speed, and n
 host budget or paper-specific threshold is inferred. The resource fixture gives four
 completions/two explicit failures with all balances restored; 367 tests pass. This meets
 the scoped v0.2 milestone, not the full original Phase 7/paper reproduction gates.
+
+Before v0.3 the user requested a professor-facing demonstration. A-021 scopes this
+early P13.1 synthetic comparison: least queue and first fit run identical workloads;
+the report includes failures beside timings, occupancy, outcomes and input hashes.
+Three presets and reusable SVG/PNG figures support a five-minute walkthrough in
+PROFESSOR_DEMO.md. This completes the demonstration checkpoint, not the full P13
+paper comparisons or P15 multi-seed/task-count analysis. State/action design remains
+the next implementation task; energy/reliability/reward and DQN remain pending.
 
 ## Project directory (target)
 

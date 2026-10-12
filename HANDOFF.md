@@ -1,10 +1,11 @@
 # DRLMOTS collaborator handoff
 
 **Last updated:** 2026-10-13
-**Current checkpoint:** v0.2.0 synthetic resource-aware baseline VERIFIED;
-latest verified implementation is `4f4307f`; v0.1 foundation is `993344d`.
+**Current checkpoint:** v0.2.1 professor-demo software checkpoint VERIFIED;
+latest implementation is `2083faa`; resource foundation `4f4307f`, v0.1 `993344d`.
 **Next task:** v0.3 state/action contract, runtime observations and encoding (P6.1/P7.2).
-**Task ownership:** v0.2 completed by Codex for ashishjha20; next task unassigned. Record the owner and status
+**Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
+earlier v0.2 work was for ashishjha20. Next task unassigned. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
 **Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its state/action
@@ -19,6 +20,7 @@ checklist, then follow the ordered backlog. No implementation task is active.
 5. [implementation_plan.md](implementation_plan.md): version gates and full roadmap.
 6. [paper_requirements.md](paper_requirements.md): recorded DRLMOTS source extraction.
 7. [NEXT_STEPS.md](NEXT_STEPS.md): all remaining work through DQN and final evaluation.
+8. [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md): offline report and five-minute walkthrough.
 
 The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
 10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes
@@ -45,13 +47,21 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
 ```
 
-Expected current checks: 367 tests pass; dependency check is clean; fixed example completes three
+Expected current checks: 378 tests pass with demo dependencies (377 pass/one figure
+test skips without Matplotlib); dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
 4 because all queues are full, accounting for every input. Configured fixture: six
 tasks on three VMs, all completed in 4 ms. Resource fixture: four complete/two full-feasible-
 queue failures, 4 ms makespan, eight resource events, all balances restored. The editable
-install refreshes version metadata to 0.2.0 after pulling. `.venv` is local, not in Git. Python
+install refreshes version metadata to 0.2.1 after pulling. `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
+
+For the professor report, install `requirements-demo-lock.txt`, refresh the editable
+install, then run `python -m drlmots.demo --config configs/resources.yaml`. Open
+`outputs/demos/drlmots-demo.html` in a normal browser. Outputs are ignored; regenerate
+them in your checkout. Read PROFESSOR_DEMO.md for commands/results/model limitations.
+Representative PNGs and offline DOM-stub controls were checked; real desktop/mobile
+browser layout still needs manual preview because the agent tool blocked local files.
 
 ## Where the current behavior lives
 
@@ -65,6 +75,9 @@ install refreshes version metadata to 0.2.0 after pulling. `.venv` is local, not
 | `src/drlmots/workload.py` | `SyntheticWorkloadSettings`, `seeded_workload`, `fixed_workload`, explicit-unit `processing_time_ms`, and `workload_manifest` with SHA-256/settings/runtime provenance |
 | `src/drlmots/environment.py` | `simulate(..., task_length_unit="bytes", resource_units=...)`; feasible placement, live local queues/running state, ledger, outcomes/events/final balances |
 | `src/drlmots/__main__.py` | Fixed/seeded/resource examples; `--config`, units/policies, resource events/balances and JSON provenance |
+| `src/drlmots/baselines.py`, `evaluation.py` | Least queue/first fit and paired reports; matched hashes, accounting, restored resources, waiting/occupancy |
+| `src/drlmots/demo.py`, `templates/demo.html` | Three precomputed scenarios, offline report and SVG/PNG exports; optional Matplotlib |
+| `scripts/check_demo_controls.cjs` | Optional Node.js control/export check using a DOM stub, not a browser layout test |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
 | `tests/integration/test_seeded_cli.py` | Seeded simulator accounting, actual CLI output files and invalid-input handling |
@@ -78,7 +91,8 @@ Preserve these tested semantics unless a documented task intentionally changes t
 
 - A VM runs one task and has a separately counted waiting queue with explicit capacity.
 - Placement filters componentwise resource-feasible VMs with a waiting slot, then uses
-  least running-plus-waiting count; VM ID breaks ties. This is a baseline,
+  least running-plus-waiting count by default; VM ID breaks ties. The optional
+  `first_fit_fcfs` chooses minimum eligible VM ID. These are simple baselines,
   not DQN or the paper's threshold policy. All configured tiers are eligible.
 - Simultaneous arrivals preserve input order. Completions precede same-time arrivals.
 - No VM satisfying demands and full feasible queues produce distinct FAILED reasons.
@@ -102,7 +116,7 @@ All previous P4.3 acceptance criteria are verified: local RNG without global mut
 repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
 ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
 file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
-246 tests; the configured-topology checkpoint passed 304. The latest suite passes 367.
+246 tests; the configured-topology checkpoint passed 304. The latest suite passes 378.
 
 ## Completed configuration-driven topology
 
@@ -115,7 +129,7 @@ flags cannot be combined with a run file. A-019 documents this checkpoint's scop
 The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
 and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
 pathname are excluded. The configured hand calculation and changed-queue-limit tests
-passed with 304 tests at that checkpoint. The latest suite is 367; full paper topology
+passed with 304 tests at that checkpoint. The latest suite is 378; full paper topology
 and VM-to-host allocation remain open.
 
 ## Completed v0.2 resource feasibility
@@ -130,6 +144,27 @@ The 367-test suite verifies exact-fit/oversized/unknown capacity cases, distinct
 fallback, reserve/release ordering, no negative balance or leak, empty/profile provenance,
 heterogeneous 100-task accounting and replay. This completes the version's synthetic
 scope, not the paper's priority/threshold, physical allocation or full Phase 7 requirements.
+
+## Completed professor demo (v0.2.1)
+
+`2083faa` adds two replaceable synthetic policies and paired evaluation with identical
+workload/config hashes, exactly-once outcomes and restored resource balances. It keeps
+the default baseline and old input fingerprints. A-021 records the metric/preset scope.
+The resource seed-42 100-task preset gives least queue 96 completed/4 failed versus
+first fit 91/9; timings use successful tasks, so show rejection counts alongside them.
+Worked example = 4/2, 4 ms; pressure = 4/21. These results do not establish paper improvements.
+
+The offline HTML includes selectors, task outcomes, timelines, VM occupancy and
+provenance; it switches stored reports rather than training/rerunning. Generation
+exports full JSON and 15 SVG/15 PNG figures. The optional demo lock extends the base
+lock; the wheel includes the template. Verification: 378 tests, clean pip check, valid
+SVG/tooltips and inert HTML-like identifiers, hand-calculated policy timelines, paired
+resource safety/replay, all six selections and three exports in a DOM stub. Real
+browser layout is still a manual check; learning/source audit remain open.
+
+To replay a nondefault policy, pass the saved top-level `policy` to
+`configured_report(parse_run_config(saved_config_without_sha), policy=report["policy"])`.
+The shared input checksum intentionally excludes the separately recorded policy.
 
 ## Start v0.3 state/action design
 

@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.2.0 synthetic resource-aware baseline VERIFIED (2026-10-13).
+**Current stage:** v0.2.1 professor-demo software checkpoint VERIFIED (2026-10-13).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 source-audited resource interpretation, physical allocation and DQN remain pending.
@@ -8,10 +8,14 @@ source-audited resource interpretation, physical allocation and DQN remain pendi
 **Working status (2026-10-13):** v0.1 and P4.3/P4.6 seeded workload generation are
 complete, implemented and verified by Codex for ashishjha20. Configuration-driven
 topology and explicit per-VM resource admission/reservation are VERIFIED. v0.2 is
-complete for the A-017/A-020 synthetic baseline scope. No task is currently active;
+complete for the A-017/A-020 synthetic baseline scope. The user-requested professor
+demo (A-021) is complete, implemented by Codex for **1aryansharma1 / Aryan Sharma**.
+Local Git identity and GitHub credential account select 1aryansharma1; global Git
+identity was not changed. No implementation task is currently active;
 next is v0.3 state/action contract design, owner unassigned.
 The verified v0.1 implementation commit is `993344d`.
-Latest verified implementation: `4f4307f` (v0.2.0 resource model); configured topology:
+Latest verified implementation: `2083faa` (v0.2.1 professor demo); resource model:
+`4f4307f`; configured topology:
 `e97a14d`; seeded workloads:
 `7ebf8d6`. The complete remaining backlog and immediate pickup checklist are in
 [NEXT_STEPS.md](NEXT_STEPS.md).
@@ -63,6 +67,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P5.7 | Network-transfer delays | NOT STARTED | Zero-delay fixture is explicitly recorded in report; no transfer formula is inferred |
 | P5.8 | Deterministic edge cases | VERIFIED for baseline scope | Empty workloads, simultaneous arrivals/completions, missing VMs, unknown/full queues, duplicate tasks and unsupported resource requests |
 | R004 / P7.3 baseline subset | Explicit per-VM demands/capacities, feasible placement and resource reservations | VERIFIED for synthetic model | Shared declared units, missing capacity never inferred, exact-fit/oversize/full-feasible-queue failures, reserve/release trace, no oversubscription/leak. Original paper resource specification and full P7 remain open |
+| P13.1 synthetic subset / professor demo | Two deterministic placement rules, paired evaluation and visual presentation | VERIFIED software scope | Same inputs/hashes, accounting and restored balances; three presets, offline HTML/JSON/SVG/PNG and talk track. Browser layout not automatically verified; full P13/P15 remain open |
 
 ## Verification in this checkout
 
@@ -78,6 +83,10 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | Seeded-workload checkpoint suite (historical): `.venv\Scripts\python.exe -m pytest -q` | 246 passed |
 | Configured-topology checkpoint suite (historical): `.venv\Scripts\python.exe -m pytest -q` | 304 passed |
 | Final v0.2.0 suite: `.venv\Scripts\python.exe -m pytest -q` | 367 passed |
+| v0.2.1 suite with demo extra: `.venv\Scripts\python.exe -m pytest -q` | 378 passed |
+| `python -m drlmots.demo` | Three paired presets, 15 SVG/15 PNG figures and offline report generated |
+| `node scripts/check_demo_controls.cjs` | All six scenario/policy selections, outcome tables, provenance and three JSON exports verified in DOM stub; no layout claim |
+| Wheel packaging | 0.2.1 wheel includes `drlmots/templates/demo.html` |
 | `.venv\Scripts\python.exe -m pip check` | No broken requirements found |
 | `.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json` | 3 completed, 0 failed; makespan 4 ms; average completion time 8/3 ms |
 | `.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json` | 96 completed, 4 explicitly failed (full queues), 100 accounted for; makespan 155.1273394932697 ms |
@@ -89,7 +98,10 @@ serial execution, feasibility, accounting and repeatability. It validates the do
 synthetic resource model, not physical host budgets, DQN behavior, energy, fault tolerance
 or experimental improvements. Old schema-1 config and demand-free workload checksums
 remain unchanged; schema 2 records explicit units/capacities/demands. Editable package
-metadata was refreshed to 0.2.0; dependency requirements did not change.
+metadata was refreshed to 0.2.1. The unchanged base lock is extended by the separate
+optional `requirements-demo-lock.txt`. Representative PNG figures were visually
+inspected; valid SVG namespaces/tooltips and safe embedded JSON are tested. The browser
+tool disallowed local-file preview, so real browser/mobile layout remains a manual check.
 
 ## Important unresolved paper details
 
@@ -105,9 +117,9 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 367-test suite verifies setup, entities/configuration/topology, fixed and
+The current 378-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
-resource admission/accounting and the SimPy baseline. This establishes only the documented
+resource admission/accounting, paired comparisons and figure exports. This establishes only the documented
 baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
 attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
 DRLMOTS algorithm; see decision A-017.

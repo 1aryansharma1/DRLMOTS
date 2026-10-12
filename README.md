@@ -6,10 +6,12 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Current status
 
-Version **0.2.0** is a verified synthetic scheduling baseline. It supports fixed/seeded
+Version **0.2.1** is a verified synthetic scheduling baseline with an offline professor
+demo and paired least-queue/first-fit comparisons. It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
-JSON reports. The current suite passes **367 tests** on Python 3.11.9 (2026-10-13).
+JSON reports. The current suite passes **378 tests** with the demo extra on Python
+3.11.9 (2026-10-13). See [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md) for the presentation guide.
 
 The original fixed example still completes three tasks with a 4 ms makespan. The
 resource example accounts for six simultaneous tasks: four complete and two fail when
@@ -32,6 +34,7 @@ original DRLMOTS paper against the existing extraction.
 - [PROGRESS_REPORT.md](PROGRESS_REPORT.md) — dated delivery report, verification results, and remaining work.
 - [HANDOFF.md](HANDOFF.md) — collaborator starting point, module map, and the next task's acceptance criteria.
 - [NEXT_STEPS.md](NEXT_STEPS.md) — complete remaining-work checklist, pickup order, open decisions, and handoff rules.
+- [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md) — offline report, five-minute walkthrough and honest answers to likely questions.
 
 ## Core approach
 
@@ -61,7 +64,8 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 367 passing tests. The last command prints
+Expected checks: no broken requirements; 377 passing tests and one figure test skipped
+without the optional Matplotlib extra (378 passing with it). The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -70,7 +74,35 @@ If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python v
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
 After pulling v0.2 into an existing editable environment, rerun the editable install
-command to refresh package version metadata. The report should identify version 0.2.0.
+command to refresh package version metadata. The report should identify version 0.2.1.
+
+## Professor demo and paired comparisons
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-demo-lock.txt
+.\.venv\Scripts\python.exe -m pip install --no-deps -e .
+.\.venv\Scripts\python.exe -m drlmots.demo --config configs/resources.yaml --output-dir outputs/demos
+Start-Process .\outputs\demos\drlmots-demo.html
+```
+
+This self-contained HTML displays three precomputed paired scenarios, task timelines,
+VM occupancy, outcomes and checksums; it works offline. The command also exports full
+JSON and 15 SVG/15 PNG figures. The optional demo lock extends the unchanged base lock;
+Matplotlib is only required for figure generation. Alternatively install `-e '.[dev,demo]'`
+for compatible unpinned dependencies. Generated outputs stay ignored and are regenerated
+by each collaborator. Read PROFESSOR_DEMO.md before presenting.
+
+Both policies use resource/queue eligibility and FCFS VM queues. `least_queue_fcfs`
+(default) chooses minimum running-plus-waiting count, then VM ID; `first_fit_fcfs`
+chooses minimum eligible VM ID. These are synthetic software comparators, not trained
+agents or the paper's CNN/LSTM/GGCN baselines. For the seed-42 100-task resource preset,
+least queue completes 96 and rejects 4; first fit completes 91 and rejects 9. Timing
+must be read alongside these counts, because successful tasks alone determine timings.
+These single-seed observations do not establish general performance improvements.
+
+The normal simulator CLI also accepts `--policy first_fit_fcfs`. For replay, call
+`configured_report(parse_run_config(saved_config_without_sha), policy=report["policy"])`;
+the policy is recorded separately from the shared input configuration checksum.
 
 ## Seeded synthetic workloads (v0.2 checkpoint)
 
@@ -181,7 +213,8 @@ cross-VM resource sharing. See assumption A-020 for this model's limits.
 | Version | Completion target | Status |
 |---|---|---|
 | 0.1 | Deterministic topology, queue simulation, exact timelines and saved inputs/results | VERIFIED |
-| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | VERIFIED for synthetic baseline; 367 tests pass |
+| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | VERIFIED; original resource checkpoint passed 367 tests |
+| 0.2.1 | Offline professor report, paired simple policies, figures and presentation guide | VERIFIED software checks: 378 tests; browser layout requires manual preview |
 | 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Next: state/action contract first |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 
