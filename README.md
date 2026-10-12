@@ -10,7 +10,11 @@ Version 0.1 is a runnable deterministic scheduling baseline. It includes validat
 Task/Host/VM models, fog/cloud topology, task lifecycle transitions, finite configuration
 validation, a fixed synthetic workload factory, and a SimPy execution loop. The example
 completes three tasks on two VMs with a 4 ms makespan and an 8/3 ms average completion
-time. All 194 tests passed on Python 3.11.9 on 2026-10-13.
+time. Its initial suite passed 194 tests. The current suite passes 246 tests on Python
+3.11.9 (2026-10-13), including the v0.2 seeded-workload checkpoint.
+
+P4.3 seeded synthetic workload generation and its P4.6 manifest are now verified.
+v0.2 remains in progress: configurable topology and resource/placement behavior are next.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -55,7 +59,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 194 passing tests. The last command prints
+Expected checks: no broken requirements; 246 passing tests. The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -63,6 +67,31 @@ identical JSON. Generated results are ignored by Git.
 If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python version
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
+
+## Seeded synthetic workloads (v0.2 checkpoint)
+
+An explicit task count and seed select random generation. Without synthetic options,
+the CLI retains the original fixed three-task example. The topology is still the fixed
+two-VM fixture with one waiting slot per VM; topology/resource configuration is pending.
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json
+.\.venv\Scripts\python.exe -m drlmots --task-count 10 --seed 7 --interarrival-ms 1 3 --length-bytes 500 2000 --data-size-kb 20 150
+```
+
+The synthetic model places the first arrival at 0 ms and samples subsequent intervals
+uniformly. Lengths are integer-uniform bytes; data sizes are independently uniform kB.
+These are explicit implementation choices in A-018, not claims about the paper's
+distribution. Software-demo range defaults are 0-3 ms, 500-2000 bytes, and 20-150 kB.
+All bounds/seed/counts are configurable and recorded. Zero tasks and zero intervals
+are supported; invalid or non-finite inputs are rejected.
+
+The manifest includes the seed, distributions, all generator settings, units, RNG
+identity, generator/Python versions, exact tasks, and SHA-256. Identical settings within
+the recorded runtime/generator version reproduce both tasks and results, without
+changing global random state. The 100-task seed-42 example completes 96 tasks and
+explicitly rejects 4 because every waiting queue is full; all 100 are accounted for.
+It is a simulator check, not a scheduling-performance result against the paper.
 
 ## Baseline semantics and limits
 
@@ -91,7 +120,7 @@ installation command using the same `.venv` interpreter. Do not use system Pytho
 | Version | Completion target | Status |
 |---|---|---|
 | 0.1 | Deterministic topology, queue simulation, exact timelines and saved inputs/results | VERIFIED |
-| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | Next |
+| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | IN PROGRESS: workloads verified; topology/resources next |
 | 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Planned |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 

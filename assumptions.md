@@ -117,6 +117,36 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-018 - Seeded synthetic arrivals and workload provenance
+
+- **Date:** 2026-10-13.
+- **Status:** DECIDED as a synthetic workload model, not an inferred paper distribution.
+- **Microtasks:** P4.3 and the random-workload extension of P4.6.
+- **Source boundary:** The existing extraction R009 says random arrival intervals;
+  the arrival distribution remains unspecified. This decision does not resolve the
+  original dataset identity, task-length units or conflicting experiment task counts.
+- **Selected rule:** A caller supplies a nonnegative integer task count and seed,
+  a finite nonnegative interarrival range in milliseconds, an inclusive positive
+  integer length range in bytes, and a finite positive data-size range in kB.
+- **Arrivals:** The first task arrives at 0 ms. Later intervals are independent uniform
+  draws within the supplied range, accumulated in input order. Zero intervals are
+  allowed and represent simultaneous arrivals. Reject non-finite accumulated times.
+- **Task attributes:** Lengths use inclusive integer-uniform draws, data sizes use
+  continuous uniform draws; these fields are independent. IDs are unique within each
+  workload. Required resources remain empty for the existing baseline.
+- **Randomness:** Use a local `random.Random(seed)` instance, leaving global RNG state
+  unchanged. For each task draw its interval (except the first), then length, then
+  data size. Record generator version and Python runtime version; repeatability is
+  guaranteed for identical settings within the recorded runtime/generator version.
+- **Provenance:** The manifest includes source `synthetic_seeded`, seed, distribution,
+  all bounds/counts/units, first-arrival rule, RNG identity/version, exact tasks and a
+  SHA-256 over inputs plus settings. An empty workload still records its settings.
+- **CLI example:** Random generation is requested explicitly and requires an explicit
+  seed and count. CLI range defaults are labelled software-demo settings, not values
+  inferred from the paper. The original fixed three-task smoke example stays available.
+- **Verification gate:** Bounds, invalid inputs, zero tasks, unchanged global RNG,
+  repeated outputs/checksums, provenance sensitivity and simulator task accounting.
+
 ## A-017 - Versioned implementation and v0.1 fixture semantics
 
 - **Date:** 2026-10-13.

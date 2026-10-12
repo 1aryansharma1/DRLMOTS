@@ -1,9 +1,10 @@
 # DRLMOTS collaborator handoff
 
 **Last updated:** 2026-10-13
-**Current checkpoint:** v0.1 deterministic baseline, implementation commit `993344d`.
-**Next task:** P4.3 - seeded synthetic workload generation for v0.2.
-**Task ownership:** not assigned in the repository yet. Record the owner and status
+**Current checkpoint:** v0.2 P4.3/P4.6 seeded workload generation VERIFIED;
+v0.1 foundation is commit `993344d`.
+**Next task:** configuration-driven topology construction for v0.2 (configurable P5.1).
+**Task ownership:** P4.3 completed by Codex for ashishjha20; the next task is unassigned. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
 ## Read this first
@@ -34,10 +35,12 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
+.\.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json
 ```
 
-Expected baseline: 194 tests pass; dependency check is clean; example completes three
-tasks with zero failures and 4 ms makespan. The `.venv` is local, not in Git. Python
+Expected current checks: 246 tests pass; dependency check is clean; fixed example completes three
+tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
+4 because all queues are full, accounting for every input. The `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
 
 ## Where the current behavior lives
@@ -47,11 +50,12 @@ tasks with zero failures and 4 ms makespan. The `.venv` is local, not in Git. Py
 | `src/drlmots/entities.py` | Task/Host/VM, ResourceTier, TaskStatus; `Task.transition_to` enforces lifecycle rules |
 | `src/drlmots/config.py` | YAML validation; nullable unresolved settings; optional paper experiment settings separate from small fixtures |
 | `src/drlmots/topology.py` | AP/end/fog/cloud links and single host/VM node membership; no VM-to-physical-host assignment |
-| `src/drlmots/workload.py` | `fixed_workload`, explicit-unit `processing_time_ms`, and input `workload_manifest` with SHA-256 |
+| `src/drlmots/workload.py` | `SyntheticWorkloadSettings`, `seeded_workload`, `fixed_workload`, explicit-unit `processing_time_ms`, and `workload_manifest` with SHA-256/settings/runtime provenance |
 | `src/drlmots/environment.py` | `simulate(topology, tasks, task_length_unit="bytes")`; returns immutable outcomes and completion metrics |
-| `src/drlmots/__main__.py` | Fixed smoke fixture and `python -m drlmots` JSON report; not a configurable experiment runner yet |
+| `src/drlmots/__main__.py` | Fixed topology; fixed or CLI-configured seeded workloads and JSON reports; topology/resources not configurable yet |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
+| `tests/integration/test_seeded_cli.py` | Seeded simulator accounting, actual CLI output files and invalid-input handling |
 | `configs/default.yaml` | Unresolved fields stay null; source-reported settings are recorded separately |
 
 Preserve these tested semantics unless a documented task intentionally changes them:
@@ -67,33 +71,40 @@ Preserve these tested semantics unless a documented task intentionally changes t
   feasibility is actually implemented; queue_capacity=None is unknown, not unlimited.
 - Network delay is zero. No energy, reliability or reward result is available yet.
 
-## Start P4.3
+## Completed P4.3 checkpoint
 
-Build on `workload.py` and `tests/unit/test_workload.py`. Start with a small configurable
-synthetic generator, not a guessed Google Jobs import. The current paper extraction only
-says arrivals occur at random intervals; it does not establish their distribution.
+`seeded_workload(SyntheticWorkloadSettings(...))` returns tasks. Pass the same settings
+as `generator_settings` to `workload_manifest` to record random-workload provenance.
+The settings explicitly contain task_count, seed, interarrival_ms_range,
+length_bytes_range and data_size_kb_range. A-018 documents the uniform synthetic model;
+the original paper distribution/dataset identity remain unresolved.
 
-Before implementing, record the selected distribution and its units in `assumptions.md`
-as an implementation choice. Use a local seeded random generator, with explicit task
-count, arrival parameters and positive byte-length/data-size ranges. Keep all unresolved
-paper-specific values visible rather than adding purported paper defaults.
+All previous P4.3 acceptance criteria are verified: local RNG without global mutation;
+repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
+ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
+file for invalid CLI inputs; existing baseline tests retained. The suite totals 246 tests.
 
-Acceptance criteria for this task:
+## Start configuration-driven topology
 
-1. Same seed and settings produce identical tasks and identical manifest/checksum.
-2. Task IDs are unique; requested count is exact, including an explicitly supported
-   zero-task case. Negative/fractional/bool counts and invalid ranges fail clearly.
-3. Arrival timestamps are finite, nonnegative and ordered; byte lengths and data sizes
-   are finite/positive and stay within the requested bounds.
-4. Seed, distribution name, units, ranges and generator settings appear in the manifest.
-   Changing an effective setting changes the recorded provenance.
-5. A small generated workload completes or explicitly fails every task through the
-   existing simulator; repeated runs agree. Existing deterministic tests still pass.
-6. Record the actual test command/results and task owner/status in `progress.md`.
-   Update this handoff with the next task; do not mark the whole version complete.
+The CLI currently constructs its topology directly in `smoke_report`; do not imply that
+`configs/default.yaml` controls it. Add an explicit runnable configuration and builder
+using the existing topology invariants. Keep the unresolved paper configuration separate
+from a small software fixture; do not silently invent VM/host distributions.
 
-After P4.3, continue configurable topology construction and the explicit resource/
-placement model. Keep each change small enough to review and document behavior changes.
+Acceptance criteria:
+
+1. Caller-configured AP/end/fog/cloud links and host/VM memberships construct a valid
+   `Topology`; counts/IDs/capacities match the input exactly.
+2. Missing counts or required capacities fail clearly; unknown is not unlimited.
+   References, duplicate IDs and wrong-tier/orphan resources still fail.
+3. No source-ambiguous unit, distribution or mapping is presented as a paper default.
+4. The CLI can run a seeded workload using that topology and saves exact configuration,
+   input settings/checksums and results. Fixed/seeded baseline examples still work.
+5. A tiny configured topology yields hand-calculated timelines, and reruns agree.
+   Report actual test results and update progress/owner/resume point.
+
+After configurable topology, add an explicit resource/placement model. Keep each change
+small enough to review and document behavior changes. v0.2 is not complete yet.
 Do not begin DQN training until state/action/reward definitions, metrics and simulator
 prerequisites are verified. Source ambiguity should become a recorded assumption or
 open item, never an undocumented formula or a claim of reproduced results.

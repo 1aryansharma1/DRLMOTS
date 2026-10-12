@@ -3,7 +3,33 @@
 **Report date:** 2026-10-13 (Asia/Kolkata)
 **Branch:** main
 **Implementation checkpoint:** `993344d` - Implement deterministic v0.1 scheduling baseline
-**Working status:** v0.1 complete and verified; v0.2 not started.
+**Working status:** v0.1 complete; v0.2 in progress. P4.3/P4.6 seeded workload checkpoint
+is now verified. Configuration-driven topology and resource/placement behavior are next.
+
+## Latest checkpoint - seeded synthetic workloads
+
+P4.3 adds explicit task count, seed, uniform interarrival-ms bounds, inclusive integer
+byte lengths and uniform data-size-kB ranges. The local RNG does not change global
+random state. P4.6 now records all settings, distribution/unit names, RNG identity,
+generator/Python versions, exact tasks and their SHA-256. Zero-task and simultaneous
+arrival cases are supported; invalid settings and accumulated-time overflow fail clearly.
+
+Actual checks on 2026-10-13: **246 tests passed**; `pip check` found no broken requirements.
+The original fixed fixture still yields three completions and 4 ms makespan.
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json
+```
+
+This run accounted for all 100 inputs: **96 completed, 4 explicitly failed** because
+all waiting queues were full. Makespan was **155.1273394932697 ms**. Its workload
+SHA-256 was `b22d2e1654e5f8f0f4a5a79a201966d97e8033dba19b89f9f98239848122b231`
+with the recorded Python 3.11.9/generator-v1 settings. The 2-VM topology is still the
+fixed test fixture. These numbers verify execution/accounting, not paper performance.
+
+P4.4-P4.5 remain open; no experiment-count conflict or real dataset mapping is resolved.
+A-018 labels the synthetic distribution as an implementation choice. See HANDOFF
+for configuration-driven topology's next acceptance criteria.
 
 ## Delivered in v0.1
 
@@ -27,8 +53,8 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 
 ## Verification
 
-The following checks were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before publication:
+The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
+virtual environment before its publication. The latest suite is 246 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -59,7 +85,7 @@ by Git; the command recreates the example. No training results or checkpoints ex
 
 ## Remaining work and source limitations
 
-- P4.3-P4.5: seeded random workloads, experiment-size handling, and real dataset provenance.
+- P4.4-P4.5: experiment-size handling and real dataset provenance; P4.3 is now verified.
 - P5.1: configurable/full topology construction; the runnable example is a tiny fixture.
 - P5.7: a documented network-delay model; the baseline explicitly uses zero delay.
 - Resource feasibility and VM-to-host allocation: not implemented. Nonempty task
@@ -74,10 +100,8 @@ by Git; the command recreates the example. No training results or checkpoints ex
 
 ## Next delivery
 
-v0.2 starts with P4.3: a seeded synthetic workload generator with configurable counts,
-arrival parameters and task-size/length ranges. Record any distribution choice as an
-implementation assumption and extend the manifest to contain every generator setting.
-Then add configurable topology and explicit resource/placement behavior with their own
+P4.3 and its seeded manifest are complete. Continue v0.2 with configurable topology
+and explicit resource/placement behavior with their own
 tests. DQN work remains a later milestone after these behavior and source decisions.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.

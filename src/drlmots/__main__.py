@@ -1,4 +1,4 @@
-"""Run v0.1's deterministic, synthetic scheduling example."""
+"""Run fixed or seeded synthetic workloads through the verified baseline."""
 
 import argparse
 from dataclasses import asdict
@@ -8,10 +8,12 @@ from pathlib import Path
 from drlmots.entities import Host, ResourceTier, VM
 from drlmots.environment import simulate
 from drlmots.topology import AccessPoint, CloudDatacenter, EndNode, FogNode, Topology
-from drlmots.workload import fixed_workload, workload_manifest
+from drlmots.workload import (
+    SyntheticWorkloadSettings, fixed_workload, seeded_workload, workload_manifest,
+)
 
 
-def smoke_report() -> dict:
+def smoke_report(settings: SyntheticWorkloadSettings | None = None) -> dict:
     topology = Topology(
         hosts=(Host("host-fog", 3, 32, 1000), Host("host-cloud", 3, 32, 1000)),
         vms=(VM("vm-fog", ResourceTier.FOG, 200, queue_capacity=1),
@@ -21,7 +23,7 @@ def smoke_report() -> dict:
         access_points=(AccessPoint("ap", "end"),),
         end_nodes=(EndNode("end", ("fog",)),),
     )
-    tasks = fixed_workload([
+    tasks = seeded_workload(settings) if settings is not None else fixed_workload([
         {"task_id": "task-1", "arrival_time": 0, "length": 1000, "data_size_kb": 20},
         {"task_id": "task-2", "arrival_time": 0, "length": 2000, "data_size_kb": 20},
         {"task_id": "task-3", "arrival_time": 1, "length": 500, "data_size_kb": 20},
@@ -29,6 +31,7 @@ def smoke_report() -> dict:
     result = simulate(topology, tasks, task_length_unit="bytes")
     return {
         "version": "0.1.0",
+        "milestone": "v0.2 workload generation" if settings is not None else "v0.1 fixed smoke",
         "implementation_scope": "deterministic software baseline; not paper reproduction",
         "policy": "least_queue_fcfs",
         "tie_breaking": "VM ID; simultaneous arrivals retain input order; completions first",
@@ -37,7 +40,7 @@ def smoke_report() -> dict:
         "overflow_policy": "reject when all configured VM queues are full",
         "network_delay_ms": 0,
         "resource_feasibility": "not modelled; nonempty task resource requirements rejected",
-        "workload": workload_manifest(tasks, length_unit="bytes"),
+        "workload": workload_manifest(tasks, length_unit="bytes", generator_settings=settings),
         "topology": asdict(topology),
         "completed_count": result.completed_count,
         "failed_count": result.failed_count,
@@ -48,10 +51,34 @@ def smoke_report() -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the deterministic DRLMOTS v0.1 example")
+    parser = argparse.ArgumentParser(description="Run the DRLMOTS software baseline with fixed or seeded inputs")
     parser.add_argument("--output", type=Path, help="Also save the exact inputs and results as JSON")
+    parser.add_argument("--task-count", type=int, help="Generate this many synthetic tasks; requires --seed")
+    parser.add_argument("--seed", type=int, help="Explicit nonnegative synthetic-workload seed")
+    parser.add_argument("--interarrival-ms", nargs=2, type=float, metavar=("MIN", "MAX"),
+                        help="Uniform interval bounds; demo default: 0 to 3 ms")
+    parser.add_argument("--length-bytes", nargs=2, type=int, metavar=("MIN", "MAX"),
+                        help="Inclusive integer length bounds; demo default: 500 to 2000 bytes")
+    parser.add_argument("--data-size-kb", nargs=2, type=float, metavar=("MIN", "MAX"),
+                        help="Uniform data-size bounds; demo default: 20 to 150 kB")
     args = parser.parse_args()
-    report = smoke_report()
+    synthetic_requested = any(value is not None for value in (
+        args.task_count, args.seed, args.interarrival_ms, args.length_bytes, args.data_size_kb
+    ))
+    settings = None
+    if synthetic_requested:
+        if args.task_count is None or args.seed is None:
+            parser.error("synthetic generation requires both --task-count and --seed")
+        try:
+            settings = SyntheticWorkloadSettings(
+                task_count=args.task_count, seed=args.seed,
+                interarrival_ms_range=args.interarrival_ms or (0, 3),
+                length_bytes_range=args.length_bytes or (500, 2000),
+                data_size_kb_range=args.data_size_kb or (20, 150),
+            )
+        except (TypeError, ValueError) as error:
+            parser.error(str(error))
+    report = smoke_report(settings)
     content = json.dumps(report, indent=2, allow_nan=False)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
