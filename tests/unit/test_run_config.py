@@ -95,7 +95,7 @@ def test_invalid_vm_list_structure_rejected(value):
 
 
 @pytest.mark.parametrize("field,value", [
-    ("schema_version", True), ("schema_version", 1.0), ("schema_version", 2),
+    ("schema_version", True), ("schema_version", 1.0), ("schema_version", 3),
     ("kind", "paper"), ("kind", None),
 ])
 def test_wrong_schema_or_kind_rejected(field, value):

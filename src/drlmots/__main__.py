@@ -3,6 +3,7 @@
 import argparse
 from dataclasses import asdict
 import json
+from importlib.metadata import version
 from pathlib import Path
 
 from drlmots.entities import Host, ResourceTier, VM
@@ -18,6 +19,7 @@ def smoke_report(
     settings: SyntheticWorkloadSettings | None = None,
     *,
     topology: Topology | None = None,
+    resource_units=None,
 ) -> dict:
     if topology is None:
         topology = _smoke_topology()
@@ -26,8 +28,9 @@ def smoke_report(
         {"task_id": "task-2", "arrival_time": 0, "length": 2000, "data_size_kb": 20},
         {"task_id": "task-3", "arrival_time": 1, "length": 500, "data_size_kb": 20},
     ], length_unit="bytes")
-    result = simulate(topology, tasks, task_length_unit="bytes")
-    return _report(topology, tasks, settings, result)
+    units = {} if resource_units is None else resource_units
+    result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units)
+    return _report(topology, tasks, settings, result, units)
 
 
 def _smoke_topology() -> Topology:
@@ -42,19 +45,23 @@ def _smoke_topology() -> Topology:
     )
 
 
-def _report(topology, tasks, settings, result) -> dict:
+def _report(topology, tasks, settings, result, resource_units) -> dict:
     return {
-        "version": "0.1.0",
+        "version": version("drlmots"),
         "milestone": "v0.2 workload generation" if settings is not None else "v0.1 fixed smoke",
         "implementation_scope": "deterministic software baseline; not paper reproduction",
         "policy": "least_queue_fcfs",
         "tie_breaking": "VM ID; simultaneous arrivals retain input order; completions first",
         "service_time_model": "explicit byte-valued fixture: length * 2 / 1000 milliseconds",
         "queue_capacity_semantics": "waiting tasks only; one additional running task per VM",
-        "overflow_policy": "reject when all configured VM queues are full",
+        "overflow_policy": "reject when all resource-feasible VM queues are full",
+        "no_capacity_policy": "reject if no VM satisfies every task demand",
         "network_delay_ms": 0,
-        "resource_feasibility": "not modelled; nonempty task resource requirements rejected",
-        "workload": workload_manifest(tasks, length_unit="bytes", generator_settings=settings),
+        "resource_feasibility": "componentwise per-VM fit; missing capacity is unknown; no host budget inferred",
+        "resource_units": dict(resource_units),
+        "resource_reservation_policy": "running tasks only; release before queued starts and same-time arrivals",
+        "workload": workload_manifest(tasks, length_unit="bytes", generator_settings=settings,
+                                      resource_units=resource_units),
         "topology": asdict(topology),
         "topology_counts": {name: len(getattr(topology, name)) for name in (
             "hosts", "vms", "fog_nodes", "cloud_datacenters", "access_points", "end_nodes"
@@ -64,12 +71,14 @@ def _report(topology, tasks, settings, result) -> dict:
         "makespan_ms": result.makespan_ms,
         "average_completion_time_ms": result.average_completion_time_ms,
         "outcomes": [asdict(item) for item in result.outcomes],
+        "resource_events": [asdict(item) for item in result.resource_events],
+        "available_resources": result.available_resources,
     }
 
 
 def configured_report(config: RunConfig) -> dict:
-    report = smoke_report(config.workload, topology=config.topology)
-    report["milestone"] = "v0.2 configured topology"
+    report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units)
+    report["milestone"] = "v0.2 resource-aware baseline" if config.schema_version == 2 else "v0.2 configured topology"
     report["run_configuration"] = config.manifest()
     return report
 

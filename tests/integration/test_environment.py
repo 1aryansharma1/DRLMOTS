@@ -97,9 +97,9 @@ def test_nonempty_initial_queues_rejected():
         run(resources, [task()])
 
 
-def test_unsupported_resource_requirements_are_not_silently_ignored():
+def test_resource_requirements_need_explicit_unit_declarations():
     demanding = replace(task(), required_resources={"cpu": 1})
-    with pytest.raises(ValueError, match="resource feasibility"):
+    with pytest.raises(ValueError, match="resource_units"):
         run(topology(), [demanding])
 
 

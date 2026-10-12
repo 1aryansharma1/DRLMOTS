@@ -1,6 +1,6 @@
 """Runnable synthetic configurations, separate from unresolved paper settings."""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import hashlib
 import json
 from pathlib import Path
@@ -10,6 +10,7 @@ import yaml
 from drlmots.config import ConfigError
 from drlmots.topology import Topology, build_topology
 from drlmots.workload import SyntheticWorkloadSettings
+from drlmots.resources import require_declared_units, validate_resource_units
 
 
 def _exact_keys(value, keys, name):
@@ -23,23 +24,48 @@ def _exact_keys(value, keys, name):
 class RunConfig:
     topology: Topology
     workload: SyntheticWorkloadSettings
+    resource_units: dict[str, str] = field(default_factory=dict)
+    schema_version: int = 1
+
+    def __post_init__(self):
+        object.__setattr__(self, "resource_units", validate_resource_units(self.resource_units))
+        self._validate_schema()
+
+    def _validate_schema(self):
+        if type(self.schema_version) is not int or self.schema_version not in (1, 2):
+            raise ConfigError("run schema_version must be integer 1 or 2")
+        self.topology.validate()
+        if self.schema_version == 1 and (
+            self.resource_units or self.workload.required_resources
+            or any(vm.resource_capacities is not None for vm in self.topology.vms)
+        ):
+            raise ConfigError("resource-aware settings require run schema 2")
+        require_declared_units(self.workload.required_resources, self.resource_units)
+        for vm in self.topology.vms:
+            require_declared_units(vm.resource_capacities or {}, self.resource_units)
 
     def manifest(self) -> dict:
         """Record effective settings, excluding local file paths/formatting."""
+        self._validate_schema()
         topology = asdict(self.topology)
         for vm in topology["vms"]:
             del vm["queue"]  # Runnable config has no preloaded task queues.
+            if self.schema_version == 1:
+                del vm["resource_capacities"]
         payload = {
-            "schema_version": 1,
+            "schema_version": self.schema_version,
             "kind": "synthetic_baseline",
             "topology": topology,
             "workload": {
                 "generator": "uniform_interarrival",
                 "length_unit": "bytes",
                 "arrival_time_unit": "milliseconds",
-                **asdict(self.workload),
+                **self.workload.manifest_settings(),
             },
         }
+        if self.schema_version == 2:
+            payload["resource_units"] = dict(self.resource_units)
+            payload["workload"]["required_resources"] = dict(self.workload.required_resources)
         encoded = json.dumps(payload, sort_keys=True, allow_nan=False).encode("utf-8")
         return {**json.loads(encoded), "sha256": hashlib.sha256(encoded).hexdigest()}
 
@@ -59,28 +85,41 @@ class _UniqueKeyLoader(yaml.SafeLoader):
 
 
 def parse_run_config(data) -> RunConfig:
-    _exact_keys(data, {"schema_version", "kind", "topology", "workload"}, "run configuration")
-    if type(data["schema_version"]) is not int or data["schema_version"] != 1:
-        raise ConfigError("run schema_version must be integer 1")
+    if not isinstance(data, dict):
+        raise ConfigError("run configuration must be a mapping")
+    schema_version = data.get("schema_version")
+    if type(schema_version) is not int or schema_version not in (1, 2):
+        raise ConfigError("run schema_version must be integer 1 or 2")
+    resource_aware = schema_version == 2
+    root_keys = {"schema_version", "kind", "topology", "workload"}
+    if resource_aware:
+        root_keys.add("resource_units")
+    _exact_keys(data, root_keys, "run configuration")
     if data["kind"] != "synthetic_baseline":
         raise ConfigError("run kind must be synthetic_baseline")
     workload = data["workload"]
     setting_keys = {
         "task_count", "seed", "interarrival_ms_range", "length_bytes_range", "data_size_kb_range",
     }
+    if resource_aware:
+        setting_keys.add("required_resources")
     _exact_keys(workload, setting_keys | {"generator", "length_unit", "arrival_time_unit"}, "run workload")
     if workload["generator"] != "uniform_interarrival":
         raise ConfigError("run workload.generator must be uniform_interarrival")
     if workload["length_unit"] != "bytes" or workload["arrival_time_unit"] != "milliseconds":
         raise ConfigError("run workload requires bytes and milliseconds explicitly")
     try:
-        topology = build_topology(data["topology"])
+        topology = build_topology(data["topology"], resource_aware=resource_aware)
         settings = SyntheticWorkloadSettings(**{key: workload[key] for key in setting_keys})
+        units = validate_resource_units(data["resource_units"] if resource_aware else {})
+        require_declared_units(settings.required_resources, units)
+        for vm in topology.vms:
+            require_declared_units(vm.resource_capacities or {}, units)
     except (TypeError, ValueError) as error:
         raise ConfigError(str(error)) from error
     if settings.task_count and not topology.vms:
         raise ConfigError("non-empty workload requires at least one VM")
-    return RunConfig(topology, settings)
+    return RunConfig(topology, settings, units, schema_version)
 
 
 def load_run_config(path: str | Path) -> RunConfig:

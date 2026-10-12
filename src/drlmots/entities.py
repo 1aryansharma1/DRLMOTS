@@ -48,23 +48,9 @@ class Task:
         self._validate_number("length", self.length, allow_zero=False)
         self._validate_number("data_size_kb", self.data_size_kb, allow_zero=False)
 
-        if not isinstance(self.required_resources, Mapping):
-            raise TypeError("required_resources must be a mapping")
-
-        validated_resources: dict[str, float] = {}
-        for name, amount in self.required_resources.items():
-            if not isinstance(name, str) or not name.strip():
-                raise ValueError("resource names must be non-empty strings")
-            self._validate_number(
-                f"required_resources[{name!r}]",
-                amount,
-                allow_zero=False,
-            )
-            validated_resources[name] = amount
-
-        # Copy the mapping so later changes to the caller's dictionary
-        # do not silently change this task's requirements.
-        self.required_resources = validated_resources
+        self.required_resources = validate_resource_amounts(
+            self.required_resources, "required_resources"
+        )
 
         if not isinstance(self.status, TaskStatus):
             raise TypeError("status must be a TaskStatus value")
@@ -96,7 +82,11 @@ class Task:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError(f"{name} must be a number")
 
-        if not math.isfinite(value):
+        try:
+            finite = math.isfinite(value)
+        except OverflowError:
+            finite = False
+        if not finite:
             raise ValueError(f"{name} must be finite")
 
         if value < 0 or (not allow_zero and value == 0):
@@ -145,7 +135,8 @@ class VM:
     """Virtual machine used as a scheduling resource.
 
     Queue capacity is None when the paper's capacity is unspecified.
-    None means unknown, not unlimited.
+    Resource capacities are explicitly supplied, using the run's unit catalogue.
+    None or a missing resource key means unknown, not unlimited.
     """
 
     vm_id: str
@@ -153,6 +144,7 @@ class VM:
     bandwidth_reported: float
     queue: list[Task] = field(default_factory=list)
     queue_capacity: int | None = None
+    resource_capacities: Mapping[str, float] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.vm_id, str) or not self.vm_id.strip():
@@ -162,6 +154,11 @@ class VM:
             raise TypeError("tier must be a ResourceTier value")
 
         Host._validate_positive("bandwidth_reported", self.bandwidth_reported)
+
+        if self.resource_capacities is not None:
+            self.resource_capacities = validate_resource_amounts(
+                self.resource_capacities, "resource_capacities"
+            )
 
         if not isinstance(self.queue, list):
             raise TypeError("queue must be a list of Task objects")
@@ -184,3 +181,16 @@ class VM:
 
             if len(self.queue) > self.queue_capacity:
                 raise ValueError("initial queue exceeds queue_capacity")
+
+
+def validate_resource_amounts(value, name: str) -> dict[str, float]:
+    """Validate and copy a demand/capacity mapping; units are declared per run."""
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping")
+    result = {}
+    for key, amount in value.items():
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("resource names must be non-empty strings")
+        Task._validate_number(f"{name}[{key!r}]", amount, allow_zero=False)
+        result[key] = amount
+    return result

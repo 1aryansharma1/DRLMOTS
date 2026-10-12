@@ -1,14 +1,15 @@
 """Fixed and seeded synthetic inputs with explicit units and provenance."""
 
 from collections.abc import Mapping, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import hashlib
 import json
 import math
 import platform
 import random
 
-from drlmots.entities import Task
+from drlmots.entities import Task, validate_resource_amounts
+from drlmots.resources import require_declared_units, validate_resource_units
 
 
 def _validated_range(value, name: str, *, integers=False, allow_zero=False):
@@ -38,6 +39,7 @@ class SyntheticWorkloadSettings:
     interarrival_ms_range: tuple[float, float]
     length_bytes_range: tuple[int, int]
     data_size_kb_range: tuple[float, float]
+    required_resources: Mapping[str, float] = field(default_factory=dict)
 
     def __post_init__(self):
         for name in ("task_count", "seed"):
@@ -55,6 +57,15 @@ class SyntheticWorkloadSettings:
         object.__setattr__(self, "data_size_kb_range", _validated_range(
             self.data_size_kb_range, "data_size_kb_range"
         ))
+        object.__setattr__(self, "required_resources", validate_resource_amounts(
+            self.required_resources, "required_resources"
+        ))
+
+    def manifest_settings(self) -> dict:
+        result = asdict(self)
+        if not self.required_resources:
+            del result["required_resources"]  # Preserve demand-free generator-v1 provenance.
+        return result
 
 
 def seeded_workload(settings: SyntheticWorkloadSettings) -> list[Task]:
@@ -80,6 +91,7 @@ def seeded_workload(settings: SyntheticWorkloadSettings) -> list[Task]:
             arrival_time=arrival,
             length=length,
             data_size_kb=rng.uniform(*settings.data_size_kb_range),
+            required_resources=settings.required_resources,
         ))
     return tasks
 
@@ -122,8 +134,12 @@ def workload_manifest(
     *,
     length_unit: str,
     generator_settings: SyntheticWorkloadSettings | None = None,
+    resource_units=None,
 ) -> dict:
     """Save exact inputs and their stable checksum; no external dataset claim."""
+    units = validate_resource_units({} if resource_units is None else resource_units)
+    for task in tasks:
+        require_declared_units(task.required_resources, units)
     payload = {
         "data_source": "synthetic_fixed_list",
         "seed": None,  # The fixed-list generator uses no randomness.
@@ -134,23 +150,28 @@ def workload_manifest(
     if generator_settings is not None:
         if not isinstance(generator_settings, SyntheticWorkloadSettings):
             raise TypeError("generator_settings must be SyntheticWorkloadSettings")
+        require_declared_units(generator_settings.required_resources, units)
         if length_unit != "bytes":
             raise ValueError("seeded workloads must explicitly use bytes")
         if len(tasks) != generator_settings.task_count:
             raise ValueError("manifest task count does not match generator settings")
+        if any(task.required_resources != generator_settings.required_resources for task in tasks):
+            raise ValueError("manifest demands do not match the generator resource profile")
         payload.update({
             "data_source": "synthetic_seeded",
             "seed": generator_settings.seed,
             "generator": {
                 "name": "uniform_interarrival",
-                "version": 1,
+                "version": 2 if generator_settings.required_resources else 1,
                 "rng": "python.random.Random",
                 "python_version": platform.python_version(),
                 "first_arrival_ms": 0,
                 "length_distribution": "integer_uniform_inclusive",
                 "data_size_distribution": "uniform",
-                "settings": asdict(generator_settings),
+                "settings": generator_settings.manifest_settings(),
             },
         })
+    if units:
+        payload["resource_units"] = units
     encoded = json.dumps(payload, sort_keys=True, allow_nan=False).encode("utf-8")
     return {**payload, "sha256": hashlib.sha256(encoded).hexdigest()}

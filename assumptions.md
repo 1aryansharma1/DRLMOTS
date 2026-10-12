@@ -117,6 +117,46 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-020 - Explicit per-VM resource feasibility and accounting
+
+- **Date:** 2026-10-13.
+- **Status:** DECIDED as a synthetic software model; paper resource capacities stay open.
+- **Scope:** v0.2 resource-aware baseline, scoped R004/P7.3 feasibility and no-capacity handling.
+- **Units:** One explicit `resource_units` catalogue gives each resource name its unit
+  for the entire run. Task demands and VM capacities refer to these same names/units.
+  No implicit conversion or per-VM unit override is performed. Missing unit declarations
+  are invalid input; missing/null capacity is unknown and cannot satisfy a positive demand.
+- **Amounts:** Resource names/units are nonempty strings and amounts are finite/positive.
+  Per-VM capacities are supplied explicitly; none are derived from physical hosts.
+- **Placement:** Filter to VMs whose total capacity satisfies every requested component.
+  Among those with a waiting slot, retain least-running-plus-waiting placement and VM-ID
+  ties. Empty demands preserve the old baseline behavior. No feasible VM means a FAILED
+  outcome; feasible VMs with full queues means a distinct full-queue FAILED outcome.
+- **Execution:** Each VM still runs one task at a time. Queued tasks reserve no resources.
+  At start, reserve that task's demands; release them at completion before starting the
+  next queued task or processing same-time arrivals. Record reservation/release events,
+  available balances and verify all reservations are released at termination.
+- **Service time:** Capacities control eligibility only; byte-valued Eq. (8) fixture
+  service time is unchanged. CPU units are abstract admission units, not MIPS or a speed
+  model. No physical host budget, multi-task execution or cross-VM sharing is claimed.
+- **Configuration:** Preserve schema 1 and its existing examples/checksums. Schema 2
+  adds an explicit unit catalogue, each VM's resource_capacities (null may mean unknown),
+  and workload required_resources. A synthetic generator uses a constant explicit demand
+  profile for every generated task; hand-built tasks may have different demand profiles.
+- **Provenance:** Include demands, capacities, units, admission/queue policy, resource
+  events and final balances. Demand-free generator-v1 manifests remain unchanged; adding
+  a demand profile uses generator version 2 and records it in generator settings.
+- **Example:** `configs/resources.yaml` has two VMs fitting 2 abstract CPU units/4 GB
+  and a third too small. Six simultaneous 2 ms tasks should give four completions, two
+  explicit full-feasible-queue failures, 4 ms makespan and fully restored balances.
+- **Remaining paper gaps:** Physical VM/host mapping, true resource values, priority/
+  threshold/tier semantics, state/reward, energy/reliability and DQN remain open.
+- **Verification:** 367 tests passed, including existing fixture compatibility,
+  exact-fit/oversize/unknown cases, componentwise fit, queued-vs-running reservations,
+  release ordering, 100-task heterogeneous accounting and resource-profile replay.
+  Resource fixture: four completed, two explicit queue-full failures, 4 ms makespan;
+  eight reserve/release events and all per-VM balances restored.
+
 ## A-019 - Explicit runnable topology configuration
 
 - **Date:** 2026-10-13.

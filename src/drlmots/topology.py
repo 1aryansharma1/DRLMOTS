@@ -141,7 +141,7 @@ class Topology:
                     raise ValueError(f"unknown fog node {fog_id!r}")
 
 
-def build_topology(spec: dict) -> Topology:
+def build_topology(spec: dict, *, resource_aware: bool = False) -> Topology:
     """Build explicit resources and memberships; reject missing/ignored settings.
 
     Counts derive from lists. Queue limits are mandatory for runnable resources.
@@ -155,6 +155,8 @@ def build_topology(spec: dict) -> Topology:
         "access_points": (AccessPoint, {"access_point_id", "end_node_id"}),
         "end_nodes": (EndNode, {"end_node_id", "fog_node_ids"}),
     }
+    if resource_aware:
+        schemas["vms"] = (VM, schemas["vms"][1] | {"resource_capacities"})
     if not isinstance(spec, dict):
         raise TypeError("topology must be a mapping")
     if set(spec) != set(schemas):
