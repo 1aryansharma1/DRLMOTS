@@ -139,3 +139,49 @@ class Topology:
             for fog_id in end.fog_node_ids:
                 if fog_id not in fog:
                     raise ValueError(f"unknown fog node {fog_id!r}")
+
+
+def build_topology(spec: dict) -> Topology:
+    """Build explicit resources and memberships; reject missing/ignored settings.
+
+    Counts derive from lists. Queue limits are mandatory for runnable resources.
+    This builder does not infer a paper topology or physical VM-to-host mapping.
+    """
+    schemas = {
+        "hosts": (Host, {"host_id", "storage_tb", "memory_gb", "bandwidth_reported"}),
+        "vms": (VM, {"vm_id", "tier", "bandwidth_reported", "queue_capacity"}),
+        "fog_nodes": (FogNode, {"fog_node_id", "host_ids", "vm_ids"}),
+        "cloud_datacenters": (CloudDatacenter, {"datacenter_id", "host_ids", "vm_ids"}),
+        "access_points": (AccessPoint, {"access_point_id", "end_node_id"}),
+        "end_nodes": (EndNode, {"end_node_id", "fog_node_ids"}),
+    }
+    if not isinstance(spec, dict):
+        raise TypeError("topology must be a mapping")
+    if set(spec) != set(schemas):
+        raise ValueError("topology must contain exactly: " + ", ".join(sorted(schemas)))
+    groups = {}
+    for name, (kind, required) in schemas.items():
+        records = spec[name]
+        if not isinstance(records, list):
+            raise TypeError(f"topology.{name} must be a list")
+        items = []
+        for index, record in enumerate(records):
+            context = f"topology.{name}[{index}]"
+            if not isinstance(record, dict):
+                raise TypeError(f"{context} must be a mapping")
+            if set(record) != required:
+                raise ValueError(f"{context} must contain exactly: " + ", ".join(sorted(required)))
+            values = dict(record)
+            if kind is VM:
+                if values["queue_capacity"] is None:
+                    raise ValueError(f"{context}.queue_capacity must be explicit")
+                try:
+                    values["tier"] = ResourceTier(values["tier"])
+                except (TypeError, ValueError) as error:
+                    raise ValueError(f"{context}.tier must be 'fog' or 'cloud'") from error
+            try:
+                items.append(kind(**values))
+            except (TypeError, ValueError) as error:
+                raise ValueError(f"{context}: {error}") from error
+        groups[name] = tuple(items)
+    return Topology(**groups)

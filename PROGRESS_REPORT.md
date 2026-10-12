@@ -2,11 +2,40 @@
 
 **Report date:** 2026-10-13 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `993344d` - Implement deterministic v0.1 scheduling baseline
+**Implementation checkpoint:** v0.2 configured topology; prior seeded checkpoint `7ebf8d6`.
 **Working status:** v0.1 complete; v0.2 in progress. P4.3/P4.6 seeded workload checkpoint
-is now verified. Configuration-driven topology and resource/placement behavior are next.
+and configuration-driven topology are verified. Resource/placement behavior is next.
 
-## Latest checkpoint - seeded synthetic workloads
+## Latest checkpoint - configured topology
+
+Runnable experiments now load explicit hosts, VMs, positive waiting-queue capacities,
+fog/cloud memberships and AP/end links from a separate strict YAML schema. The
+workload contains explicit units, generator and all A-018 settings. Unknown or missing
+fields, duplicate YAML keys and invalid topology references/tier memberships fail clearly.
+`configs/default.yaml` remains an unresolved planning config; `configs/synthetic.yaml`
+is the runnable fixture. A-019 records this distinction and the remaining limitations.
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --config configs/synthetic.yaml --output outputs/metrics/configured-demo.json
+```
+
+Actual result: three hosts/VMs, two fog nodes and one cloud datacenter; six simultaneous
+tasks, **6 completed, 0 failed, 4 ms makespan, 3 ms average completion time**. Exact
+timestamps match the two-wave hand calculation. The saved effective config (excluding
+its SHA-256 field) reproduces the same report when parsed again.
+
+Effective config SHA-256:
+`a4ad989a835c5719717d8e0fb15f025efb2d97429603222e7485e42162cc3720`.
+Workload SHA-256:
+`2e9bf785db9c7ef9ba06048c962dec49fc04894117a103d9913f6134e8b4d62d`.
+Checks on 2026-10-13: **304 tests passed**; no broken requirements. Tests cover actual
+CLI output, settings replay, queue-limit changes and overflow accounting, strict YAML
+validation, ambiguous override rejection and unchanged existing fixtures.
+
+This is the configurable portion of P5.1. Full paper topology, physical VM-to-host
+placement, resource feasibility and transfer delays remain open; v0.2 is not complete.
+
+## Previous checkpoint - seeded synthetic workloads
 
 P4.3 adds explicit task count, seed, uniform interarrival-ms bounds, inclusive integer
 byte lengths and uniform data-size-kB ranges. The local RNG does not change global
@@ -28,8 +57,8 @@ with the recorded Python 3.11.9/generator-v1 settings. The 2-VM topology is stil
 fixed test fixture. These numbers verify execution/accounting, not paper performance.
 
 P4.4-P4.5 remain open; no experiment-count conflict or real dataset mapping is resolved.
-A-018 labels the synthetic distribution as an implementation choice. See HANDOFF
-for configuration-driven topology's next acceptance criteria.
+A-018 labels the synthetic distribution as an implementation choice. HANDOFF now
+describes the next resource-feasibility task; the seeded checkpoint is retained here.
 
 ## Delivered in v0.1
 
@@ -54,7 +83,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 246 tests above:
+virtual environment before its publication. The latest suite is 304 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -86,7 +115,8 @@ by Git; the command recreates the example. No training results or checkpoints ex
 ## Remaining work and source limitations
 
 - P4.4-P4.5: experiment-size handling and real dataset provenance; P4.3 is now verified.
-- P5.1: configurable/full topology construction; the runnable example is a tiny fixture.
+- Full source-audited P5.1 paper topology: the configurable builder is verified, while
+  the bundled example remains a tiny synthetic fixture.
 - P5.7: a documented network-delay model; the baseline explicitly uses zero delay.
 - Resource feasibility and VM-to-host allocation: not implemented. Nonempty task
   resource requests are rejected rather than treated as supported.
@@ -100,8 +130,8 @@ by Git; the command recreates the example. No training results or checkpoints ex
 
 ## Next delivery
 
-P4.3 and its seeded manifest are complete. Continue v0.2 with configurable topology
-and explicit resource/placement behavior with their own
+P4.3, its seeded manifest and the configurable topology builder are complete. Continue
+v0.2 with explicit resource/placement behavior and its own
 tests. DQN work remains a later milestone after these behavior and source decisions.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.

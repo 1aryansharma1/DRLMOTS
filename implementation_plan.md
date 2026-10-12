@@ -13,7 +13,7 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | Version | Scope | Gate / current evidence |
 |---|---|---|
 | 0.1 | P3.3-P3.5; P4.1-P4.2; fixed-list P4.6; deterministic P5.2-P5.6/P5.8 | VERIFIED: Phase 3 passed 136 tests before simulation; final suite 194 passed; exact 3-task example; `pip check` clean |
-| 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | IN PROGRESS: P4.3/P4.6 verified, 246 tests pass; configurable topology and resource model pending |
+| 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | IN PROGRESS: workload/configured-topology checkpoints verified, 304 tests pass; resource model pending |
 | 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | No training until prerequisite assumptions and simulator tests pass |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
@@ -26,6 +26,12 @@ The v0.2 workload checkpoint completes P4.3 and the seeded-input portion of P4.6
 under A-018. It adds configurable CLI seed/count/ranges; topology is still the small
 fixture. P4.4-P4.5 and full P5.1/P5.7 remain pending. The first arrival is 0 ms;
 subsequent intervals are synthetic uniform draws, with explicit byte lengths.
+
+The configured-topology checkpoint adds `build_topology`, a strict synthetic run YAML,
+`--config`, effective configuration/checksum and replay. A-019 documents this scoped
+P5.1 delivery: counts/resources/links are explicit and validated; full paper topology,
+physical VM placement and resource feasibility remain open. Six tasks/three VMs finish
+in exactly 4 ms; the current complete suite passes 304 tests.
 
 ## Project directory (target)
 

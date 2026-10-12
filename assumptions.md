@@ -117,6 +117,34 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-019 - Explicit runnable topology configuration
+
+- **Date:** 2026-10-13.
+- **Status:** DECIDED for the synthetic software baseline only.
+- **Microtask:** Configurable portion of P5.1 for v0.2; full paper topology remains open.
+- **Schema boundary:** A separate `kind: synthetic_baseline`, `schema_version: 1`
+  YAML describes a runnable experiment. `configs/default.yaml` remains the unresolved
+  paper-planning configuration and is not implicitly converted into a run.
+- **Topology:** Supply all six lists explicitly: hosts, VMs, fog nodes, cloud
+  datacenters, access points and end nodes. Counts derive from list lengths, never
+  from guessed defaults. Explicit empty lists are allowed if structurally valid.
+- **Resources:** Every host/VM field and VM waiting-queue capacity is supplied.
+  Unknown/null queue capacity cannot be used. Existing identifier, single-membership,
+  tier and reference invariants apply. No VM-to-host allocation is inferred.
+- **Workload:** Supply every A-018 generator setting, the uniform_interarrival generator
+  name, byte length unit and millisecond arrival unit. CLI workload overrides cannot
+  be combined with a run file; this prevents ambiguous configuration precedence.
+- **Provenance:** Save normalized effective run configuration plus its SHA-256,
+  topology counts, actual topology, workload/settings checksum and outcomes. YAML
+  formatting and the file's local pathname do not affect the effective config checksum.
+- **Validation:** Reject missing fields, unknown fields, invalid YAML/types, dangling
+  references, orphan or duplicate resources and wrong-tier memberships before output.
+- **Example:** `configs/synthetic.yaml` contains three VMs (two fog, one cloud), one
+  waiting slot each, and six simultaneous 1000-byte tasks. All six should finish,
+  with a 4 ms makespan. These are verification fixtures, not paper experiment claims.
+- **Remaining limits:** CPU/memory feasibility, physical placement, network delay,
+  priority/threshold rules, energy, reliability and learned scheduling remain pending.
+
 ## A-018 - Seeded synthetic arrivals and workload provenance
 
 - **Date:** 2026-10-13.

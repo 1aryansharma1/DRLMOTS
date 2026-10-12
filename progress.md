@@ -1,14 +1,15 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.2 IN PROGRESS; P4.3 seeded workload checkpoint VERIFIED (2026-10-13).
+**Current stage:** v0.2 IN PROGRESS; configured topology checkpoint VERIFIED (2026-10-13).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 resource feasibility, and DQN implementation remain pending.
 
 **Working status (2026-10-13):** v0.1 and P4.3/P4.6 seeded workload generation are
-complete, implemented and verified by Codex for ashishjha20. No implementation task
-is currently in progress. Next is configuration-driven topology construction; its
-owner is unassigned. The verified v0.1 implementation commit is `993344d`.
+complete, implemented and verified by Codex for ashishjha20. Configuration-driven
+topology is now VERIFIED by the same contributor. No implementation task is active;
+next is explicit resource feasibility and placement behavior, with owner unassigned.
+The verified v0.1 implementation commit is `993344d`.
 Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for the dated delivery report.
 
@@ -51,7 +52,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P4.3 | Seeded random arrivals and sizes | VERIFIED for synthetic model | Local RNG; uniform intervals, inclusive integer lengths, uniform data sizes; settings/bounds/count/seed validation and repeatability tests; assumption A-018 |
 | P4.4-P4.5 | Paper experiment sizes and real dataset mapping | NOT STARTED | Generator accepts explicit counts, but no paper count conflict or Google Jobs dataset identity is resolved |
 | P4.6 | Save workload manifest | VERIFIED for fixed and seeded inputs | Exact tasks, seed, all generator settings, distributions, units, generator/runtime versions and SHA-256; empty workloads retain provenance |
-| P5.1 | Full paper topology/configuration builder | NOT STARTED | v0.1 constructs a small explicit fixture, not the full reported topology |
+| P5.1 | Configured topology builder | VERIFIED for explicit synthetic topology | `build_topology`, strict runnable YAML schema, `RunConfig` manifest/replay and `--config`; full source-audited paper topology remains NOT STARTED |
 | P5.2-P5.5 | SimPy arrivals, FCFS execution and completion timestamps | VERIFIED for deterministic baseline | Hand-calculated one-task/two-VM cases; waiting and service times; exactly-once outcomes |
 | P5.6 | Queue capacity and fallback | VERIFIED for baseline policy | Explicit capacities, alternate fog-node fallback, full-cluster failure. Paper threshold/tier policy remains open |
 | P5.7 | Network-transfer delays | NOT STARTED | Zero-delay fixture is explicitly recorded in report; no transfer formula is inferred |
@@ -69,9 +70,11 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | Phase 3 gate: `.venv\Scripts\python.exe -m pytest -q` | 136 passed before simulator implementation |
 | Final v0.1 suite: `.venv\Scripts\python.exe -m pytest -q` | 194 passed |
 | Current v0.2 workload checkpoint suite: `.venv\Scripts\python.exe -m pytest -q` | 246 passed |
+| Current configured-topology checkpoint suite: `.venv\Scripts\python.exe -m pytest -q` | 304 passed |
 | `.venv\Scripts\python.exe -m pip check` | No broken requirements found |
 | `.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json` | 3 completed, 0 failed; makespan 4 ms; average completion time 8/3 ms |
 | `.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json` | 96 completed, 4 explicitly failed (full queues), 100 accounted for; makespan 155.1273394932697 ms |
+| `.venv\Scripts\python.exe -m drlmots --config configs/synthetic.yaml --output outputs/metrics/configured-demo.json` | 3 VMs, 6 completed, 0 failed; makespan 4 ms; average completion time 3 ms; exact config and workload checksums saved |
 
 The suite includes a 100-task fractional-time fixture checking serial VM execution,
 accounting and repeatability. It does not validate CPU/memory feasibility, DQN behavior,
@@ -91,17 +94,19 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 246-test suite verifies setup, entities/configuration/topology, fixed and
-seeded synthetic workloads, CLI inputs/output, and the SimPy baseline. This establishes only the documented
+The current 304-test suite verifies setup, entities/configuration/topology, fixed and
+seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
+the SimPy baseline. This establishes only the documented
 baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
 attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
 DRLMOTS algorithm; see decision A-017.
 
 ## Resume protocol
 
-Continue v0.2 with configuration-driven topology construction (the configurable
-portion of P5.1), then explicit resource/placement assumptions. P4.3 and its manifest
-are verified for the A-018 synthetic model, not a paper distribution.
+Continue v0.2 with explicit resource feasibility and placement assumptions. P4.3/P4.6
+and configured P5.1 are verified for A-018/A-019 synthetic models, not a paper
+distribution or source-audited paper topology. Keep host/VM mapping and missing CPU/
+memory/resource units explicit; do not infer capacities from host fields.
 Retain the deterministic tests and run each applicable gate before moving on. Keep
 P0.2-P0.4 source review pending until the original DRLMOTS paper is available for an
 independent audit. Resolve state/action/reward, metric units and training settings before

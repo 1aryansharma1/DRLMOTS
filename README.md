@@ -10,11 +10,12 @@ Version 0.1 is a runnable deterministic scheduling baseline. It includes validat
 Task/Host/VM models, fog/cloud topology, task lifecycle transitions, finite configuration
 validation, a fixed synthetic workload factory, and a SimPy execution loop. The example
 completes three tasks on two VMs with a 4 ms makespan and an 8/3 ms average completion
-time. Its initial suite passed 194 tests. The current suite passes 246 tests on Python
-3.11.9 (2026-10-13), including the v0.2 seeded-workload checkpoint.
+time. Its initial suite passed 194 tests; the seeded-workload checkpoint passed 246.
+The current configured-topology suite passes 304 tests on Python 3.11.9 (2026-10-13).
 
 P4.3 seeded synthetic workload generation and its P4.6 manifest are now verified.
-v0.2 remains in progress: configurable topology and resource/placement behavior are next.
+Configuration-driven topology is also verified. v0.2 remains in progress with resource
+feasibility and placement behavior next.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -59,7 +60,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 246 passing tests. The last command prints
+Expected checks: no broken requirements; 304 passing tests. The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -71,8 +72,9 @@ installation command using the same `.venv` interpreter. Do not use system Pytho
 ## Seeded synthetic workloads (v0.2 checkpoint)
 
 An explicit task count and seed select random generation. Without synthetic options,
-the CLI retains the original fixed three-task example. The topology is still the fixed
-two-VM fixture with one waiting slot per VM; topology/resource configuration is pending.
+the CLI retains the original fixed three-task example. These seed/count CLI examples
+use the fixed two-VM fixture with one waiting slot per VM. Use `--config` below to
+select a different explicit topology.
 
 ```powershell
 .\.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json
@@ -92,6 +94,30 @@ the recorded runtime/generator version reproduce both tasks and results, without
 changing global random state. The 100-task seed-42 example completes 96 tasks and
 explicitly rejects 4 because every waiting queue is full; all 100 are accounted for.
 It is a simulator check, not a scheduling-performance result against the paper.
+
+## Configured topology and workload
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --config configs/synthetic.yaml --output outputs/metrics/configured-demo.json
+```
+
+`configs/synthetic.yaml` is a runnable `synthetic_baseline` fixture with three hosts,
+three VMs (two fog, one cloud), explicit AP/end/fog/cloud links, and one waiting slot
+per VM. Six simultaneous 1000-byte tasks complete in two service waves: all six
+complete, makespan is 4 ms, and average completion time is 3 ms.
+
+Edit its explicit resource lists, memberships, queue capacities and workload settings
+to run another fixture. Counts derive from list lengths; no host/VM distribution is
+inferred. All fields and units are required. Unknown fields, missing capacities,
+duplicate YAML keys, invalid references and wrong-tier resources are rejected.
+`--config` cannot be combined with CLI seed/count/range flags; edit the run file instead.
+
+The report saves the effective run configuration and SHA-256, derived topology counts,
+workload provenance and outcomes. The saved `run_configuration`, excluding its
+`sha256` field, can be loaded again through `parse_run_config` to reproduce the run.
+File location and YAML formatting do not affect the effective configuration checksum.
+`configs/default.yaml` retains unresolved paper settings and is not a runnable config.
+CPU/memory feasibility, physical VM placement, network delay and DQN remain pending.
 
 ## Baseline semantics and limits
 
@@ -120,7 +146,7 @@ It is a simulator check, not a scheduling-performance result against the paper.
 | Version | Completion target | Status |
 |---|---|---|
 | 0.1 | Deterministic topology, queue simulation, exact timelines and saved inputs/results | VERIFIED |
-| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | IN PROGRESS: workloads verified; topology/resources next |
+| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | IN PROGRESS: workloads/topology verified; resources next |
 | 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Planned |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 

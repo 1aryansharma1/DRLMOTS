@@ -1,0 +1,59 @@
+# Runnable verification fixture, not the paper's experimental topology.
+# Six simultaneous 2 ms tasks on three VMs should finish in 4 ms.
+schema_version: 1
+kind: synthetic_baseline
+
+topology:
+  hosts:
+    - host_id: host-fog-a
+      storage_tb: 3
+      memory_gb: 32
+      bandwidth_reported: 1000
+    - host_id: host-fog-b
+      storage_tb: 3
+      memory_gb: 32
+      bandwidth_reported: 1000
+    - host_id: host-cloud
+      storage_tb: 3
+      memory_gb: 32
+      bandwidth_reported: 1000
+  vms:
+    - vm_id: vm-fog-a
+      tier: fog
+      bandwidth_reported: 200
+      queue_capacity: 1
+    - vm_id: vm-fog-b
+      tier: fog
+      bandwidth_reported: 200
+      queue_capacity: 1
+    - vm_id: vm-cloud
+      tier: cloud
+      bandwidth_reported: 200
+      queue_capacity: 1
+  fog_nodes:
+    - fog_node_id: fog-a
+      host_ids: [host-fog-a]
+      vm_ids: [vm-fog-a]
+    - fog_node_id: fog-b
+      host_ids: [host-fog-b]
+      vm_ids: [vm-fog-b]
+  cloud_datacenters:
+    - datacenter_id: cloud
+      host_ids: [host-cloud]
+      vm_ids: [vm-cloud]
+  access_points:
+    - access_point_id: ap
+      end_node_id: end
+  end_nodes:
+    - end_node_id: end
+      fog_node_ids: [fog-a, fog-b]
+
+workload:
+  generator: uniform_interarrival
+  length_unit: bytes
+  arrival_time_unit: milliseconds
+  task_count: 6
+  seed: 42
+  interarrival_ms_range: [0, 0]
+  length_bytes_range: [1000, 1000]
+  data_size_kb_range: [20, 20]

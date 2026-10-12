@@ -1,10 +1,10 @@
 # DRLMOTS collaborator handoff
 
 **Last updated:** 2026-10-13
-**Current checkpoint:** v0.2 P4.3/P4.6 seeded workload generation VERIFIED;
+**Current checkpoint:** v0.2 seeded workload/configured-topology checkpoints VERIFIED;
 v0.1 foundation is commit `993344d`.
-**Next task:** configuration-driven topology construction for v0.2 (configurable P5.1).
-**Task ownership:** P4.3 completed by Codex for ashishjha20; the next task is unassigned. Record the owner and status
+**Next task:** explicit resource feasibility and placement behavior for v0.2.
+**Task ownership:** both checkpoints completed by Codex for ashishjha20; next task unassigned. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
 ## Read this first
@@ -36,11 +36,13 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 .\.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json
+.\.venv\Scripts\python.exe -m drlmots --config configs/synthetic.yaml --output outputs/metrics/configured-demo.json
 ```
 
-Expected current checks: 246 tests pass; dependency check is clean; fixed example completes three
+Expected current checks: 304 tests pass; dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
-4 because all queues are full, accounting for every input. The `.venv` is local, not in Git. Python
+4 because all queues are full, accounting for every input. Configured fixture: six
+tasks on three VMs, all completed in 4 ms. The `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
 
 ## Where the current behavior lives
@@ -49,14 +51,17 @@ tasks with zero failures and 4 ms makespan. The seeded example completes 96 and 
 |---|---|
 | `src/drlmots/entities.py` | Task/Host/VM, ResourceTier, TaskStatus; `Task.transition_to` enforces lifecycle rules |
 | `src/drlmots/config.py` | YAML validation; nullable unresolved settings; optional paper experiment settings separate from small fixtures |
-| `src/drlmots/topology.py` | AP/end/fog/cloud links and single host/VM node membership; no VM-to-physical-host assignment |
+| `src/drlmots/topology.py` | Validated AP/end/fog/cloud links, single host/VM node membership and strict `build_topology`; no VM-to-host assignment |
+| `src/drlmots/run_config.py` | `RunConfig`, strict `load_run_config`/`parse_run_config`, effective settings/checksum; duplicate-safe YAML |
 | `src/drlmots/workload.py` | `SyntheticWorkloadSettings`, `seeded_workload`, `fixed_workload`, explicit-unit `processing_time_ms`, and `workload_manifest` with SHA-256/settings/runtime provenance |
 | `src/drlmots/environment.py` | `simulate(topology, tasks, task_length_unit="bytes")`; returns immutable outcomes and completion metrics |
-| `src/drlmots/__main__.py` | Fixed topology; fixed or CLI-configured seeded workloads and JSON reports; topology/resources not configurable yet |
+| `src/drlmots/__main__.py` | Fixed/seeded examples and `configured_report`; `--config` selects explicit topology/workload; resources not modelled yet |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
 | `tests/integration/test_seeded_cli.py` | Seeded simulator accounting, actual CLI output files and invalid-input handling |
+| `tests/unit/test_run_config.py`, `tests/integration/test_configured_run.py` | Strict schema/topology/YAML, effective config replay, exact configured timelines and CLI behavior |
 | `configs/default.yaml` | Unresolved fields stay null; source-reported settings are recorded separately |
+| `configs/synthetic.yaml` | Explicit runnable three-VM/six-task software fixture, not paper defaults |
 
 Preserve these tested semantics unless a documented task intentionally changes them:
 
@@ -82,28 +87,44 @@ the original paper distribution/dataset identity remain unresolved.
 All previous P4.3 acceptance criteria are verified: local RNG without global mutation;
 repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
 ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
-file for invalid CLI inputs; existing baseline tests retained. The suite totals 246 tests.
+file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
+246 tests; the current configured-topology suite totals 304.
 
-## Start configuration-driven topology
+## Completed configuration-driven topology
 
-The CLI currently constructs its topology directly in `smoke_report`; do not imply that
-`configs/default.yaml` controls it. Add an explicit runnable configuration and builder
-using the existing topology invariants. Keep the unresolved paper configuration separate
-from a small software fixture; do not silently invent VM/host distributions.
+Use `--config configs/synthetic.yaml` or `load_run_config`/`configured_report` to run
+explicit lists/links/capacities and an explicit seeded workload. All schema fields are
+required, unknown fields rejected, counts derived from lists and queue limits positive.
+`configs/default.yaml` is not used as a runnable configuration. CLI seed/count/range
+flags cannot be combined with a run file. A-019 documents this checkpoint's scope.
+
+The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
+and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
+pathname are excluded. The configured hand calculation and changed-queue-limit tests
+pass; the total suite is 304 tests. Full paper topology and VM-to-host allocation are open.
+
+## Start explicit resource feasibility
+
+Currently `simulate` rejects every nonempty task `required_resources` mapping. Host
+storage/memory fields and VM bandwidth are recorded, but no CPU/memory allocation is
+modelled. Decide a minimal explicit test resource schema before enabling these requests;
+do not infer per-VM capacities, CPU speeds or physical host budgets from missing data.
+Record units, capacity semantics and the no-eligible-resource policy as a new assumption.
 
 Acceptance criteria:
 
-1. Caller-configured AP/end/fog/cloud links and host/VM memberships construct a valid
-   `Topology`; counts/IDs/capacities match the input exactly.
-2. Missing counts or required capacities fail clearly; unknown is not unlimited.
-   References, duplicate IDs and wrong-tier/orphan resources still fail.
-3. No source-ambiguous unit, distribution or mapping is presented as a paper default.
-4. The CLI can run a seeded workload using that topology and saves exact configuration,
-   input settings/checksums and results. Fixed/seeded baseline examples still work.
-5. A tiny configured topology yields hand-calculated timelines, and reruns agree.
-   Report actual test results and update progress/owner/resume point.
+1. Task demands and per-VM capacities have matching explicit resource names and units;
+   all values are validated. Unknown capacities cannot satisfy a positive request.
+2. Placement selects only feasible VMs, preserves the documented queue/ordering rules,
+   and records a clear outcome when no feasible VM or queue slot exists.
+3. Resource reservations/release follow task start/completion, with no oversubscription
+   or resource leak. Do not claim a physical host budget without a declared VM mapping.
+4. Requirements/capacities/policy appear in configured-run provenance; impossible,
+   exact-boundary and competing-task cases have hand-checked tests.
+5. Existing empty-resource examples remain unchanged; every task is accounted for.
+   Update reports, task owner and resume point with actual verification results.
 
-After configurable topology, add an explicit resource/placement model. Keep each change
+Keep each resource/placement change
 small enough to review and document behavior changes. v0.2 is not complete yet.
 Do not begin DQN training until state/action/reward definitions, metrics and simulator
 prerequisites are verified. Source ambiguity should become a recorded assumption or
