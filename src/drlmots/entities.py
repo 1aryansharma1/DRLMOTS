@@ -69,6 +69,23 @@ class Task:
         if not isinstance(self.status, TaskStatus):
             raise TypeError("status must be a TaskStatus value")
 
+    def transition_to(self, status: TaskStatus) -> None:
+        """Apply the documented lifecycle; terminal tasks cannot restart."""
+        if not isinstance(status, TaskStatus):
+            raise TypeError("status must be a TaskStatus value")
+        allowed = {
+            TaskStatus.CREATED: {TaskStatus.QUEUED, TaskStatus.FAILED},
+            TaskStatus.QUEUED: {TaskStatus.RUNNING, TaskStatus.FAILED},
+            TaskStatus.RUNNING: {TaskStatus.COMPLETED, TaskStatus.FAILED},
+            TaskStatus.COMPLETED: set(),
+            TaskStatus.FAILED: set(),
+        }
+        if status not in allowed[self.status]:
+            raise ValueError(
+                f"invalid task transition: {self.status.value} -> {status.value}"
+            )
+        self.status = status
+
     @staticmethod
     def _validate_number(
         name: str,

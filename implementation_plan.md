@@ -2,6 +2,26 @@
 
 This roadmap is intentionally incremental. Each implementation microtask will be delivered in a later response with exact file contents/changes, exact command(s), expected output, verification, troubleshooting, and a completion criterion. Do not skip a verification gate or mark a task VERIFIED without actual evidence.
 
+## Version milestones (2026-10-13)
+
+The user requested practically achievable versions before attempting the complete paper.
+The original phases below remain the full reproduction roadmap. Version gates apply
+to the subset actually used: optional random workloads/dataset ingestion and paper-scale
+topology are not prerequisites for a fixed-list, tiny software baseline. Their unfinished
+microtasks stay pending. This staged scope is documented in assumptions A-017.
+
+| Version | Scope | Gate / current evidence |
+|---|---|---|
+| 0.1 | P3.3-P3.5; P4.1-P4.2; fixed-list P4.6; deterministic P5.2-P5.6/P5.8 | VERIFIED: Phase 3 passed 136 tests before simulation; final suite 194 passed; exact 3-task example; `pip check` clean |
+| 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | Next: same seed/input checksum, invariant resource accounting and reproducible policy comparisons |
+| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | No training until prerequisite assumptions and simulator tests pass |
+| 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
+
+v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,
+or paper-specific placement/reward. `progress.md` is the authority for actual completed
+checks. The source extraction is for DRLMOTS; the supplied DRL-MLS Kubernetes PDF is
+a different paper and has not been combined with its definitions.
+
 ## Project directory (target)
 
 ```text
@@ -68,7 +88,7 @@ Only create a module when its first microtask needs it. Do not create empty file
 | P0.2 | Extract topology, state, action, reward, Q-update, training values, metrics and workloads | `paper_requirements.md`; compare all facts to page/section references | IMPLEMENTED |
 | P0.3 | Write unique paper requirement IDs and module/test mapping | R001–R040 traceability table | IMPLEMENTED |
 | P0.4 | Record contradictions/missing parameters in a decision log | `assumptions.md`; no unsupported value silently filled | IMPLEMENTED |
-| P0.5 | Confirm the first implementation boundary (smoke simulator before training) | Update scope/status after review if needed | NOT STARTED |
+| P0.5 | Confirm the first implementation boundary (smoke simulator before training) | Initial decision and version scopes recorded in `assumptions.md` | VERIFIED |
 
 ## Phase 1 — Development environment
 

@@ -1,6 +1,9 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** Phase 3 - data structures. P3.1 and P3.2 are VERIFIED. P3.3-P3.5 remain pending. No simulator or DQN implementation yet.
+**Current stage:** v0.1 deterministic software baseline VERIFIED (2026-10-13).
+Phase 3 is verified for the current data/configuration model. Deterministic subsets
+of Phases 4-5 are verified. Random workload generation, the full paper topology,
+resource feasibility, and DQN implementation remain pending.
 
 ## Status legend
 
@@ -33,9 +36,36 @@
 | P2.5 | Verify pytest discovery and basic tests | VERIFIED | Initial `python -m pytest -v`: 7 passed |
 | P3.1 | Define Task fields from source-supported requirements | VERIFIED | `src/drlmots/entities.py` implements `Task` and `TaskStatus`; Task tests and the full suite passed (25 total). Task-length units and exact resource schema remain unresolved |
 | P3.2 | Define VM, host and resource data structures | VERIFIED | `Host`, `VM`, and `ResourceTier` implemented in `src/drlmots/entities.py`; resource validation tests pass; full suite: 54 passed. Bandwidth units and unspecified capacities remain unresolved |
-| P3.3 | Define fog/cloud topology structures | NOT STARTED | Next task; review source-supported topology fields before implementation |
-| P3.4 | Define and test valid task-status transitions | NOT STARTED | Status values exist; transition rules are not implemented yet |
-| P3.5 | Validate resource and configuration ranges | NOT STARTED | Existing configuration tests cover initial checks; Phase 3 resource validation remains pending |
+| P3.3 | Define fog/cloud topology structures | VERIFIED | `topology.py`: AP/end/fog/cloud relationships, unique IDs, single resource membership, tier matching, no orphan hosts/VMs. Actual VM-to-host allocation remains unresolved |
+| P3.4 | Define and test valid task-status transitions | VERIFIED | `Task.transition_to`; every status pair tested, terminal tasks cannot restart through the lifecycle API |
+| P3.5 | Validate resource and configuration ranges | VERIFIED | Finite task sizes/rates/capacities; integer DQN counts; epsilon/replay consistency; separate paper experiment settings enforce 20-200 VMs; unspecified topology counts remain null |
+| P4.1 | Fixed-list deterministic task factory | VERIFIED | Exact fields, unique IDs and independent resource mappings tested |
+| P4.2 | Explicit-unit processing-time function | VERIFIED for byte-valued fixtures | 1000 bytes -> 2 ms; unsupported units and invalid values rejected. Original paper's task-length interpretation remains open |
+| P4.3-P4.5 | Random/large workloads and real dataset mapping | NOT STARTED | Next version; no Google Jobs dataset identity is claimed |
+| P4.6 | Save workload manifest | VERIFIED for fixed-list inputs | JSON contains exact inputs, null seed (no randomness), generator identity, units and SHA-256 |
+| P5.1 | Full paper topology/configuration builder | NOT STARTED | v0.1 constructs a small explicit fixture, not the full reported topology |
+| P5.2-P5.5 | SimPy arrivals, FCFS execution and completion timestamps | VERIFIED for deterministic baseline | Hand-calculated one-task/two-VM cases; waiting and service times; exactly-once outcomes |
+| P5.6 | Queue capacity and fallback | VERIFIED for baseline policy | Explicit capacities, alternate fog-node fallback, full-cluster failure. Paper threshold/tier policy remains open |
+| P5.7 | Network-transfer delays | NOT STARTED | Zero-delay fixture is explicitly recorded in report; no transfer formula is inferred |
+| P5.8 | Deterministic edge cases | VERIFIED for baseline scope | Empty workloads, simultaneous arrivals/completions, missing VMs, unknown/full queues, duplicate tasks and unsupported resource requests |
+
+## Verification in this checkout
+
+Historical environment entries above came from the previous checkout. This cloned
+checkout now has its own ignored `.venv`, created with Python 3.11.9 on 2026-10-13.
+Dependencies were installed from `pyproject.toml`; the lock export was refreshed to
+match the resolved runtime versions (filelock changed to 4.1.1).
+
+| Check | Actual outcome |
+|---|---|
+| Phase 3 gate: `.venv\Scripts\python.exe -m pytest -q` | 136 passed before simulator implementation |
+| Final v0.1 suite: `.venv\Scripts\python.exe -m pytest -q` | 194 passed |
+| `.venv\Scripts\python.exe -m pip check` | No broken requirements found |
+| `.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json` | 3 completed, 0 failed; makespan 4 ms; average completion time 8/3 ms |
+
+The suite includes a 100-task fractional-time fixture checking serial VM execution,
+accounting and repeatability. It does not validate CPU/memory feasibility, DQN behavior,
+energy, fault tolerance or experimental improvements.
 
 ## Important unresolved paper details
 
@@ -51,8 +81,17 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 54-test suite verifies project setup, configuration validation, and Task, Host, and VM data structures. It does not establish that the simulator, DQN algorithm, or the paper's reported results have been reproduced.
+The current 194-test suite verifies setup, entities/configuration/topology, deterministic
+workload construction, and the v0.1 SimPy baseline. This establishes only the documented
+baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
+attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
+DRLMOTS algorithm; see decision A-017.
 
 ## Resume protocol
 
-Continue from the earliest task not marked VERIFIED. P3.1 is verified. Next, review the paper and existing configuration for supported VM, host, and resource fields before implementing P3.2. Do not invent unspecified capacities or resource properties. Run relevant tests at each verification gate. Do not begin simulator implementation or DQN training until the required preceding phases are verified.
+Continue with v0.2: P4.3 seeded synthetic workload generation and its manifest, then
+configuration-driven topology construction and explicit resource/placement assumptions.
+Retain the deterministic tests and run each applicable gate before moving on. Keep
+P0.2-P0.4 source review pending until the original DRLMOTS paper is available for an
+independent audit. Resolve state/action/reward, metric units and training settings before
+DQN training. Do not claim that unimplemented portions of Phases 4-5 are complete.

@@ -14,6 +14,15 @@ topology:
   vms_per_fog_node: null
   cloud_vm_count: null
 
+# Recorded paper settings, separate from tiny software-verification fixtures.
+# Counts/distribution are not inferred. Bandwidth's physical unit remains open.
+paper_experiment:
+  vm_count: null
+  host_storage_tb: 3
+  host_memory_gb: 32
+  host_bandwidth_reported: 1000
+  vm_bandwidth_reported: 200
+
 workload:
   task_count: null
   task_size_kb_range: [20, 150]

@@ -3,6 +3,7 @@
 
 from pathlib import Path
 from typing import Any
+import math
 
 import yaml
 
@@ -41,6 +42,7 @@ def validate_config(config: Any) -> dict:
 
     if (
         isinstance(config["schema_version"], bool)
+        or not isinstance(config["schema_version"], int)
         or config["schema_version"] != 1
     ):
         raise ConfigError("schema_version must be 1")
@@ -64,6 +66,22 @@ def validate_config(config: Any) -> dict:
     for key in topology_keys:
         _nullable_positive_int(topology[key], f"topology.{key}")
 
+    if "paper_experiment" in config:
+        experiment = _require_mapping(config["paper_experiment"], "paper_experiment")
+        _require_keys(experiment, {
+            "vm_count", "host_storage_tb", "host_memory_gb",
+            "host_bandwidth_reported", "vm_bandwidth_reported",
+        }, "paper_experiment")
+        if experiment["vm_count"] is not None:
+            validate_paper_vm_count(experiment["vm_count"])
+        for key in (
+            "host_storage_tb", "host_memory_gb", "host_bandwidth_reported", "vm_bandwidth_reported"
+        ):
+            value = experiment[key]
+            if (isinstance(value, bool) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or value <= 0):
+                raise ConfigError(f"paper_experiment.{key} must be finite and positive")
+
     workload = _require_mapping(config["workload"], "workload")
     _require_keys(
         workload,
@@ -85,6 +103,7 @@ def validate_config(config: Any) -> dict:
         or any(
             isinstance(value, bool)
             or not isinstance(value, (int, float))
+            or not math.isfinite(value)
             or value <= 0
             for value in size_range
         )
@@ -129,21 +148,32 @@ def validate_config(config: Any) -> dict:
             raise ConfigError("dqn.epsilon_start must be numeric or null")
         if not 0 <= value <= 1:
             raise ConfigError("dqn.epsilon_start must be between 0 and 1")
+        if value < dqn["epsilon_min"]:
+            raise ConfigError("dqn.epsilon_start must be at least epsilon_min")
+
+    rate = dqn["learning_rate"]
+    if rate is not None and (
+        isinstance(rate, bool)
+        or not isinstance(rate, (int, float))
+        or not math.isfinite(rate)
+        or rate <= 0
+    ):
+        raise ConfigError("dqn.learning_rate must be finite and positive or null")
 
     for key in (
-        "learning_rate",
         "replay_capacity",
         "batch_size",
         "target_sync_interval",
         "episodes",
     ):
-        value = dqn[key]
-        if value is None:
-            continue
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ConfigError(f"dqn.{key} must be numeric or null")
-        if value <= 0:
-            raise ConfigError(f"dqn.{key} must be positive or null")
+        _nullable_positive_int(dqn[key], f"dqn.{key}")
+
+    if (
+        dqn["batch_size"] is not None
+        and dqn["replay_capacity"] is not None
+        and dqn["batch_size"] > dqn["replay_capacity"]
+    ):
+        raise ConfigError("dqn.batch_size cannot exceed replay_capacity")
 
     if not isinstance(config["unresolved"], list) or any(
         not isinstance(item, str) for item in config["unresolved"]
@@ -151,6 +181,14 @@ def validate_config(config: Any) -> dict:
         raise ConfigError("unresolved must be a list of strings")
 
     return config
+
+
+def validate_paper_vm_count(value: int) -> int:
+    """Validate the recorded experiment range, separately from tiny fixtures."""
+    _nullable_positive_int(value, "paper VM count")
+    if value is None or not 20 <= value <= 200:
+        raise ConfigError("paper VM count must be between 20 and 200")
+    return value
 
 
 def load_config(path: str | Path) -> dict:

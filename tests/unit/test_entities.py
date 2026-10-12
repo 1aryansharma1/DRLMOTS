@@ -79,3 +79,36 @@ def test_resource_mapping_is_copied():
 def test_invalid_status_type_is_rejected():
     with pytest.raises(TypeError, match="status"):
         Task("task-008", 0, 100, 20, status="running")
+
+
+def test_task_lifecycle():
+    task = Task("lifecycle", 0, 100, 20)
+    for status in (TaskStatus.QUEUED, TaskStatus.RUNNING, TaskStatus.COMPLETED):
+        task.transition_to(status)
+        assert task.status is status
+
+
+@pytest.mark.parametrize("source", list(TaskStatus))
+@pytest.mark.parametrize("target", list(TaskStatus))
+def test_transition_rules(source, target):
+    allowed = {
+        (TaskStatus.CREATED, TaskStatus.QUEUED),
+        (TaskStatus.CREATED, TaskStatus.FAILED),
+        (TaskStatus.QUEUED, TaskStatus.RUNNING),
+        (TaskStatus.QUEUED, TaskStatus.FAILED),
+        (TaskStatus.RUNNING, TaskStatus.COMPLETED),
+        (TaskStatus.RUNNING, TaskStatus.FAILED),
+    }
+    task = Task("transition", 0, 100, 20, status=source)
+    if (source, target) in allowed:
+        task.transition_to(target)
+        assert task.status is target
+    else:
+        with pytest.raises(ValueError, match="invalid task transition"):
+            task.transition_to(target)
+        assert task.status is source
+
+
+def test_transition_rejects_raw_string():
+    with pytest.raises(TypeError, match="TaskStatus"):
+        Task("transition", 0, 100, 20).transition_to("queued")

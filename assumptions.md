@@ -117,6 +117,55 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-017 - Versioned implementation and v0.1 fixture semantics
+
+- **Date:** 2026-10-13.
+- **Status:** DECIDED for the software baseline only; original source gaps remain open.
+- **Microtasks:** P3.3-P3.5, P4.1-P4.2, fixed-list P4.6, baseline P5.2-P5.6/P5.8.
+- **Decision type:** Implementation scope and explicit test-fixture assumptions.
+- **User direction:** Build practically achievable versions before attempting the complete paper.
+- **Source boundary:** Existing DRLMOTS requirements reference DOI 10.1007/s10586-024-04712-z.
+  The supplied 16-page PDF is instead DRL-MLS, DOI 10.1016/j.future.2026.108459, about
+  GPU-aware Kubernetes scheduling. Continue the repository's existing DRLMOTS baseline
+  for this version; do not mix either paper's algorithm into the other. Independent
+  review of the original DRLMOTS PDF remains pending.
+- **Selected topology:** Explicit AP -> end node -> fog-node links, cloud datacenters,
+  and single node membership for each host/VM. Physical VM-to-host placement and link
+  latencies are deliberately unspecified. Numeric host/VM fields retain the extraction's
+  reported storage/memory/bandwidth; bandwidth is not converted or used for transfer.
+- **Selected workload:** Fixed synthetic inputs; explicit byte-valued task lengths and
+  millisecond arrival/service timestamps. Apply the recorded Eq. (8) interpretation
+  `duration_ms = length_bytes * 2 / 1000` only to such inputs. This does not resolve
+  A-005 or the unitless table value 700,000. Data size is not converted into task length.
+- **Selected scheduling rule:** Least queued eligible VM, considering running plus
+  waiting count; VM ID breaks ties. Each VM executes one task at a time and drains its
+  waiting queue FCFS. All configured tiers are eligible; no paper threshold is inferred.
+- **Capacity and overflow:** Require positive explicit waiting-queue capacities. The
+  running task is excluded from that count. Try another eligible VM when a queue is
+  full; reject with a recorded FAILED outcome when every queue is full. This is the
+  baseline's overflow policy, not a resolution of the paper's unspecified behavior.
+- **Task lifecycle:** CREATED -> QUEUED -> RUNNING -> COMPLETED; failure is allowed
+  from CREATED/QUEUED/RUNNING. Terminal states cannot restart via `transition_to`.
+- **Time ordering:** Complete all finishing tasks before same-time arrivals; simultaneous
+  arrivals preserve input order. Record every successful start and finish.
+- **Metrics:** Makespan is the last successful finish from time zero (arrival gaps count).
+  Average completion time is finish minus arrival for successful tasks only. Report
+  failed counts separately; empty workload average is null. This baseline definition
+  does not establish equivalence with the original paper's Eq. (16).
+- **Out of scope:** CPU/memory feasibility, network delay (fixture uses zero), power/
+  energy, fault tolerance, priorities/thresholds, state/reward, DQN or paper results.
+  Nonempty required_resources are rejected; unknown queue limits are not treated as
+  unlimited. These restrictions keep missing model inputs visible.
+- **Version gates:** Verify Phase 3 before simulation; require fixed-list workload tests
+  and hand-calculated timelines for v0.1. Random generation and real dataset ingestion
+  remain pending for later versions, rather than being falsely marked complete.
+- **Tests affected:** topology, lifecycle, configuration, workload and integration tests.
+  Final v0.1 suite: 194 passed. Example: three completions, zero failures, makespan
+  4 ms, average completion time 8/3 ms; repeated runs agree.
+
+This entry does not resolve the scientific questions in A-001 through A-016. Later
+resource, reward, energy, network and DQN decisions require their own evidence and tests.
+
 
 
 \## P0.5 — Initial implementation boundary
