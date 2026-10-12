@@ -13,8 +13,8 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | Version | Scope | Gate / current evidence |
 |---|---|---|
 | 0.1 | P3.3-P3.5; P4.1-P4.2; fixed-list P4.6; deterministic P5.2-P5.6/P5.8 | VERIFIED: Phase 3 passed 136 tests before simulation; final suite 194 passed; exact 3-task example; `pip check` clean |
-| 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | IN PROGRESS: workload/configured-topology checkpoints verified, 304 tests pass; resource model pending |
-| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | No training until prerequisite assumptions and simulator tests pass |
+| 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | VERIFIED for A-020 synthetic baseline: package 0.2.0, 367 tests pass; no paper/physical-model claim |
+| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Next: P6.1/P7.2 state/action contract; no training before assumptions/metric gates pass |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
 v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,
@@ -31,7 +31,16 @@ The configured-topology checkpoint adds `build_topology`, a strict synthetic run
 `--config`, effective configuration/checksum and replay. A-019 documents this scoped
 P5.1 delivery: counts/resources/links are explicit and validated; full paper topology,
 physical VM placement and resource feasibility remain open. Six tasks/three VMs finish
-in exactly 4 ms; the current complete suite passes 304 tests.
+in exactly 4 ms; that checkpoint passed 304 tests (before the resource model below).
+
+The final v0.2.0 checkpoint (`4f4307f`) adds explicit unit catalogues, per-VM capacities,
+task demand profiles, componentwise eligibility and running-task reservation/release.
+Schema 2 preserves these constraints in replay; schema 1 and generator-v1 checksums
+remain compatible. A-020 records the baseline approximation: all tiers may be eligible,
+FCFS/least-load/VM-ID rules remain, CPU units do not change service speed, and no physical
+host budget or paper-specific threshold is inferred. The resource fixture gives four
+completions/two explicit failures with all balances restored; 367 tests pass. This meets
+the scoped v0.2 milestone, not the full original Phase 7/paper reproduction gates.
 
 ## Project directory (target)
 

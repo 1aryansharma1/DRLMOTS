@@ -2,16 +2,48 @@
 
 **Report date:** 2026-10-13 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `e97a14d` - v0.2 configured topology;
-prior seeded checkpoint `7ebf8d6`.
-**Working status:** v0.1 complete; v0.2 in progress. P4.3/P4.6 seeded workload checkpoint
-and configuration-driven topology are verified. Resource/placement behavior is next.
+**Implementation checkpoint:** `4f4307f` - v0.2.0 explicit resource model;
+prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
+**Working status:** v0.1 and v0.2 synthetic baseline scopes verified. State/action
+contract design is next for v0.3; no implementation task is active.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
-resource-feasibility acceptance criteria and later source/DQN/evaluation gates.
+state/action acceptance criteria and later source/DQN/evaluation gates.
 
-## Latest checkpoint - configured topology
+## Latest checkpoint - v0.2.0 resource-aware baseline
+
+Tasks now use explicit per-VM capacity eligibility. A shared unit catalogue describes
+every named resource; capacities and demands are finite/positive. Missing capacity is
+unknown, never inferred from host fields. Feasible VMs retain the least-queue/VM-ID rule;
+no feasible VM and full feasible queues produce distinct recorded terminal failures.
+
+Running tasks reserve their demands, queues reserve none, and completions release
+before queued starts or same-time arrivals. JSON includes demands/capacities/units,
+policies, reserve/release events and final balances. Schema 2 preserves all constraints
+for replay. Schema 1 and generator-v1 workload/config fingerprints remain compatible.
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
+```
+
+Actual result: **4 completed, 2 failed** (full feasible queues), **4 ms makespan**,
+**3 ms average completion time**, **8 reservation/release events**, all per-VM balances
+restored. The third VM is too small and receives no demanded task. Config SHA-256:
+`76e284813d5c9166d3fef29c454ce08d28d10acaf549dbc9a0b9bc84ec2b520f`.
+
+Checks: **367 tests passed**; `pip check` clean; package metadata refreshed to **0.2.0**.
+Coverage includes exact-fit, impossible/missing capacities, unknown units, full feasible
+queues, fallback, release ordering, empty workloads, heterogeneous 100-task accounting,
+independent input maps and replay/provenance sensitivity. The existing configured
+six-task result and seed-42 96/4 outcome/fingerprints remain unchanged.
+
+This completes v0.2's synthetic software milestone. CPU units are admission units,
+not a speed model; service time remains the byte-valued test formula. Physical host
+allocation, paper-specific priority/tier thresholds, source audit, rewards and DQN remain
+open. Assumption A-020 separates this approximation from original paper requirements.
+
+## Previous checkpoint - configured topology
 
 Runnable experiments now load explicit hosts, VMs, positive waiting-queue capacities,
 fog/cloud memberships and AP/end links from a separate strict YAML schema. The
@@ -38,7 +70,8 @@ CLI output, settings replay, queue-limit changes and overflow accounting, strict
 validation, ambiguous override rejection and unchanged existing fixtures.
 
 This is the configurable portion of P5.1. Full paper topology, physical VM-to-host
-placement, resource feasibility and transfer delays remain open; v0.2 is not complete.
+placement, resource feasibility and transfer delays were open at that checkpoint;
+resource feasibility is now implemented in the explicit synthetic model above.
 
 ## Previous checkpoint - seeded synthetic workloads
 
@@ -88,7 +121,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 304 tests above:
+virtual environment before its publication. The latest suite is 367 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -123,21 +156,21 @@ by Git; the command recreates the example. No training results or checkpoints ex
 - Full source-audited P5.1 paper topology: the configurable builder is verified, while
   the bundled example remains a tiny synthetic fixture.
 - P5.7: a documented network-delay model; the baseline explicitly uses zero delay.
-- Resource feasibility and VM-to-host allocation: not implemented. Nonempty task
-  resource requests are rejected rather than treated as supported.
+- Source-audited resource values and physical VM-to-host allocation remain unresolved.
+  Explicit synthetic per-VM feasibility/reservation is implemented, with no inferred host budget.
 - Paper priorities, thresholds, state/action encoding, reward, energy/fault metrics,
   DQN training, checkpoints, baselines and comparative evaluation: pending.
 - The original DRLMOTS source needs an independent audit against `paper_requirements.md`.
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-017.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-020.
 
 ## Next delivery
 
-P4.3, its seeded manifest and the configurable topology builder are complete. Continue
-v0.2 with explicit resource/placement behavior and its own
-tests. DQN work remains a later milestone after these behavior and source decisions.
+v0.2's scoped baseline is complete. Start v0.3 with live decision-state snapshots,
+feature/action schema and valid-action masks. Metric/reward/source decisions must pass
+their gates before DQN work. Keep original paper-specific tasks open until verified.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.
 Update [progress.md](progress.md) when a task is claimed or actually verified.

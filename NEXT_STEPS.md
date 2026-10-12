@@ -1,9 +1,9 @@
 # Remaining work and pickup checklist
 
 **Updated:** 2026-10-13
-**Latest verified implementation:** `e97a14d` on `main`.
+**Latest verified implementation:** `4f4307f` - v0.2.0 explicit resource model.
 **Working state:** no implementation task is active; the next task is unassigned.
-**Milestone:** v0.1 complete; v0.2 partially complete; v0.3 and v1.0 pending.
+**Milestone:** v0.1 and v0.2 synthetic baseline scopes verified; v0.3 and v1.0 pending.
 
 ## What already works
 
@@ -12,39 +12,43 @@
 - [x] Deterministic SimPy execution, FCFS waiting queues, fallback and recorded failures.
 - [x] Fixed and seeded synthetic workloads with units/settings/checksums recorded.
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
-- [x] Verified baseline suite: 304 tests pass; dependency check is clean.
+- [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
+- [x] Running-task resource reservation/release, trace and final balances without leaks.
+- [x] Verified baseline suite: 367 tests pass; dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
+- [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
+  eight resource events; old baseline outcomes/config/workload fingerprints preserved.
 
 These checks establish the current synthetic baseline, not the paper's full algorithm
 or experimental results. See [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for evidence.
 
-## Pick up this task first - resource feasibility for v0.2
+## Pick up this task first - state/action contract for v0.3
 
 **Owner:** unassigned. **Status:** NOT STARTED.
 
-`simulate` currently rejects nonempty `Task.required_resources`. Host storage/memory
-and VM bandwidth are metadata, not an implemented allocation model. Begin here:
+The resource-aware baseline is implemented under A-020. Next, define the decision-time
+state and fixed VM action mapping before reward/DQN. Begin here:
 
 1. Claim this task in `progress.md` and record your name/handle and IN PROGRESS status.
-2. Review `entities.py`, `environment.py`, `run_config.py`, `topology.py` and assumption
-   A-019. Keep existing empty-resource examples working.
-3. Record a new assumption defining resource names/units, explicit per-VM capacities,
-   reservation/release behavior, and the no-feasible-resource policy. Missing per-VM
-   CPU/memory values and physical host mapping must not become guessed paper defaults.
-4. Extend the models/config only with the selected explicit capacities and demands.
-   Unknown capacity cannot satisfy a positive demand; invalid values fail clearly.
-5. Restrict placement to feasible VMs, retain queue/tie/event ordering, and record an
-   explicit outcome if all feasible queues are full or no VM can satisfy the task.
-6. Verify exact-fit, oversized request, unknown capacity, alternate-VM fallback,
-   resource release, no oversubscription/leak and complete task accounting. Save the
-   demands, capacities and policy in run provenance.
+2. Review `environment.py`, `resources.py`, `run_config.py`, `topology.py` and A-020.
+   Queues/running state and resource ledger are local runtime state, not input VM queues.
+3. Record a new assumption with feature names/order/units, fixed dimensions, action
+   ordering, unknown-capacity encoding and the observation/decision boundary. Source
+   extraction A-001 remains unresolved; label synthetic feature choices explicitly.
+4. Capture an arrival-time snapshot after same-time completions and before assignment.
+   Implement a pure encoder with finite fixed-shape output; preserve unknown-vs-zero
+   information instead of silently treating unknown resource values as known zero.
+5. Map action indices to configured VMs and build masks from total resource fit and
+   waiting-slot availability. A busy VM may accept a queued task that fits total capacity
+   even if its currently available resources are reserved; a full queue cannot.
+6. Test empty/busy/full/infeasible/unknown snapshots, mapping round-trips and event order.
+   Preserve existing outcomes/resource invariants; record schemas in run provenance.
 7. Run the relevant tests and full suite. Record actual results, update this checklist
    and HANDOFF with the next task, then commit the reviewed change.
 
-**Finish criterion:** a small configured resource-demand workload has hand-checked
-placement/start/finish/resource accounting, all tasks have outcomes, and existing
-fixed/seeded/configured examples retain their behavior. This completes the next task;
-do not mark later paper/DQN tasks verified from this test alone.
+**Finish criterion:** a tiny workload has hand-checked decision snapshots, fixed-shape
+state values and legal action masks; VM action mapping is stable and baseline/resource
+outcomes agree. This completes the next task, not normalization, reward or DQN training.
 
 ## Everything still remaining
 
@@ -54,15 +58,15 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 
 | Order | Scope / plan reference | Remaining deliverable | Completion evidence |
 |---|---|---|---|
-| 1 | v0.2 resource feasibility, R004 / P7.3 | Explicit task demand/VM capacities, feasible placement and reservation/release rules | Boundary/fallback/accounting tests; reproducible configured example |
-| 2 | v0.2 placement and P7.1/P7.4/P7.5 | Document priority, tier selection and no-capacity behavior; implement any provisional policy with an approximation label | Known ordering and threshold boundaries; no dropped task; decision log |
+| 1 | v0.3 state/action design, P6.1-P6.2/P7.2 | Runtime snapshots, feature/unit/order contract, pure encoder and stable VM actions | Hand-built/event snapshots, fixed dimensions and legal masks |
+| 2 | Paper-specific placement, P7.1/P7.4/P7.5 | Decide priority/tier thresholds and fallback beyond the implemented all-tier least-queue baseline | Source-supported or labelled policy; ordering/threshold/no-capacity tests |
 | 3 | P0.2-P0.4 / R001-R040 | Independently audit the original DRLMOTS paper and extraction; classify each source-supported vs assumed behavior | Paper-to-code/test traceability and updated assumptions; no invented requirement |
 | 4 | P4.4 | Handle the paper's conflicting task-count ranges explicitly in experiment configs | Exact requested counts; separate named experiment settings; manifests |
 | 5 | P4.5 / A-011 | Identify dataset version/schema/filtering/mapping before any Google Jobs label | Verified provenance and ingestion tests, or explicitly unavailable with synthetic alternatives |
 | 6 | Full P5.1 | Configure the source-audited full paper topology and VM distribution | Counts/memberships match documented source or a labelled assumption |
 | 7 | P5.7 / A-014 | Decide and implement network/transfer delay and its units, if supported | Hand-calculated timestamps; clearly labelled inclusion/exclusion |
-| 8 | P6 / A-001 | Define state fields/order/units and training-only normalization | Fixed dimension/finite state; no evaluation leakage |
-| 9 | P7.2 / A-003-A-004 | Stable VM action mapping and valid-action masks, consistent with tier policy | Index/VM round-trip; no illegal selection; explicit no-action outcome |
+| 8 | P6.3-P6.4 / A-001 | Training-only normalization and full state boundary coverage after the initial contract | No evaluation leakage; finite stable shapes; saturation/unknown checks |
+| 9 | P7 / A-003-A-004 | Extend masks/mapping for the chosen paper tier policy after baseline actions are verified | No illegal selection; no-action outcome; policy/encoding compatibility |
 | 10 | P8 / A-006-A-008 | Audit makespan semantics, compute/transmission energy, reliability/fault metric and scalar reward | Hand-calculated units/sign/scales; reward direction verified |
 | 11 | P9 / A-010 | Confirm DQN width/layers and implement CPU network | Correct input/action dimensions, finite outputs, parameter checks |
 | 12 | P10 / A-009 | Replay, valid-action exploration, terminal targets, target synchronization and learning settings | Capacity/sampling, numeric targets, epsilon bounds and finite gradient/update tests |
@@ -80,12 +84,13 @@ The supplied DRL-MLS Kubernetes PDF is a different paper, DOI 10.1016/j.future.2
 Do not combine their state/action/reward/resource definitions. The original DRLMOTS
 PDF was not independently audited during these implementation checkpoints.
 
-Open items include task length units and the value 700,000; arrival distribution;
+Open paper items include task length units and the value 700,000; arrival distribution;
 priority/threshold equations; task/VM resource capacities and physical mapping;
 reward sign/normalization; energy units/coefficients; fault-tolerance interpretation;
 initial epsilon, episode counts and unspecified DQN settings; real dataset identity;
 exact CNN/LSTM/GGCN baselines; task-count conflicts and reported improvement arithmetic.
-See assumptions A-001 through A-019 and retain the existing unresolved entries.
+The synthetic per-VM resource model does not resolve the paper's physical capacities
+or mapping. See assumptions A-001 through A-020 and retain the unresolved entries.
 
 ## Before handing off again
 

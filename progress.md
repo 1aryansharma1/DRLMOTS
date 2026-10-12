@@ -1,16 +1,18 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.2 IN PROGRESS; configured topology checkpoint VERIFIED (2026-10-13).
+**Current stage:** v0.2.0 synthetic resource-aware baseline VERIFIED (2026-10-13).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
-resource feasibility, and DQN implementation remain pending.
+source-audited resource interpretation, physical allocation and DQN remain pending.
 
 **Working status (2026-10-13):** v0.1 and P4.3/P4.6 seeded workload generation are
 complete, implemented and verified by Codex for ashishjha20. Configuration-driven
-topology is now VERIFIED by the same contributor. No implementation task is active;
-next is explicit resource feasibility and placement behavior, with owner unassigned.
+topology and explicit per-VM resource admission/reservation are VERIFIED. v0.2 is
+complete for the A-017/A-020 synthetic baseline scope. No task is currently active;
+next is v0.3 state/action contract design, owner unassigned.
 The verified v0.1 implementation commit is `993344d`.
-Latest verified implementation: `e97a14d` (configured topology); seeded workloads:
+Latest verified implementation: `4f4307f` (v0.2.0 resource model); configured topology:
+`e97a14d`; seeded workloads:
 `7ebf8d6`. The complete remaining backlog and immediate pickup checklist are in
 [NEXT_STEPS.md](NEXT_STEPS.md).
 Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
@@ -60,6 +62,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P5.6 | Queue capacity and fallback | VERIFIED for baseline policy | Explicit capacities, alternate fog-node fallback, full-cluster failure. Paper threshold/tier policy remains open |
 | P5.7 | Network-transfer delays | NOT STARTED | Zero-delay fixture is explicitly recorded in report; no transfer formula is inferred |
 | P5.8 | Deterministic edge cases | VERIFIED for baseline scope | Empty workloads, simultaneous arrivals/completions, missing VMs, unknown/full queues, duplicate tasks and unsupported resource requests |
+| R004 / P7.3 baseline subset | Explicit per-VM demands/capacities, feasible placement and resource reservations | VERIFIED for synthetic model | Shared declared units, missing capacity never inferred, exact-fit/oversize/full-feasible-queue failures, reserve/release trace, no oversubscription/leak. Original paper resource specification and full P7 remain open |
 
 ## Verification in this checkout
 
@@ -72,16 +75,21 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 |---|---|
 | Phase 3 gate: `.venv\Scripts\python.exe -m pytest -q` | 136 passed before simulator implementation |
 | Final v0.1 suite: `.venv\Scripts\python.exe -m pytest -q` | 194 passed |
-| Current v0.2 workload checkpoint suite: `.venv\Scripts\python.exe -m pytest -q` | 246 passed |
-| Current configured-topology checkpoint suite: `.venv\Scripts\python.exe -m pytest -q` | 304 passed |
+| Seeded-workload checkpoint suite (historical): `.venv\Scripts\python.exe -m pytest -q` | 246 passed |
+| Configured-topology checkpoint suite (historical): `.venv\Scripts\python.exe -m pytest -q` | 304 passed |
+| Final v0.2.0 suite: `.venv\Scripts\python.exe -m pytest -q` | 367 passed |
 | `.venv\Scripts\python.exe -m pip check` | No broken requirements found |
 | `.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json` | 3 completed, 0 failed; makespan 4 ms; average completion time 8/3 ms |
 | `.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json` | 96 completed, 4 explicitly failed (full queues), 100 accounted for; makespan 155.1273394932697 ms |
 | `.venv\Scripts\python.exe -m drlmots --config configs/synthetic.yaml --output outputs/metrics/configured-demo.json` | 3 VMs, 6 completed, 0 failed; makespan 4 ms; average completion time 3 ms; exact config and workload checksums saved |
+| `.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json` | 2 feasible/1 too-small VMs; 4 completed, 2 explicit full-feasible-queue failures; 4 ms makespan; 8 resource events; all balances restored |
 
-The suite includes a 100-task fractional-time fixture checking serial VM execution,
-accounting and repeatability. It does not validate CPU/memory feasibility, DQN behavior,
-energy, fault tolerance or experimental improvements.
+The suite includes 100-task fractional and heterogeneous-resource fixtures checking
+serial execution, feasibility, accounting and repeatability. It validates the documented
+synthetic resource model, not physical host budgets, DQN behavior, energy, fault tolerance
+or experimental improvements. Old schema-1 config and demand-free workload checksums
+remain unchanged; schema 2 records explicit units/capacities/demands. Editable package
+metadata was refreshed to 0.2.0; dependency requirements did not change.
 
 ## Important unresolved paper details
 
@@ -97,19 +105,23 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 304-test suite verifies setup, entities/configuration/topology, fixed and
+The current 367-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
-the SimPy baseline. This establishes only the documented
+resource admission/accounting and the SimPy baseline. This establishes only the documented
 baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
 attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
 DRLMOTS algorithm; see decision A-017.
 
 ## Resume protocol
 
-Continue v0.2 with explicit resource feasibility and placement assumptions. P4.3/P4.6
-and configured P5.1 are verified for A-018/A-019 synthetic models, not a paper
-distribution or source-audited paper topology. Keep host/VM mapping and missing CPU/
-memory/resource units explicit; do not infer capacities from host fields.
+Start v0.3 with the P6.1/P7.2 state/action contract: define the decision-time runtime
+snapshot, feature units/order, fixed VM action ordering and valid-action semantics.
+Expose live queues/running/resource balances rather than using unchanged input VM queues
+or post-run balances as observations. Document the feature choices as a new assumption
+and verify pure encoding/masks before reward or training. A queued task may fit total
+capacity even when a running task has reserved it; masks must respect this queue model.
+P4.3/P4.6, configured P5.1 and resource feasibility are verified for A-018/A-020 synthetic
+models, not a source-audited paper topology/distribution or physical host allocation.
 Retain the deterministic tests and run each applicable gate before moving on. Keep
 P0.2-P0.4 source review pending until the original DRLMOTS paper is available for an
 independent audit. Resolve state/action/reward, metric units and training settings before

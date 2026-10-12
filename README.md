@@ -6,16 +6,16 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Current status
 
-Version 0.1 is a runnable deterministic scheduling baseline. It includes validated
-Task/Host/VM models, fog/cloud topology, task lifecycle transitions, finite configuration
-validation, a fixed synthetic workload factory, and a SimPy execution loop. The example
-completes three tasks on two VMs with a 4 ms makespan and an 8/3 ms average completion
-time. Its initial suite passed 194 tests; the seeded-workload checkpoint passed 246.
-The current configured-topology suite passes 304 tests on Python 3.11.9 (2026-10-13).
+Version **0.2.0** is a verified synthetic scheduling baseline. It supports fixed/seeded
+workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
+demands, feasible placement, queue overflow, resource reservation/release, and replayable
+JSON reports. The current suite passes **367 tests** on Python 3.11.9 (2026-10-13).
 
-P4.3 seeded synthetic workload generation and its P4.6 manifest are now verified.
-Configuration-driven topology is also verified. v0.2 remains in progress with resource
-feasibility and placement behavior next.
+The original fixed example still completes three tasks with a 4 ms makespan. The
+resource example accounts for six simultaneous tasks: four complete and two fail when
+all feasible waiting queues are full; makespan is 4 ms and all capacities are restored.
+v0.2 is complete for this explicitly documented software scope. Next is v0.3 state/
+action design, followed by metric/reward decisions and DQN smoke training.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -61,7 +61,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 304 passing tests. The last command prints
+Expected checks: no broken requirements; 367 passing tests. The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -69,6 +69,8 @@ identical JSON. Generated results are ignored by Git.
 If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python version
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
+After pulling v0.2 into an existing editable environment, rerun the editable install
+command to refresh package version metadata. The report should identify version 0.2.0.
 
 ## Seeded synthetic workloads (v0.2 checkpoint)
 
@@ -118,7 +120,39 @@ workload provenance and outcomes. The saved `run_configuration`, excluding its
 `sha256` field, can be loaded again through `parse_run_config` to reproduce the run.
 File location and YAML formatting do not affect the effective configuration checksum.
 `configs/default.yaml` retains unresolved paper settings and is not a runnable config.
-CPU/memory feasibility, physical VM placement, network delay and DQN remain pending.
+Schema 1 preserves the demand-free baseline. Use schema 2 below for resource-aware
+admission. Physical VM placement, network delay and DQN remain pending.
+
+## Resource-aware example (schema 2)
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
+```
+
+Schema 2 additionally requires a run-level `resource_units` catalogue, explicit
+`resource_capacities` on every VM, and workload `required_resources`. Generated tasks
+share this demand profile; hand-built tasks can have different profiles. Each named
+resource uses the same declared unit throughout the run, with no implicit conversions.
+Capacities/demands are finite and positive; null or an absent capacity is unknown and
+cannot satisfy a positive demand. No VM capacity is inferred from host metadata.
+
+The example declares abstract CPU admission units and memory in GB. Every task needs
+2 CPU units/4 GB; two VMs fit and a third is too small. Among resource-feasible VMs
+with a waiting slot, the existing least-load/VM-ID rule applies. The fixture completes
+four tasks, fails two because all feasible queues are full, and emits eight reserve/
+release events. All VM balances return to their configured values.
+
+Only running tasks reserve resources; queued tasks reserve none. Completion releases
+resources before the next queued task starts and before same-time arrivals. A task with
+no feasible VM gets `no VM can satisfy task resources`; full feasible queues have a
+distinct failure reason. Demand-free legacy examples retain their outcomes/checksums.
+
+Reports record demands/capacities/units, admission/queue policies, resource events,
+final balances and exact replay configuration. Resource demand profiles use generator
+version 2; the demand-free generator-v1 provenance remains compatible. CPU capacities
+control admission, not task speed: service time still uses the explicit byte-valued
+fixture formula. Each VM runs one task at a time; there is no physical host budget or
+cross-VM resource sharing. See assumption A-020 for this model's limits.
 
 ## Baseline semantics and limits
 
@@ -127,7 +161,7 @@ CPU/memory feasibility, physical VM placement, network delay and DQN remain pend
   remains unresolved. Task data sizes are a separate input; no relationship is inferred.
 - Every VM executes one task at a time. Its positive, explicit queue capacity counts
   waiting tasks only. `None` is unknown and cannot be treated as unlimited.
-- Placement chooses the eligible VM with the fewest running plus waiting tasks,
+- Placement chooses the resource-feasible VM with a waiting slot and the fewest running plus waiting tasks,
   breaking ties by VM ID. A VM's waiting tasks execute first-come, first-served.
 - Simultaneous arrivals preserve input order. Completions release capacity before
   arrivals at the same time. All queues full means an explicit failed task.
@@ -136,9 +170,9 @@ CPU/memory feasibility, physical VM placement, network delay and DQN remain pend
   Failed tasks are counted separately; an empty workload has no average.
 - The example's small topology and queue limits are test fixtures. Paper experiment
   settings are separate in `configs/default.yaml`, including the 20-200 VM range.
-- VM-to-host allocation, CPU/memory feasibility, network delay, priority/threshold
-  placement, energy, reliability, reward and DQN are not yet implemented. Nonempty
-  task resource requirements are rejected rather than ignored. Network delay is zero.
+- Explicit resource feasibility/reservation is implemented for the synthetic per-VM
+  model. VM-to-host allocation, network delay, paper-specific priorities/thresholds,
+  energy, reliability, reward and DQN remain open. Network delay is zero.
 - The API copies input tasks and keeps caller-owned VM queues unchanged, allowing
   repeated runs on the same fixture.
 
@@ -147,8 +181,8 @@ CPU/memory feasibility, physical VM placement, network delay and DQN remain pend
 | Version | Completion target | Status |
 |---|---|---|
 | 0.1 | Deterministic topology, queue simulation, exact timelines and saved inputs/results | VERIFIED |
-| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | IN PROGRESS: workloads/topology verified; resources next |
-| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Planned |
+| 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | VERIFIED for synthetic baseline; 367 tests pass |
+| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Next: state/action contract first |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 
 See `implementation_plan.md` for microtask mapping and `progress.md` for actual
