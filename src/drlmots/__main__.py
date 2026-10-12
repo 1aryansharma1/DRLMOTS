@@ -8,6 +8,7 @@ from pathlib import Path
 
 from drlmots.entities import Host, ResourceTier, VM
 from drlmots.environment import simulate
+from drlmots.baselines import POLICIES
 from drlmots.run_config import RunConfig, load_run_config
 from drlmots.topology import AccessPoint, CloudDatacenter, EndNode, FogNode, Topology
 from drlmots.workload import (
@@ -20,6 +21,7 @@ def smoke_report(
     *,
     topology: Topology | None = None,
     resource_units=None,
+    policy: str = "least_queue_fcfs",
 ) -> dict:
     if topology is None:
         topology = _smoke_topology()
@@ -29,8 +31,8 @@ def smoke_report(
         {"task_id": "task-3", "arrival_time": 1, "length": 500, "data_size_kb": 20},
     ], length_unit="bytes")
     units = {} if resource_units is None else resource_units
-    result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units)
-    return _report(topology, tasks, settings, result, units)
+    result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units, policy=policy)
+    return _report(topology, tasks, settings, result, units, policy)
 
 
 def _smoke_topology() -> Topology:
@@ -45,12 +47,12 @@ def _smoke_topology() -> Topology:
     )
 
 
-def _report(topology, tasks, settings, result, resource_units) -> dict:
+def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
     return {
         "version": version("drlmots"),
         "milestone": "v0.2 workload generation" if settings is not None else "v0.1 fixed smoke",
         "implementation_scope": "deterministic software baseline; not paper reproduction",
-        "policy": "least_queue_fcfs",
+        "policy": policy,
         "tie_breaking": "VM ID; simultaneous arrivals retain input order; completions first",
         "service_time_model": "explicit byte-valued fixture: length * 2 / 1000 milliseconds",
         "queue_capacity_semantics": "waiting tasks only; one additional running task per VM",
@@ -76,8 +78,8 @@ def _report(topology, tasks, settings, result, resource_units) -> dict:
     }
 
 
-def configured_report(config: RunConfig) -> dict:
-    report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units)
+def configured_report(config: RunConfig, *, policy: str = "least_queue_fcfs") -> dict:
+    report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units, policy=policy)
     report["milestone"] = "v0.2 resource-aware baseline" if config.schema_version == 2 else "v0.2 configured topology"
     report["run_configuration"] = config.manifest()
     return report
@@ -87,6 +89,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the DRLMOTS software baseline with fixed or seeded inputs")
     parser.add_argument("--output", type=Path, help="Also save the exact inputs and results as JSON")
     parser.add_argument("--config", type=Path, help="Runnable synthetic YAML; cannot combine with workload flags")
+    parser.add_argument("--policy", choices=POLICIES, default="least_queue_fcfs", help="Simple placement comparator")
     parser.add_argument("--task-count", type=int, help="Generate this many synthetic tasks; requires --seed")
     parser.add_argument("--seed", type=int, help="Explicit nonnegative synthetic-workload seed")
     parser.add_argument("--interarrival-ms", nargs=2, type=float, metavar=("MIN", "MAX"),
@@ -104,7 +107,7 @@ def main() -> None:
         if synthetic_requested:
             parser.error("--config cannot be combined with seed/count/range workload flags")
         try:
-            report = configured_report(load_run_config(args.config))
+            report = configured_report(load_run_config(args.config), policy=args.policy)
         except (OSError, TypeError, ValueError) as error:
             parser.error(str(error))
     elif synthetic_requested:
@@ -119,9 +122,9 @@ def main() -> None:
             )
         except (TypeError, ValueError) as error:
             parser.error(str(error))
-        report = smoke_report(settings)
+        report = smoke_report(settings, policy=args.policy)
     else:
-        report = smoke_report()
+        report = smoke_report(policy=args.policy)
     content = json.dumps(report, indent=2, allow_nan=False)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

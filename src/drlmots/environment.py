@@ -13,6 +13,7 @@ from drlmots.resources import (
     ResourceEvent, ResourceLedger, fits_resources, require_declared_units, validate_resource_units,
 )
 from drlmots.workload import processing_time_ms
+from drlmots.baselines import POLICIES, choose_vm
 
 
 @dataclass(frozen=True)
@@ -60,8 +61,9 @@ def simulate(
     *,
     task_length_unit: str,
     resource_units=None,
+    policy: str = "least_queue_fcfs",
 ) -> SimulationResult:
-    """Schedule the least-queued eligible VM, then execute each VM's queue FCFS.
+    """Place tasks using a selected baseline, then execute each VM's queue FCFS.
 
     Queue capacity counts waiting tasks, excluding the one running task. Ties
     between VMs use VM ID; simultaneous arrivals retain input order. Completions
@@ -69,6 +71,8 @@ def simulate(
     task explicitly. This is a software baseline, not the paper's DQN/threshold
     policy. Caller-owned tasks and VM queues are never changed.
     """
+    if policy not in POLICIES:
+        raise ValueError(f"unknown policy {policy!r}; choose one of {POLICIES}")
     topology.validate()
     units = validate_resource_units({} if resource_units is None else resource_units)
     for vm in topology.vms:
@@ -151,9 +155,10 @@ def simulate(
                          else "all VM queues are full"),
                     )
                     continue
-                vm = min(eligible, key=lambda item: (
-                    len(queues[item.vm_id]) + int(item.vm_id in running), item.vm_id
-                ))
+                vm = choose_vm(policy, eligible, {
+                    item.vm_id: len(queues[item.vm_id]) + int(item.vm_id in running)
+                    for item in eligible
+                })
                 task.transition_to(TaskStatus.QUEUED)
                 if vm.vm_id in running:
                     queues[vm.vm_id].append(task)

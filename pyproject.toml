@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "drlmots"
-version = "0.2.0"
+version = "0.2.1"
 description = "DRLMOTS task scheduling research simulator for cloud-fog environments"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
@@ -17,6 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+demo = ["matplotlib>=3.8,<4"]
 dev = [
     "pytest>=8,<9",
 ]
@@ -28,3 +29,6 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-ra"
+
+[tool.setuptools.package-data]
+drlmots = ["templates/*.html"]

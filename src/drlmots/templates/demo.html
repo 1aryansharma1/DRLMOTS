@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DRLMOTS · Professor demo</title>
+  <style>
+    :root { --ink:#172d3d; --muted:#526978; --line:#dce5e8; --teal:#198a83; --paper:#f2f6f6; }
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.5}
+    main{max-width:1190px;margin:auto;padding:42px 30px 28px} .topline{display:flex;justify-content:space-between;gap:20px;align-items:center}
+    .brand{font-weight:700;letter-spacing:.1em;font-size:13px}.badge{font-size:12px;padding:6px 12px;border-radius:20px;background:#e1eeeb;color:#245f57}
+    h1{font-size:42px;letter-spacing:-.045em;line-height:1.12;margin:25px 0 12px;font-weight:650;max-width:760px} h2{font-size:20px;margin:0 0 15px;letter-spacing:-.02em} h3{font-size:15px;margin:0 0 9px}
+    .lead{max-width:780px;color:var(--muted);font-size:16px;margin:0 0 22px}.controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:26px 0 22px}
+    label{font-size:13px;color:var(--muted);display:grid;gap:6px}select,button{font:inherit;font-size:14px;border-radius:8px;border:1px solid #bcccd1;background:white;color:var(--ink);padding:10px 14px}button{cursor:pointer}button:hover{background:#e4eeeb}button:focus-visible,select:focus-visible{outline:3px solid #78b9b2;outline-offset:3px}
+    .controls p{color:var(--muted);font-size:13px;flex:1;min-width:200px;margin:23px 0 0}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+    .metric{background:var(--ink);color:#fff;border-radius:12px;padding:18px 20px}.metric span{display:block;font-size:12px;color:#c1d3dc}.metric strong{display:block;font-size:30px;line-height:1.2;margin:7px 0 4px;font-weight:600;font-variant-numeric:tabular-nums}.metric small{color:#c1d3dc;font-size:11px}
+    .panel{background:white;padding:22px;border:1px solid var(--line);border-radius:12px;margin-bottom:20px}.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}.grid .panel{min-width:0}.chart svg{width:100%;height:auto;display:block}.caption{font-size:12px;color:var(--muted);margin:9px 0 0}.chart{min-width:0}
+    table{border-collapse:collapse;width:100%;font-size:13px} th{text-align:left;color:var(--muted);font-size:12px;font-weight:600} th,td{padding:10px 8px;border-bottom:1px solid var(--line)}td.num{text-align:right;font-variant-numeric:tabular-nums}th.num{text-align:right}.selected-row{background:#eff7f5}.table-wrap{overflow:auto}
+    .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.stage{border-left:3px solid #87b9b3;padding:8px 12px;background:#f7fafa}.stage b{font-size:13px}.stage p{font-size:12px;color:var(--muted);margin:5px 0 0}
+    .pool{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.vm{background:#f2f6f7;padding:10px 13px;border-radius:7px;font-size:12px}.vm b{display:block;font-size:13px}.quiet{color:var(--muted);font-size:12px}
+    details{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}summary{cursor:pointer;font-size:13px;font-weight:600}pre{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6f7;padding:14px;border-radius:6px}#tasks-wrap{max-height:350px;overflow:auto;margin-top:12px}
+    footer{font-size:12px;color:var(--muted);padding:0 4px 12px}.checks{font-size:12px;color:#22685d;margin-left:auto}.section-line{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+    @media(max-width:800px){main{padding:28px 18px}h1{font-size:34px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.pipeline{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:440px){main{padding:22px 12px}h1{font-size:29px}.badge{max-width:180px}.panel{padding:16px}.metric{padding:14px}.metric strong{font-size:24px}.pipeline{grid-template-columns:1fr}.controls{gap:12px}.controls label{width:100%}.controls p{margin:0}.checks{margin-left:0}}
+    @media print{body{background:white}main{max-width:none;padding:10px}.controls button{display:none}.panel,.metric{break-inside:avoid}.metric{background:white;color:var(--ink);border:1px solid var(--line)}.metric span,.metric small{color:var(--muted)}details{display:none}}
+  </style>
+</head>
+<body><main>
+  <div class="topline"><span class="brand">DRLMOTS / RESEARCH PROTOTYPE</span><span class="badge">Synthetic simulator · <span id="version"></span></span></div>
+  <h1>Where tasks run.<br>What makes them wait.</h1>
+  <p class="lead">Explore resource-aware scheduling across fog and cloud VMs. Both policies use exactly the same arrivals, task lengths, resource demands and queue limits.</p>
+  <div class="controls">
+    <label>Scenario<select id="scenario" aria-label="Scenario"></select></label>
+    <label>Timeline policy<select id="policy" aria-label="Timeline policy"></select></label>
+    <button id="export" type="button">Export comparison JSON</button>
+    <p id="scenario-description"></p>
+  </div>
+  <div class="metrics" aria-live="polite">
+    <div class="metric"><span>Completed tasks</span><strong id="completed"></strong><small id="task-total"></small></div>
+    <div class="metric"><span>Explicit failures</span><strong id="failed"></strong><small>Queue-full or resource-infeasible</small></div>
+    <div class="metric"><span>Makespan</span><strong id="makespan"></strong><small>Last successful finish from time zero</small></div>
+    <div class="metric"><span>Average completion time</span><strong id="average"></strong><small>Successful tasks only, includes waiting</small></div>
+  </div>
+  <div class="panel">
+    <div class="section-line"><h2>One workload, two placement rules</h2><span class="checks" id="checks"></span></div>
+    <div class="grid"><div class="chart" id="comparison" role="img" aria-label="Completed and failed tasks by policy"></div>
+    <div><div class="table-wrap"><table><thead><tr><th>Policy</th><th class="num">Done</th><th class="num">Failed</th><th class="num">Makespan ms</th><th class="num">Mean ms</th></tr></thead><tbody id="comparison-rows"></tbody></table></div>
+    <p class="caption">Read timing alongside completion counts. A smaller makespan can reflect more rejected tasks; failed tasks are excluded from average latency.</p>
+    <p class="caption">Least queue chooses the least running + waiting load. First fit chooses the first eligible VM by ID. Both drain each VM queue FCFS.</p></div></div>
+  </div>
+  <div class="grid"><div class="panel"><div class="chart" id="timeline" role="img" aria-label="Task execution intervals by VM"></div><p class="caption">Each block is one completed task. Hover for its task ID and start/finish times. Waiting precedes execution; rejected tasks have no block.</p></div>
+    <div class="panel"><div class="chart" id="usage" role="img" aria-label="VM busy time as percentage of makespan"></div><p class="caption">Occupancy measures VM service time, not physical CPU utilization. One task runs per VM; network delay is zero.</p></div></div>
+  <div class="panel"><h2>Prototype pipeline</h2><div class="pipeline">
+    <div class="stage"><b>01 · Arrivals</b><p>Seeded, explicit bytes and milliseconds</p></div>
+    <div class="stage"><b>02 · Resource fit</b><p>Every demand must fit declared capacity</p></div>
+    <div class="stage"><b>03 · Placement</b><p>Eligible VM plus a free waiting slot</p></div>
+    <div class="stage"><b>04 · Execution</b><p>FCFS service; reserve then release</p></div>
+    <div class="stage"><b>05 · Evidence</b><p>Task outcomes, timelines and input checksums</p></div>
+  </div><div class="pool" id="pool"></div>
+  <p class="quiet" id="topology"></p>
+  <details><summary>Task outcomes and rejection reasons</summary><div id="tasks-wrap"><table><thead><tr><th>Task</th><th>VM / failure reason</th><th class="num">Arrival ms</th><th class="num">Start ms</th><th class="num">Finish ms</th></tr></thead><tbody id="task-rows"></tbody></table></div></details>
+  <details><summary>Reproducibility and model limits</summary><pre id="provenance"></pre><p class="quiet">Task length uses the explicit byte-valued test formula, not the paper's unresolved table length. CPU units control admission, not execution speed. No physical host budget, learned policy, energy/reliability result or exact paper reproduction is claimed.</p></details>
+  </div>
+  <footer>Professor demo · Reproducible synthetic software baseline. State/action encoding, reward design and DQN training remain future work. SVG/PNG figures and full JSON are exported by the repository command.</footer>
+</main>
+<script id="demo-data" type="application/json">__DEMO_DATA__</script>
+<script>
+(()=>{
+  const data=JSON.parse(document.getElementById('demo-data').textContent);
+  const el=id=>document.getElementById(id), scenarioSelect=el('scenario'), policySelect=el('policy');
+  const option=(select,value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)};
+  data.scenarios.forEach(s=>option(scenarioSelect,s.id,s.label));Object.entries(data.policy_labels).forEach(([value,label])=>option(policySelect,value,label));
+  scenarioSelect.value='seeded';el('version').textContent=data.version;
+  const fmt=(n,digits=2)=>n===null?'—':Number(n).toFixed(digits);
+  const cell=(row,text,numeric=false)=>{const c=document.createElement('td');c.textContent=text;if(numeric)c.className='num';row.append(c)};
+  function selected(){const s=data.scenarios.find(x=>x.id===scenarioSelect.value);return [s,s.comparison.reports.find(x=>x.policy===policySelect.value)]}
+  function render(){
+    const [scenario,report]=selected();el('scenario-description').textContent=scenario.description;
+    el('completed').textContent=report.completed_count;el('failed').textContent=report.failed_count;el('task-total').textContent=`Of ${report.outcomes.length} submitted tasks`;
+    el('makespan').textContent=fmt(report.makespan_ms)+' ms';el('average').textContent=fmt(report.average_completion_time_ms)+' ms';
+    el('checks').textContent='Matched input checksums · resources restored';
+    el('comparison').innerHTML=scenario.figures.comparison;el('timeline').innerHTML=scenario.figures.policies[report.policy].timeline;el('usage').innerHTML=scenario.figures.policies[report.policy].usage;
+    el('comparison-rows').replaceChildren();scenario.comparison.reports.forEach(r=>{const row=document.createElement('tr');if(r.policy===report.policy)row.className='selected-row';cell(row,data.policy_labels[r.policy]);cell(row,r.completed_count,true);cell(row,r.failed_count,true);cell(row,fmt(r.makespan_ms),true);cell(row,fmt(r.average_completion_time_ms),true);el('comparison-rows').append(row)});
+    el('pool').replaceChildren();report.topology.vms.forEach(vm=>{const node=document.createElement('div');node.className='vm';const title=document.createElement('b');title.textContent=vm.vm_id+' · '+vm.tier;node.append(title);const text=document.createElement('span');text.textContent='Queue: '+vm.queue_capacity+' waiting · '+(vm.resource_capacities?Object.entries(vm.resource_capacities).map(([key,value])=>value+' '+key+' ('+report.resource_units[key]+')').join(', '):'resource capacities unknown');node.append(text);el('pool').append(node)});
+    const counts=report.topology_counts;el('topology').textContent=`Declared topology: ${counts.access_points} AP, ${counts.end_nodes} end node, ${counts.fog_nodes} fog nodes, ${counts.cloud_datacenters} cloud datacenter, ${counts.vms} VMs. Physical VM-to-host allocation is not inferred.`;
+    el('task-rows').replaceChildren();report.outcomes.forEach(item=>{const row=document.createElement('tr');cell(row,item.task_id);cell(row,item.vm_id||item.failure_reason);cell(row,fmt(item.arrival_time_ms),true);cell(row,fmt(item.start_time_ms),true);cell(row,fmt(item.finish_time_ms),true);el('task-rows').append(row)});
+    el('provenance').textContent=JSON.stringify({software_version:data.version,policy:report.policy,seed:report.workload.seed,generator:report.workload.generator,units:report.resource_units,workload_sha256:scenario.comparison.workload_sha256,config_sha256:scenario.comparison.configuration_sha256,scope:data.scope},null,2);
+  }
+  scenarioSelect.addEventListener('change',render);policySelect.addEventListener('change',render);
+  el('export').addEventListener('click',()=>{const [scenario]=selected();const blob=new Blob([JSON.stringify(scenario.comparison,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='drlmots-'+scenario.id+'-comparison.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+  render();
+})();
+</script></body></html>
