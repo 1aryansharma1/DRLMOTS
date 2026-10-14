@@ -22,6 +22,7 @@ def smoke_report(
     topology: Topology | None = None,
     resource_units=None,
     policy: str = "least_queue_fcfs",
+    capture_decisions: bool = False,
 ) -> dict:
     if topology is None:
         topology = _smoke_topology()
@@ -31,7 +32,8 @@ def smoke_report(
         {"task_id": "task-3", "arrival_time": 1, "length": 500, "data_size_kb": 20},
     ], length_unit="bytes")
     units = {} if resource_units is None else resource_units
-    result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units, policy=policy)
+    result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units, policy=policy,
+                      capture_decisions=capture_decisions)
     return _report(topology, tasks, settings, result, units, policy)
 
 
@@ -48,7 +50,7 @@ def _smoke_topology() -> Topology:
 
 
 def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
-    return {
+    report = {
         "version": version("drlmots"),
         "milestone": "v0.2 workload generation" if settings is not None else "v0.1 fixed smoke",
         "implementation_scope": "deterministic software baseline; not paper reproduction",
@@ -76,10 +78,17 @@ def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
         "resource_events": [asdict(item) for item in result.resource_events],
         "available_resources": result.available_resources,
     }
+    if result.decision_schema is not None:
+        report["decision_trace"] = {
+            "schema": result.decision_schema,
+            "decisions": [asdict(decision) for decision in result.decisions],
+        }
+    return report
 
 
-def configured_report(config: RunConfig, *, policy: str = "least_queue_fcfs") -> dict:
-    report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units, policy=policy)
+def configured_report(config: RunConfig, *, policy: str = "least_queue_fcfs", capture_decisions: bool = False) -> dict:
+    report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units,
+                          policy=policy, capture_decisions=capture_decisions)
     report["milestone"] = "v0.2 resource-aware baseline" if config.schema_version == 2 else "v0.2 configured topology"
     report["run_configuration"] = config.manifest()
     return report
@@ -90,6 +99,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, help="Also save the exact inputs and results as JSON")
     parser.add_argument("--config", type=Path, help="Runnable synthetic YAML; cannot combine with workload flags")
     parser.add_argument("--policy", choices=POLICIES, default="least_queue_fcfs", help="Simple placement comparator")
+    parser.add_argument("--capture-decisions", action="store_true", help="Save provisional state vectors, VM action masks and decisions")
     parser.add_argument("--task-count", type=int, help="Generate this many synthetic tasks; requires --seed")
     parser.add_argument("--seed", type=int, help="Explicit nonnegative synthetic-workload seed")
     parser.add_argument("--interarrival-ms", nargs=2, type=float, metavar=("MIN", "MAX"),
@@ -107,7 +117,7 @@ def main() -> None:
         if synthetic_requested:
             parser.error("--config cannot be combined with seed/count/range workload flags")
         try:
-            report = configured_report(load_run_config(args.config), policy=args.policy)
+            report = configured_report(load_run_config(args.config), policy=args.policy, capture_decisions=args.capture_decisions)
         except (OSError, TypeError, ValueError) as error:
             parser.error(str(error))
     elif synthetic_requested:
@@ -122,9 +132,9 @@ def main() -> None:
             )
         except (TypeError, ValueError) as error:
             parser.error(str(error))
-        report = smoke_report(settings, policy=args.policy)
+        report = smoke_report(settings, policy=args.policy, capture_decisions=args.capture_decisions)
     else:
-        report = smoke_report(policy=args.policy)
+        report = smoke_report(policy=args.policy, capture_decisions=args.capture_decisions)
     content = json.dumps(report, indent=2, allow_nan=False)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

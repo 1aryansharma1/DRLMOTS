@@ -14,6 +14,8 @@ from drlmots.resources import (
 )
 from drlmots.workload import processing_time_ms
 from drlmots.baselines import POLICIES, choose_vm
+from drlmots.actions import ActionMap, action_mask
+from drlmots.state import DecisionObservation, StateSchema, VMObservation, encode_state
 
 
 @dataclass(frozen=True)
@@ -28,10 +30,22 @@ class TaskOutcome:
 
 
 @dataclass(frozen=True)
+class DecisionRecord:
+    observation: DecisionObservation
+    state: tuple[float, ...]
+    action_mask: tuple[bool, ...]
+    selected_action: int | None
+    selected_vm_id: str | None
+    failure_reason: str | None
+
+
+@dataclass(frozen=True)
 class SimulationResult:
     outcomes: tuple[TaskOutcome, ...]
     resource_events: tuple[ResourceEvent, ...] = ()
     available_resources: dict = field(default_factory=dict)
+    decision_schema: dict | None = None
+    decisions: tuple[DecisionRecord, ...] = ()
 
     @property
     def completed_count(self) -> int:
@@ -62,6 +76,7 @@ def simulate(
     task_length_unit: str,
     resource_units=None,
     policy: str = "least_queue_fcfs",
+    capture_decisions: bool = False,
 ) -> SimulationResult:
     """Place tasks using a selected baseline, then execute each VM's queue FCFS.
 
@@ -73,11 +88,16 @@ def simulate(
     """
     if policy not in POLICIES:
         raise ValueError(f"unknown policy {policy!r}; choose one of {POLICIES}")
+    if type(capture_decisions) is not bool:
+        raise TypeError("capture_decisions must be bool")
     topology.validate()
     units = validate_resource_units({} if resource_units is None else resource_units)
     for vm in topology.vms:
         require_declared_units(vm.resource_capacities or {}, units)
     ledger = ResourceLedger(topology.vms)
+    schema = StateSchema.from_topology(topology, units) if capture_decisions else None
+    actions = ActionMap(schema.vm_ids) if schema is not None else None
+    decisions = []
     if task_length_unit != "bytes":
         raise ValueError("task_length_unit must explicitly be 'bytes' for this model")
     copied = []
@@ -96,7 +116,8 @@ def simulate(
         durations[task.task_id] = processing_time_ms(task.length, length_unit=task_length_unit)
         copied.append(task)
     if not copied:
-        return SimulationResult((), available_resources=ledger.final_balances())
+        return SimulationResult((), available_resources=ledger.final_balances(),
+                                decision_schema=schema.manifest() if schema is not None else None)
     if not topology.vms:
         raise ValueError("at least one VM is required for a non-empty workload")
     for vm in topology.vms:
@@ -110,6 +131,24 @@ def simulate(
     queues = {vm.vm_id: deque() for vm in topology.vms}
     running: dict[str, tuple[Task, float, float]] = {}
     outcomes = {}
+
+    def observe(task):
+        snapshots = []
+        for vm in sorted(topology.vms, key=lambda item: item.vm_id):
+            capacities = vm.resource_capacities or {}
+            available = ledger.available(vm.vm_id) or {}
+            snapshots.append(VMObservation(
+                vm.vm_id, vm.tier, vm.vm_id in running,
+                running[vm.vm_id][2] - env.now if vm.vm_id in running else 0,
+                len(queues[vm.vm_id]), vm.queue_capacity,
+                math.fsum(durations[item.task_id] for item in queues[vm.vm_id]),
+                tuple(capacities.get(name) for name in schema.resource_names),
+                tuple(available.get(name) for name in schema.resource_names),
+            ))
+        return DecisionObservation(task.task_id, env.now, task.length, task.data_size_kb,
+                                   schema.resource_units,
+                                   tuple(task.required_resources.get(name, 0) for name in schema.resource_names),
+                                   tuple(snapshots))
 
     def start(vm_id, task):
         finish = env.now + durations[task.task_id]
@@ -146,6 +185,12 @@ def simulate(
                 feasible = [vm for vm in topology.vms if fits_resources(task, vm)]
                 eligible = [vm for vm in feasible
                             if vm.vm_id not in running or len(queues[vm.vm_id]) < vm.queue_capacity]
+                observation = observe(task) if capture_decisions else None
+                mask = action_mask(observation) if observation is not None else None
+                if mask is not None and {actions.vm_id(i) for i, valid in enumerate(mask) if valid} != {
+                    vm.vm_id for vm in eligible
+                }:
+                    raise RuntimeError("action mask disagrees with simulator eligibility")
                 if not eligible:
                     task.transition_to(TaskStatus.FAILED)
                     outcomes[task.task_id] = TaskOutcome(
@@ -154,11 +199,17 @@ def simulate(
                          else "all resource-feasible VM queues are full" if task.required_resources
                          else "all VM queues are full"),
                     )
+                    if observation is not None:
+                        decisions.append(DecisionRecord(observation, encode_state(schema, observation), mask,
+                                                        None, None, outcomes[task.task_id].failure_reason))
                     continue
                 vm = choose_vm(policy, eligible, {
                     item.vm_id: len(queues[item.vm_id]) + int(item.vm_id in running)
                     for item in eligible
                 })
+                if observation is not None:
+                    decisions.append(DecisionRecord(observation, encode_state(schema, observation), mask,
+                                                    actions.index(vm.vm_id), vm.vm_id, None))
                 task.transition_to(TaskStatus.QUEUED)
                 if vm.vm_id in running:
                     queues[vm.vm_id].append(task)
@@ -170,5 +221,6 @@ def simulate(
     if len(outcomes) != len(copied) or any(queues.values()) or running:
         raise RuntimeError("simulation did not account for every task")
     return SimulationResult(
-        tuple(outcomes[task.task_id] for task in copied), tuple(ledger.events), ledger.final_balances()
+        tuple(outcomes[task.task_id] for task in copied), tuple(ledger.events), ledger.final_balances(),
+        schema.manifest() if schema is not None else None, tuple(decisions),
     )

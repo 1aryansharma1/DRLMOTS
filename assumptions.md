@@ -117,6 +117,28 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-022 - Initial synthetic state/action contract
+
+- **Date:** 2026-10-14. **Status:** DECIDED for a provisional synthetic observation.
+- **Scope:** Initial P6.1/P6.2/P7.2 milestone only. A-001 original-paper encoding remains
+  pending; no training normalization, reward or DQN is selected here.
+- **Decision:** Use detached immutable arrival-time snapshots after same-time completions
+  and queued starts, before placement; earlier simultaneous decisions are visible.
+  Stable lexicographic VM IDs/resources define actions and numeric column order.
+- **Encoding:** Raw finite floats, dimension `3+R+V*(6+4R)`, with explicit known flags
+  for capacity/available amounts. Unknown is not known zero. Exact feature units/order
+  and boundary are in STATE_ACTION_CONTRACT.md and captured schema provenance.
+- **Legality:** Total-capacity componentwise fit plus a free waiting slot (or idle VM).
+  Available resources describe the running reservation, not eligibility to wait.
+  All-false masks retain explicit rejection with no selected VM/action.
+- **Boundary:** Optional trace records one observation/state/mask/selection per arrival.
+  Baseline policies still drive execution; no agent step/transition interface yet.
+  Queued service aggregate is provisional; Markov sufficiency has not been established.
+- **Verification:** 419 tests pass on Python 3.12.14, including 41 new state/action
+  tests. Hand-checked busy/full/unknown and same-time cases, masks, fixed dimensions,
+  detached snapshots, baseline-preserving capture, seeded replay and actual CLI pass.
+  Dependency check is clean; the professor demo/control checks still pass.
+
 ## A-021 - Paired synthetic policies and professor demonstration
 
 - **Date:** 2026-10-13. **Status:** DECIDED for a synthetic demonstration only.
