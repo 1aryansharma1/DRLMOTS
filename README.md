@@ -6,14 +6,14 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Current status
 
-Version **0.3.0a3** adds causal synthetic rewards and forced-aware transition exports
-to training-only normalization, the state/action contract and the baseline
+Version **0.3.0a4** adds a context-bound CPU Q-network, legal epsilon-greedy selection
+and reloadable network snapshots to causal rewards, training-only normalization and the baseline
 and offline professor demo. It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **510 tests** with the demo dependencies on Python 3.12.14
-(2026-10-14); the dependency check is clean.
+The current suite passes **576 tests** with the demo dependencies on Python 3.12.14
+(2026-10-15); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
 
@@ -21,9 +21,10 @@ The original fixed example still completes three tasks with a 4 ms makespan. The
 resource example accounts for six simultaneous tasks: four complete and two fail when
 all feasible waiting queues are full; makespan is 4 ms and all capacities are restored.
 v0.2 is complete for this explicitly documented software scope. The first v0.3
-state/action, normalization and synthetic reward/export steps are implemented.
-Q-network, replay, interactive agent control and DQN training remain pending.
-The `a3` version is a partial v0.3 milestone, not a trained policy.
+state/action, normalization, synthetic reward/export and CPU Q-network steps are implemented.
+Replay, interactive agent control and DQN training remain pending.
+The `a4` version is a partial v0.3 milestone, not a trained policy.
+See [Q_NETWORK.md](Q_NETWORK.md) for the runnable inference/checkpoint example and API.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -73,8 +74,8 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 510 passing tests with the demo extra
-(509 pass/one figure test skips without it). The last command prints
+Expected checks: no broken requirements; 576 passing tests with the demo extra
+(575 pass/one figure test skips without it). The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -83,7 +84,7 @@ If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python v
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
 After pulling v0.2 into an existing editable environment, rerun the editable install
-command to refresh package version metadata. The report should identify version 0.3.0a3.
+command to refresh package version metadata. The report should identify version 0.3.0a4.
 
 In the agent session on 2026-10-14, the Microsoft Store Python 3.11 interpreter was
 inaccessible. A separate ignored `.venv312` was created using the bundled Python
@@ -295,7 +296,8 @@ cross-VM resource sharing. See assumption A-020 for this model's limits.
 | 0.3.0a1 | Initial synthetic observation/encoder/mask contract and optional traces | VERIFIED scoped checkpoint `a7a08bb`; 419 tests pass |
 | 0.3.0a2 | Training-only state scaling, schema/topology-bound artifacts and held-out application | VERIFIED `29debfb`; 460 tests pass |
 | 0.3.0a3 | Causal synthetic rewards, arrival transitions and forced-chain learner adapter | VERIFIED `72255bf`; 510 tests pass |
-| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Partial: prerequisites above delivered; next CPU Q-network/masked action selection |
+| 0.3.0a4 | CPU Q-network, legal selection and context-bound network snapshots | VERIFIED under A-025; 576 tests pass |
+| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Partial: network delivered; next replay/Bellman targets; live control/training pending |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 
 See `implementation_plan.md` for microtask mapping and `progress.md` for actual

@@ -2,7 +2,7 @@
 
 This roadmap is intentionally incremental. Each implementation microtask will be delivered in a later response with exact file contents/changes, exact command(s), expected output, verification, troubleshooting, and a completion criterion. Do not skip a verification gate or mark a task VERIFIED without actual evidence.
 
-## Version milestones (2026-10-14)
+## Version milestones (2026-10-15)
 
 The user requested practically achievable versions before attempting the complete paper.
 The original phases below remain the full reproduction roadmap. Version gates apply
@@ -18,7 +18,8 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | 0.3.0a1 | Initial P6.1/P6.2/P7.2: immutable observations, pure raw encoding and legal actions | VERIFIED `a7a08bb` under A-022; 419 tests and clean dependency check |
 | 0.3.0a2 | P6.3: training-only scaling, schema/topology-bound statistics, held-out application | VERIFIED `29debfb` under A-023; 460 tests and clean dependency check |
 | 0.3.0a3 | Initial synthetic P8/P11: causal reward, arrival transitions and forced-chain adapter | VERIFIED `72255bf` under A-024; 510 tests and clean dependency check |
-| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: initial contracts/scaling/reward export delivered; next CPU Q-network/masked selector; replay/live control/training pending |
+| 0.3.0a4 | Synthetic P9 / P10 selection subset: CPU Q-network, legal epsilon-greedy and compatible snapshots | VERIFIED under A-025; 576 tests, exact reload and held-out inference; see Q_NETWORK.md |
+| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: network/selection delivered; next replay/targets; live control/training pending |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
 v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,

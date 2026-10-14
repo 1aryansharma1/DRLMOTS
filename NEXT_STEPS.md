@@ -1,8 +1,8 @@
 # Remaining work and pickup checklist
 
-**Updated:** 2026-10-14
-**Latest verified implementation:** `72255bf`, v0.3.0a3 synthetic rewards/transitions.
-Normalization `29debfb`; state/actions `a7a08bb`; prior demo `2083faa`.
+**Updated:** 2026-10-15
+**Latest verified implementation:** v0.3.0a4 CPU Q-network/selection in this delivery.
+Prior rewards `72255bf`; normalization `29debfb`; state/actions `a7a08bb`; demo `2083faa`.
 **Working state:** completed by Codex for Aravindak3 / Aravind; next task unassigned.
 **Publication check:** prior state/action work was confirmed on main at `9604536`.
 Compare local HEAD with the remote reference before coordinating new work. The
@@ -19,7 +19,7 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
 - [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
 - [x] Running-task resource reservation/release, trace and final balances without leaks.
-- [x] Verified suite with demo dependencies: 510 tests pass; dependency check is clean.
+- [x] Verified suite with demo dependencies: 576 tests pass; dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
 - [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
   eight resource events; old baseline outcomes/config/workload fingerprints preserved.
@@ -37,6 +37,10 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
   all-arrival episode return; 50 additional reward/transition tests pass (510 total).
 - [x] Raw arrival transitions with terminal boundaries and a pure learner adapter
   that absorbs forced chains with explicit arrival-based gamma before bootstrap.
+- [x] CPU float32 Q-network, configurable two hidden layers, stable legal epsilon-greedy
+  and all-false None; full context-bound JSON network snapshots and exact reload.
+- [x] Another 66 tests; actual 100-state held-out untrained inference CLI; no simulator
+  behavior change. See Q_NETWORK.md for commands and limits.
 - [ ] Manually preview the generated HTML in a normal browser at desktop/mobile widths
   before presenting. The agent browser tool disallowed local-file preview; this check
   is independent of starting state/action work. See PROFESSOR_DEMO.md.
@@ -44,30 +48,31 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 These checks establish the current synthetic baseline, not the paper's full algorithm
 or experimental results. See [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for evidence.
 
-## Pick up this task next - CPU Q-network and mask-aware action selection
+## Pick up this task next - replay, Bellman targets and target-network updates
 
 **Owner:** unassigned. **Status:** NOT STARTED.
 
-The A-022/A-023 state/scaling and A-024 synthetic reward/transition contracts are
-verified. Next implement the small CPU network and legal selector before replay:
+The A-022 through A-025 state/scaling/reward/network gates are verified. The model
+is untrained; implement P10 updates before interactive control:
 
 1. Claim this task in `progress.md` and record your name/handle and IN PROGRESS status.
-2. Read P9, A-009/A-010, state/normalization/reward contracts and the learner adapter.
-3. Record provisional architecture, initialization and seed choices. Input dimension
-   follows the saved schema; output count follows stable VM actions. Use finite
-   normalized float32 CPU input and preserve checkpoint context identifiers.
-4. Implement masked argmax with stable ties and all-false => None; seed exploration
-   locally. Masked/invalid actions must never be selected.
-5. Test finite forward shapes, hand masks/ties, seed repeatability, invalid inputs,
-   incompatible schema/normalizer and save/load round trips.
-6. Preserve simulator/scaler/reward outputs. Keep replay/target updates and interactive
-   agent control as later gates; use forced-aware transitions before learning targets.
+2. Read P10, A-009, Q_NETWORK.md, REWARD_CONTRACT.md and the learner adapter.
+3. Record explicit prototype gamma, optimizer/rate, replay capacity, batch size, sync
+   interval and seed choices in config/manifests; keep paper ambiguities open.
+4. Implement bounded replay with detached/copied normalized states, context checks,
+   valid action/terminal checks and local seeded sampling; test eviction/sampling.
+5. Compute hand-correct targets from LearningTransition.reward/bootstrap_discount.
+   Normalize both states with the frozen scaler. Mask next Q-values; terminal targets
+   are reward only. Never max an empty legal set or gather null/illegal actions.
+6. Use an independent frozen target network, initially copied exactly. Test finite
+   loss/gradients, actual online parameter changes and target invariance until sync.
+   Preserve simulator/scaler/reward outputs. Interactive control remains the next gate.
 7. Run the relevant tests and full suite. Record actual results, update this checklist
    and HANDOFF with the next task, then commit the reviewed change.
 
-**Finish criterion:** reproducible CPU Q-values and legal action selection on real
-normalized observations, with schema-compatible checkpoint reload. This is not DQN
-training; replay/targets, interactive control and smoke learning follow.
+**Finish criterion:** reproducible finite learning updates from valid transitions,
+hand-calculated masked Bellman targets and explicit target synchronization. This is
+not an interactive learned-policy evaluation; P11/P12 follow.
 
 ## Everything still remaining
 
@@ -77,7 +82,7 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 
 | Order | Scope / plan reference | Remaining deliverable | Completion evidence |
 |---|---|---|---|
-| 1 | P9 synthetic CPU network/selection subset | Configured finite Q-network and legal-mask selection bound to state/action/normalizer schema | Hand selection, seed repeatability, CPU shapes and compatible save/load |
+| 1 | P10 replay/update subset | Bounded replay, masked Bellman targets, finite updates and target sync | Local sampling, hand targets, finite actual update and independent target/sync checks |
 | 2 | Paper-specific placement, P7.1/P7.4/P7.5 | Decide priority/tier thresholds and fallback beyond the implemented all-tier least-queue baseline | Source-supported or labelled policy; ordering/threshold/no-capacity tests |
 | 3 | P0.2-P0.4 / R001-R040 | Independently audit the original DRLMOTS paper and extraction; classify each source-supported vs assumed behavior | Paper-to-code/test traceability and updated assumptions; no invented requirement |
 | 4 | P4.4 | Handle the paper's conflicting task-count ranges explicitly in experiment configs | Exact requested counts; separate named experiment settings; manifests |
@@ -87,8 +92,8 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 | 8 | Full P6.4 / A-001 | Extend the initial provisional observation with source-audited feature/boundary coverage if justified | Explicit schema evolution; finite stable shapes; saturation/unknown checks |
 | 9 | P7 / A-003-A-004 | Extend masks/mapping for the chosen paper tier policy after baseline actions are verified | No illegal selection; no-action outcome; policy/encoding compatibility |
 | 10 | Full paper P8 / A-006-A-008 | Audit paper metrics, compute/transmission energy, reliability/fault meaning and multi-objective reward; synthetic surrogate is implemented separately | Source-supported units/sign/scales; hand values and semantic audit |
-| 11 | P9 / A-010 | Confirm DQN width/layers and implement CPU network | Correct input/action dimensions, finite outputs, parameter checks |
-| 12 | P10 / A-009 | Replay, valid-action exploration, terminal targets, target synchronization and learning settings | Capacity/sampling, numeric targets, epsilon bounds and finite gradient/update tests |
+| 11 | Paper P9 / A-010 | Source-audit width/layers against the implemented configurable synthetic network | Document confirmed settings or retain labelled approximation and checkpoint compatibility |
+| 12 | Full P10 / A-009 | Confirm paper learning settings; synthetic replay/update subset is immediate task 1 above | Explicit optimizer/rate/gamma/capacity/batch/sync/epsilon settings and update evidence |
 | 13 | Full P11 | Interactive agent/environment control and replay integration; baseline raw/learner transition export is implemented | Agent-driven episode; correct forced-chain credit/terminal handling; no task loss |
 | 14 | P12 | Seeded training loop, logs, checkpoints and bounded CPU smoke training | No NaNs; checkpoint reload matches outputs; complete run manifest |
 | 15 | Full P13 / A-012 | Extend verified simple paired comparisons to justified paper comparators, learned policy and repeated-seed evaluation | Shared workloads/resources/metrics/seeds; approximate baselines clearly labelled |
@@ -109,7 +114,7 @@ reward sign/normalization; energy units/coefficients; fault-tolerance interpreta
 initial epsilon, episode counts and unspecified DQN settings; real dataset identity;
 exact CNN/LSTM/GGCN baselines; task-count conflicts and reported improvement arithmetic.
 The synthetic per-VM resource model does not resolve the paper's physical capacities
-or mapping. See assumptions A-001 through A-024 and retain the unresolved entries.
+or mapping. See assumptions A-001 through A-025 and retain the unresolved entries.
 
 ## Before handing off again
 

@@ -2,6 +2,30 @@
 
 Do not treat any item below as an explicit specification from the paper. Each choice remains **PENDING** until a microtask explicitly resolves it.
 
+## A-025 — Synthetic CPU Q-network and selection
+
+- **Date/owner:** 2026-10-14, Codex for Aravindak3 / Aravind.
+- **Status:** DECIDED for prototype P9 only; A-009/A-010 remain unresolved for replication.
+- **Architecture:** schema-sized input -> Linear(50)/ReLU -> Linear(50)/ReLU ->
+  Linear(number of stable VM actions), CPU float32. Hidden widths are configurable;
+  (50,50) is a provisional interpretation of the existing extraction, not an audited
+  paper architecture. Q outputs are unbounded dimensionless reward estimates.
+- **Initialization:** PyTorch Linear's default initialization within a saved/restored
+  CPU RNG context, explicit seed (fixture 42). No mutation of caller CPU/Python RNG.
+  Repeatability is within a recorded Torch/runtime version, not across all versions.
+- **Selection:** epsilon-greedy over legal indices only, local Python Random seed;
+  greedy ties choose the smallest stable action index. All-false masks return None.
+  Epsilon is explicit; no decay schedule or paper training setting is inferred.
+- **Compatibility:** bind network/checkpoint to full topology/state schema, fitted
+  normalizer checksum and reward checksum. Inputs must be normalized finite float32
+  CPU batches with explicit matching context. A tensor cannot prove its provenance;
+  the observation inference path derives context and scaling from the actual artifacts.
+- **Persistence:** strict checksummed JSON architecture/context/runtime/float32 weights,
+  no executable pickle. This is a network snapshot, not a resumable training checkpoint;
+  optimizer/replay/exploration RNG state are deferred to training.
+- **Gate:** hand mask/ties, local seed/RNG isolation, finite shapes and parameters,
+  invalid tensors/context, exact checkpoint round trip and real held-out observations.
+
 ## A-001 — State-vector encoding
 
 * **Question:** Which exact numeric features and order represent task state, VM state, queue load, resources, and network conditions?

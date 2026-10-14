@@ -1,15 +1,16 @@
 # DRLMOTS collaborator handoff
 
-**Last updated:** 2026-10-14
-**Current checkpoint:** `72255bf`, v0.3.0a3 synthetic rewards/transition export VERIFIED:
-510 tests and clean dependency check. Normalization `29debfb`; state/actions `a7a08bb`.
-**Next task:** CPU Q-network and mask-aware action selection (P9 subset), owner unassigned.
+**Last updated:** 2026-10-15
+**Current checkpoint:** v0.3.0a4 CPU Q-network/selection VERIFIED in this delivery:
+576 tests and clean dependency check. Prior rewards `72255bf`; normalization `29debfb`;
+state/actions `a7a08bb`.
+**Next task:** bounded replay, Bellman targets and target-network updates (P10 subset), owner unassigned.
 **Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
-earlier v0.2 work was for ashishjha20. State/actions, normalization and rewards completed by Codex for
+earlier v0.2 work was for ashishjha20. State/actions, normalization, rewards and Q-network completed by Codex for
 **Aravindak3 / Aravind** per the user's account switch. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
-**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its Q-network
+**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its replay/targets
 checklist, then follow the ordered backlog. No implementation task is active.
 
 **Git workflow:** previous state/action commits were pushed by the user and main was
@@ -30,6 +31,7 @@ by comparing `git rev-parse HEAD` with `git ls-remote origin refs/heads/main`.
 9. [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md): exact observation/features/actions.
 10. [NORMALIZATION.md](NORMALIZATION.md): separate fitting/application, artifacts and limitations.
 11. [REWARD_CONTRACT.md](REWARD_CONTRACT.md): reward timing, transition boundaries and forced-step discounts.
+12. [Q_NETWORK.md](Q_NETWORK.md): CPU model, legal selector, context-bound snapshots and inference command.
 
 The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
 10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes
@@ -56,13 +58,13 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
 ```
 
-Expected current checks: 510 tests pass with demo dependencies (509 pass/one figure
+Expected current checks: 576 tests pass with demo dependencies (575 pass/one figure
 test skips without Matplotlib); dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
 4 because all queues are full, accounting for every input. Configured fixture: six
 tasks on three VMs, all completed in 4 ms. Resource fixture: four complete/two full-feasible-
 queue failures, 4 ms makespan, eight resource events, all balances restored. The editable
-install refreshes version metadata to 0.3.0a3 after pulling. `.venv` is local, not in Git. Python
+install refreshes version metadata to 0.3.0a4 after pulling. `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
 
 On 2026-10-14 the agent's Store Python was inaccessible, so it preserved `.venv` and
@@ -70,7 +72,7 @@ created ignored `.venv312` with bundled Python 3.12.14. Use that interpreter in 
 checkout; new contributors can create a normal supported 3.11/3.12 venv. Runtime
 version contributes to workload hashes; captured/uncaptured hashes agree within one
 runtime. The shared config checksum and scheduling outcomes stay the same.
-The fresh 3.12 environment passes all 510 tests and pip check; a failed PyTorch
+The fresh 3.12 environment passes all 576 tests and pip check; a failed PyTorch
 download was rejected and replaced by a download matching the published PyPI hash.
 Stale generated egg-info was regenerated with setuptools. No dependency pins changed.
 
@@ -99,6 +101,7 @@ browser layout still needs manual preview because the agent tool blocked local f
 | `src/drlmots/state.py`, `actions.py` | Immutable provisional observations, schema/unit/hash metadata, raw encoder and stable VM action/mask APIs |
 | `src/drlmots/normalization.py` | Frozen training-only scaler, explicit splits, strict JSON artifacts and full topology/schema compatibility; separate fit/apply CLI |
 | `src/drlmots/reward.py`, `transitions.py` | Explicit synthetic reward config, causal forecasts, all-arrival return, terminal records and forced-chain learner adapter |
+| `src/drlmots/q_network.py` | Context-bound CPU network, finite normalized forward/inference, seeded legal selector, strict JSON network snapshots and held-out inference CLI |
 | `tests/unit/test_state_actions.py`, `tests/integration/test_decision_trace.py` | Hand vectors/masks, unknown-vs-zero, invalid shapes/indices, snapshot detachment, timing boundary, CLI/replay and baseline preservation |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
@@ -124,7 +127,8 @@ Preserve these tested semantics unless a documented task intentionally changes t
   declared per-run unit catalogue. Missing/null capacity is unknown, not unlimited.
   Queue limits stay explicit. Only running tasks reserve; completion releases before
   queued starts and same-time arrivals. CPU admission units do not change service speed.
-- Network delay is zero. No energy, reliability or reward result is available yet.
+- Network delay is zero. Synthetic rewards are available; paper energy/reliability
+  and multi-objective reward remain pending.
 
 ## Completed P4.3 checkpoint
 
@@ -138,7 +142,7 @@ All previous P4.3 acceptance criteria are verified: local RNG without global mut
 repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
 ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
 file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
-246 tests; the configured-topology checkpoint passed 304. The latest suite passes 510.
+246 tests; the configured-topology checkpoint passed 304. The latest suite passes 576.
 
 ## Completed configuration-driven topology
 
@@ -151,7 +155,7 @@ flags cannot be combined with a run file. A-019 documents this checkpoint's scop
 The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
 and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
 pathname are excluded. The configured hand calculation and changed-queue-limit tests
-passed with 304 tests at that checkpoint. The latest suite is 510; full paper topology
+passed with 304 tests at that checkpoint. The latest suite is 576; full paper topology
 and VM-to-host allocation remain open.
 
 ## Completed v0.2 resource feasibility
@@ -235,7 +239,8 @@ Only the last arrival is terminal, with null next fields. The pure learner adapt
 absorbs following forced rewards with explicit gamma per arrival; its next mask is
 actionable or terminal. Forced prefixes remain in episode return without fake replay
 actions. Gamma is required; normalization of current/next states remains a caller step.
-There is no live agent callback, replay buffer, Q-network or training loop yet.
+At that checkpoint there was no Q-network. The current network milestone is below;
+live agent callback, replay buffer and training loop remain pending.
 
 Verification: 510 tests pass (50 new); six-task return 23/21 with unchanged 4/2 and
 4 ms. Seeded 100-task run keeps 96/4, has 100 rewards/transitions, one terminal record
@@ -243,24 +248,45 @@ and return 67.73152495135943. Hand values, causal extensions, forecasts versus a
 latency, normalizer preservation, forced prefixes/chains/suffixes, gamma 0/0.5/1,
 invalid configs/actions, empty/all-rejected cases, replay and actual CLI pass.
 
-## Pick up the CPU Q-network next
+## Completed CPU Q-network/selection checkpoint
 
-1. Claim the task and record architecture/seed choices in a new assumption. Review
-   A-009/A-010/P9; label unsupported widths/activations as synthetic prototype choices.
-2. Accept normalized finite float32 CPU tensors with the exact schema dimension and
-   output one Q-value per stable configured VM action. Persist architecture/schema,
-   normalizer/context and reward identifiers; reject incompatible inputs/checkpoints.
-3. Add legal-mask argmax with stable tie behavior and explicit all-false => None.
-   Seed exploration locally; invalid/masked actions must never be selected.
-4. Test hand selection, finite shapes/parameters, seed repeatability, invalid inputs,
-   incompatible schema and save/load. Keep raw simulator/scaler/reward results intact.
-5. Keep replay/target synchronization and interactive agent control as explicit later
-   gates. Use the forced-aware learner adapter before bootstrapping; never gather a
-   null action or max an empty legal set.
+v0.3.0a4/A-025 implements 47 -> 50/ReLU -> 50/ReLU -> 3 for the resource fixture,
+5,103 CPU float32 parameters; dimensions derive from the schema and widths are
+configurable. Local initialization/selection seeds preserve caller RNG. Greedy ties
+pick the first legal action; epsilon exploration samples legal indices only and
+all-false returns None. Forward requires explicit full artifact context and finite
+normalized batches. Observation inference derives scaling/context from real artifacts.
+Strict checksummed JSON saves architecture, full schema/topology, normalizer/reward
+checksums, Torch version and weights. This is a network snapshot, not training state.
 
-Finish criterion: reproducible CPU forward passes and legal action selection from
-real normalized observations, plus checkpoint/schema round trip. This alone is not
-DQN learning or paper reproduction. P10-P12 and paper energy/reliability stay pending.
+66 new tests and all 576 tests pass; pip check is clean. Hand outputs/gradients,
+shapes, local RNG, mask/ties, malformed/context-mismatched checkpoints, exact reload,
+real observations and actual CLI pass. The standalone command in Q_NETWORK.md fits
+100 training states, infers on 100 held-out baseline observations (92 legal/8 None),
+and reloads identical Q-values. These choices are untrained and were not executed.
+Simulator/scaler/reward results remain intact. No learned-policy result is claimed.
+
+## Pick up replay and target updates next
+
+1. Claim P10 in progress.md. Record provisional gamma, optimizer/learning rate,
+   batch size, replay capacity, seed and sync interval under a new assumption/config;
+   A-009 remains a paper ambiguity. No unexplained paper defaults.
+2. Implement bounded replay with copied/detached normalized transitions, explicit
+   dimension/context checks and local seeded sampling without global RNG mutation.
+3. Use `build_learning_transitions(...,gamma=...)`: its accumulated reward and
+   bootstrap_discount already account for forced chains. Normalize both states with
+   the frozen scaler. Never gather None or max an all-false next mask.
+4. Test hand targets `reward + bootstrap_discount * max_legal(target_Q(next))`;
+   terminal target is reward. Target network is separate, frozen/no-grad and initially
+   copied exactly. Verify online updates leave target unchanged until explicit sync.
+5. Test capacity/eviction/sampling, gamma boundaries, illegal actions, terminal/forced
+   chains, finite loss/gradients and a real parameter update. Retain all 576 tests.
+6. Update reports and commit the verified gate. Live agent control (P11), CPU smoke
+   training/checkpoints/evaluation (P12) remain the following tasks.
+
+Finish criterion: hand-correct masked Bellman targets and finite reproducible updates
+from valid transitions, with independently verified target synchronization. This does
+not yet establish an interactive learned policy or paper reproduction.
 
 Keep each change small enough to review. v0.3 is partially implemented, not complete.
 Do not begin DQN training until state/action/reward definitions, metrics and simulator

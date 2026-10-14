@@ -1,4 +1,4 @@
-# Professor demonstration guide - updated for v0.3.0a3
+# Professor demonstration guide - updated for v0.3.0a4
 
 This checkpoint presents a tested synthetic resource-aware scheduling simulator and
 two simple placement rules. It is a foundation for the DRLMOTS implementation. There
@@ -46,9 +46,9 @@ Outputs (ignored by Git; another contributor regenerates them):
    Show that fog-b remains idle because it cannot satisfy the task demand.
 5. **Evidence and next step (90 seconds).** Expand reproducibility; export JSON. Show
    the unit catalogue, input hashes, queue limits and all-resource-restored check.
-   Explain the next deliverable: the CPU Q-network and legal action selector.
-   Arrival-time snapshots, masks, normalization and synthetic rewards/transitions are
-   implemented; interactive agent control and DQN training still follow. Generate an optional
+   Explain the next deliverable: replay and target-network learning updates.
+   Arrival-time snapshots, masks, normalization, synthetic rewards/transitions and an
+   untrained CPU Q-network are implemented; interactive control and training follow. Generate an optional
    `--capture-decisions` report to show six 47-feature observations and explicit masks.
 
 ## Explain these numbers accurately
@@ -70,10 +70,12 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Likely questions
 
-- **Where is reinforcement learning?** It is the next milestone. The simulator,
+- **Where is reinforcement learning?** Training is the next milestone. The simulator,
   resource ledger, reproducible evaluation and initial raw state/action trace are
   implemented, along with training-only normalization and a causal synthetic reward.
-  The Q-network, replay and interactive learning loop are still pending.
+  The CPU Q-network and legal selector now work; Q_NETWORK.md demonstrates untrained
+  inference and checkpoint reload. Replay updates and the interactive learning loop
+  are pending, so baseline figures are not learned-policy results.
 - **Why does a VM stay idle?** It lacks capacity for the declared task profile.
 - **Why these milliseconds?** The fixture explicitly interprets 1000 bytes as 2 ms.
   CPU units affect admission, not speed. The source's unitless task length is unresolved.
@@ -86,7 +88,7 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Verification and pickup
 
-Current v0.3.0a3 verification: `python -m pytest -q` passes 510 tests on Python 3.12.14
+Current v0.3.0a4 verification: `python -m pytest -q` passes 576 tests on Python 3.12.14
 with demo dependencies; `python -m pip check` is clean. The v0.2.1 demo checkpoint
 originally passed 378 tests. Without Matplotlib, the figure
 integration test skips and the core simulator remains usable. Timeline/comparison/

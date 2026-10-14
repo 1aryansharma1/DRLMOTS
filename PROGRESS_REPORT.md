@@ -1,29 +1,58 @@
 # DRLMOTS progress report
 
-**Report date:** 2026-10-14 (Asia/Kolkata)
+**Report date:** 2026-10-15 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `72255bf`, v0.3.0a3 synthetic reward/transitions VERIFIED;
+**Implementation checkpoint:** v0.3.0a4 CPU Q-network/selection VERIFIED in this delivery;
+prior rewards `72255bf`;
 normalization `29debfb`;
 state/action foundation `a7a08bb`;
 prior `2083faa` professor demo;
 resource model `4f4307f`;
 prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
-**Working status:** state/action, normalization and synthetic rewards completed by Codex for **Aravindak3 /
+**Working status:** state/action, normalization, synthetic rewards and Q-network completed by Codex for **Aravindak3 /
 Aravind**. Repository-local commit identity uses `195939576+Aravindak3@users.noreply.github.com`
 and credential selection requests that account. v0.1/v0.2 and the prior professor
-demo are verified. CPU Q-network/masked selection is the next unassigned task;
+demo are verified. Replay/Bellman targets and target-network updates are next, unassigned;
 interactive agent control, replay and DQN training remain pending.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
-Q-network acceptance criteria and later source/DQN/evaluation gates.
+replay/target acceptance criteria and later source/DQN/evaluation gates.
 
 **Git publication:** the prior state/action implementation/handoff was pushed by the
 user and confirmed on main at `9604536`. For the latest checkpoint compare local HEAD
 with GitHub's main reference. Authentication may require a normal user terminal when
 the sandbox cannot run Git Credential Manager.
 
-## Latest checkpoint - v0.3.0a3 causal rewards and transition exports
+## Latest checkpoint - v0.3.0a4 CPU Q-network and legal selection
+
+The configurable two-hidden-layer CPU float32 network derives input/action counts
+from the schema. The resource fixture uses 47 -> 50/ReLU -> 50/ReLU -> 3 and 5,103
+parameters. Explicit context binds full topology/schema, ordered actions, fitted
+normalizer and synthetic reward identifiers. Equal shape alone is insufficient.
+Forward rejects invalid dtype/device/bounds, incompatible context and nonfinite
+parameters/outputs; gradients remain available for the next learning-update gate.
+
+Local seeds reproduce initialization/exploration without changing caller CPU/Python
+RNG. Greedy ties select the first legal index, exploration uses only legal indices,
+and all-false masks return None. Strict checksummed JSON network snapshots validate
+architecture, parameter names/shapes/numbers and context; same-runtime reload gives
+exact Q-values. Training optimizer/replay/exploration state is not persisted yet.
+
+Actual verification: **576 tests pass in 33.19 seconds**, including **66 new tests**;
+dependency check clean. The CLI fitted 100 training observations and inferred on 100
+held-out baseline observations: 92 legal selections/8 forced None selections, exact
+checkpoint reload. The scaler and existing simulator/reward results are preserved.
+Hand outputs/gradients, local seeds, illegal masks, context mismatches, malformed
+snapshots, deterministic CLI and input-overwrite guards are verified.
+
+The choices are untrained and were not executed in the simulator. The report makes
+no learned-policy completion/return claim. A-025/Q_NETWORK.md record all architecture,
+initialization and persistence assumptions. A-009/A-010 paper decisions remain open.
+Next: bounded replay, masked Bellman targets, finite updates and target sync; then
+interactive agent-controlled episodes and bounded CPU smoke training/evaluation.
+
+## Previous checkpoint - v0.3.0a3 causal rewards and transition exports
 
 Explicit `--reward-config configs/reward.yaml` enables decision capture and synthetic
 placement scoring. An admitted task gets S/(S+projected wait+own service), using only
@@ -137,7 +166,8 @@ hand-calculated placement timelines and actual generator CLI. Representative tim
 comparison and occupancy PNGs were visually inspected. Node's offline DOM-stub check
 passed all six selections and three JSON exports; it does not verify layout. The
 browser tool disallowed local-file preview, so desktop/mobile layout needs manual
-preview before presenting. No task is active; state/action design remains next.
+preview before presenting. At that checkpoint, state/action design was next;
+the current delivery and pickup task are recorded above.
 
 ## Previous checkpoint - v0.2.0 resource-aware baseline
 
@@ -249,7 +279,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 510 tests above:
+virtual environment before its publication. The latest suite is 576 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -276,7 +306,8 @@ The deterministic smoke example has also been executed and saved:
 Tests include a 100-task fractional-time fixture, repeatability, no input mutation,
 no overlapping service on the same VM, no lost/duplicated outcomes, and completion
 before same-time arrival. Generated JSON and local `.venv` are intentionally ignored
-by Git; the command recreates the example. No training results or checkpoints exist.
+by Git; the command recreates the example. No training results or training checkpoints
+exist; current untrained network snapshots are described above.
 
 ## Remaining work and source limitations
 
@@ -293,13 +324,13 @@ by Git; the command recreates the example. No training results or checkpoints ex
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-024.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-025.
 
 ## Next delivery
 
 v0.2's scoped baseline and the initial v0.3 state/action implementation are delivered.
-Training-only normalization and the synthetic reward/transition contract are verified;
-next is the CPU Q-network and legal action selector. Remaining source/learning checks
+Training-only normalization, synthetic rewards/transitions and CPU Q-network/selection are verified;
+next is replay/Bellman targets and target-network updates. Remaining source/learning checks
 must pass before DQN training. Keep original paper-specific tasks open until verified.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.

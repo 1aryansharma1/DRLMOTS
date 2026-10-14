@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.3.0a3 synthetic reward/transition export VERIFIED (2026-10-14).
+**Current stage:** v0.3.0a4 synthetic CPU Q-network/selection VERIFIED (2026-10-15).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 source-audited resource interpretation, physical allocation and DQN remain pending.
@@ -10,18 +10,21 @@ complete, implemented and verified by Codex for ashishjha20. Configuration-drive
 topology and explicit per-VM resource admission/reservation are VERIFIED. v0.2 is
 complete for the A-017/A-020 synthetic baseline scope. The user-requested professor
 demo (A-021) is complete, implemented by Codex for **1aryansharma1 / Aryan Sharma**.
-**Latest delivery (2026-10-14): initial synthetic P8/P11 reward/transitions VERIFIED,
+**Latest delivery (2026-10-15): synthetic P9 Q-network/selection VERIFIED,
 Codex for Aravindak3 / Aravind.** Repository-local author is Aravind with
 `195939576+Aravindak3@users.noreply.github.com`; credential username selects Aravindak3.
-Global identity is unchanged. No implementation task is active. Next is the CPU
-Q-network and legal masked selector (P9 subset), owner unassigned. Replay, interactive
+Global identity is unchanged. CPU Q-network and legal masked selector (P9 subset)
+is complete, owned by Codex for Aravindak3 / Aravind (started 2026-10-14, verified
+2026-10-15). No implementation task is active; next is replay/Bellman targets and
+target-network updates (P10 subset), owner unassigned. Replay, interactive
 agent control and DQN training remain pending; v0.3 is partially implemented.
 
 **Git publication:** the prior state/action implementation/handoff was verified on
 GitHub main at `9604536` before this task. Confirm the latest local/remote HEADs match
 when handing off. If sandboxed authentication fails, push from a normal user terminal.
 The verified v0.1 implementation commit is `993344d`.
-Latest verified implementation: `72255bf` (v0.3.0a3 reward/transitions); normalization:
+Latest verified implementation: v0.3.0a4 Q-network/selection in this delivery;
+prior `72255bf` (v0.3.0a3 reward/transitions); normalization:
 `29debfb`; state/actions:
 `a7a08bb`; professor demo:
 `2083faa`; resource model:
@@ -81,6 +84,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P6.1/P6.2/P7.2 initial synthetic subset | Immutable decision observations, raw feature encoding, VM action mapping/masks and opt-in trace | VERIFIED under A-022 | 41 new tests; hand vectors/masks, unknown flags, event timing, detachment, all-false rejection, baseline preservation, seeded replay and CLI. Normalization/reward export delivered separately below; live agent/DQN remain pending |
 | P6.3 synthetic subset | Training-only bounded maximum scaling and saved compatible artifacts | VERIFIED under A-023 | 41 new tests; hand scales, known flags, constants/extremes, immutable statistics, split/task overlap, schema/full topology checks, strict save/load and CLI. Reward delivered separately below; no DQN yet |
 | Initial P8/P11 synthetic subsets | Causal reward, all-arrival return, raw transition export and forced-chain learner adapter | VERIFIED under A-024 | 50 new tests; hand values, causal forecasts, baseline/scaler preservation, terminal/empty/all-rejected runs, gamma boundaries, forced prefixes/chains/suffixes, strict config/action and actual CLI. No live agent or DQN yet |
+| P9 / P10 selection synthetic subsets | CPU Q-network, legal epsilon-greedy and network snapshots | VERIFIED under A-025 | 66 new tests; 47 -> 50 -> 50 -> 3, 5,103 parameters, finite gradients/shapes, local seeds, legal ties/exploration, full artifact context, strict JSON round trip and actual held-out CLI. Replay/updates/live control pending |
 
 ## Verification in this checkout
 
@@ -101,6 +105,8 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | v0.3.0a2 suite: `.venv312\Scripts\python.exe -m pytest -q` | 460 passed on Python 3.12.14 |
 | v0.3.0a3 suite: `.venv312\Scripts\python.exe -m pytest -q` | 510 passed on Python 3.12.14 |
 | v0.3.0a3 dependency check | No broken requirements found |
+| v0.3.0a4 suite: `.venv312\Scripts\python.exe -m pytest -q` | 576 passed on Python 3.12.14 |
+| v0.3.0a4 dependency check | No broken requirements found |
 | Resource fixture with `--reward-config configs/reward.yaml` | Six rewards/transitions; return 23/21; unchanged 4 completed/2 rejected, 4 ms and restored balances |
 | 100-task reward fixture | 96/4; 100 records; one terminal; return 67.73152495135943; no actual finish used in reward |
 | v0.3.0a2 dependency check | No broken requirements found |
@@ -121,7 +127,7 @@ serial execution, feasibility, accounting and repeatability. It validates the do
 synthetic resource model, not physical host budgets, DQN behavior, energy, fault tolerance
 or experimental improvements. Old schema-1 config and demand-free workload checksums
 remain unchanged; schema 2 records explicit units/capacities/demands. Editable package
-metadata is now 0.3.0a3 in the separate supported Python 3.12.14 `.venv312`; the earlier
+metadata is now 0.3.0a4 in the separate supported Python 3.12.14 `.venv312`; the earlier
 3.11 `.venv` is preserved. The unchanged base lock is extended by the separate
 optional `requirements-demo-lock.txt`. Representative PNG figures were visually
 inspected; valid SVG namespaces/tooltips and safe embedded JSON are tested. The browser
@@ -141,23 +147,25 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 510-test suite verifies setup, entities/configuration/topology, fixed and
+The current 576-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
 resource admission/accounting, paired comparisons, figure exports and the initial
 synthetic state/action contract, training-only normalization and synthetic reward/
-transition export. This establishes only the documented
+transition export, CPU network inference/gradients, legal selection and compatible snapshots.
+This establishes only the documented
 baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
 attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
 DRLMOTS algorithm; see decision A-017.
 
 ## Resume protocol
 
-State/action, normalization and reward/transition export are verified under
-A-022/A-023/A-024. Next implement the CPU Q-network and legal masked selector using
-documented synthetic architecture/seed choices. Keep current/next vectors normalized
-with saved training statistics and bind model context to schema/normalizer/reward IDs.
-Forced rejections have no action Q-value: use the adapter to absorb their costs before
-bootstrapping. Interactive control, replay/target updates and smoke training follow.
+State/action, normalization, reward/transitions and CPU Q-network/selection are verified
+under A-022 through A-025. Next implement bounded replay, hand Bellman targets and
+target-network updates. Document explicit prototype optimizer/gamma/capacity/batch/sync
+choices before updates. Keep current/next vectors normalized with saved training
+statistics. The forced-aware adapter already supplies discounted reward and bootstrap
+discount; do not discount twice, gather null actions or max an empty next mask.
+Interactive control and smoke training follow. Read Q_NETWORK.md and NEXT_STEPS.md.
 P4.3/P4.6, configured P5.1 and resource feasibility are verified for A-018/A-020 synthetic
 models, not a source-audited paper topology/distribution or physical host allocation.
 Retain the deterministic tests and run each applicable gate before moving on. Keep
