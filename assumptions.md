@@ -117,6 +117,34 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-023 - Training-only maximum scaling
+
+- **Date:** 2026-10-14. **Status:** DECIDED for provisional synthetic model inputs.
+- **Scope:** P6.3 prerelease v0.3.0a2. This is an implementation approximation, not
+  the original paper's specified preprocessing or proof of a sufficient state.
+- **Scaling:** For each numeric column, fit its maximum using declared training
+  traces only. Exclude unknown resource amounts from fitting. Preserve binary tier,
+  running and known flags unchanged. Divide nonnegative values by their positive
+  training maximum; use scale 1 for all-zero or never-observed columns. Clip held-out
+  values above scale to 1 before division, avoiding overflow even for subnormal scales.
+  Constant positive columns map to 1; lower held-out values retain their ratio.
+- **Unknowns:** Unknown amount placeholders remain zero, with known flags zero;
+  known available zero retains flag one. Binary identity comes from schema positions,
+  never a user-supplied unit string such as "binary".
+- **Isolation:** Fitting accepts only batches labelled train; transform is pure and
+  cannot update statistics. The CLI has separate fit/apply commands. Held-out batch
+  application rejects declared training-source/exact-task overlap. Labels still
+  depend on the caller's honest split declaration; no general data-governance claim.
+- **Persistence:** Save feature names/order/units, schema hash, canonical full-topology
+  hash, per-column maxima/counts, training provenance and an artifact checksum.
+  Reject malformed/incompatible artifacts even when vector dimensions match.
+- **Verification:** 460 full-suite tests passed on Python 3.12.14, including 41 new
+  normalization tests; dependency check clean. Hand ratios, unknown flags, extremes,
+  held-out isolation, same-task overlap rejection, full topology compatibility,
+  save/load, strict artifact validation, CLI and baseline invariants verified.
+  The fixtures fit 100 training states and transform 100 held-out 47-feature states
+  into [0,1], retaining 92 completions/8 rejections and leaving fitted data unchanged.
+
 ## A-022 - Initial synthetic state/action contract
 
 - **Date:** 2026-10-14. **Status:** DECIDED for a provisional synthetic observation.

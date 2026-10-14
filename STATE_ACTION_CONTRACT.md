@@ -38,9 +38,9 @@ The pure encoder returns a tuple of finite Python floats in this order:
 
 Dimension = `3 + R + V * (6 + 4 * R)`. Unknown amounts use zero with a zero known flag;
 known available zero has a one known flag. Fog/cloud is binary 0/1. Values are raw,
-unscaled doubles at this stage; there is no fitted normalization or float32 model
-conversion. Training-only normalization, extreme-value handling for model input,
-reward and transition/terminal semantics remain later tasks. Feature names and units,
+unscaled doubles in the raw trace. v0.3.0a2 adds separate training-only scaling and
+saved artifacts; see NORMALIZATION.md. Float32 model conversion, reward and
+transition/terminal semantics remain later tasks. Feature names and units,
 VM/resource order, dimension and schema version accompany a captured trace.
 
 ## Legal actions

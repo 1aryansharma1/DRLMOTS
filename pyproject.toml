@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "drlmots"
-version = "0.3.0a1"
+version = "0.3.0a2"
 description = "DRLMOTS task scheduling research simulator for cloud-fog environments"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
