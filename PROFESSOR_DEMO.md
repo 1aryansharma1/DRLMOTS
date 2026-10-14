@@ -1,4 +1,4 @@
-# Professor demonstration guide - updated for v0.3.0a2
+# Professor demonstration guide - updated for v0.3.0a3
 
 This checkpoint presents a tested synthetic resource-aware scheduling simulator and
 two simple placement rules. It is a foundation for the DRLMOTS implementation. There
@@ -46,9 +46,9 @@ Outputs (ignored by Git; another contributor regenerates them):
    Show that fog-b remains idle because it cannot satisfy the task demand.
 5. **Evidence and next step (90 seconds).** Expand reproducibility; export JSON. Show
    the unit catalogue, input hashes, queue limits and all-resource-restored check.
-   Explain the next deliverable: a synthetic reward/timing contract. Arrival-time
-   snapshots, stable VM action indices, masks and training-only normalization are
-   implemented; reward and DQN training still follow. Generate an optional
+   Explain the next deliverable: the CPU Q-network and legal action selector.
+   Arrival-time snapshots, masks, normalization and synthetic rewards/transitions are
+   implemented; interactive agent control and DQN training still follow. Generate an optional
    `--capture-decisions` report to show six 47-feature observations and explicit masks.
 
 ## Explain these numbers accurately
@@ -72,8 +72,8 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 - **Where is reinforcement learning?** It is the next milestone. The simulator,
   resource ledger, reproducible evaluation and initial raw state/action trace are
-  implemented, along with training-only normalization. Reward and the learning loop
-  are still pending.
+  implemented, along with training-only normalization and a causal synthetic reward.
+  The Q-network, replay and interactive learning loop are still pending.
 - **Why does a VM stay idle?** It lacks capacity for the declared task profile.
 - **Why these milliseconds?** The fixture explicitly interprets 1000 bytes as 2 ms.
   CPU units affect admission, not speed. The source's unitless task length is unresolved.
@@ -86,7 +86,7 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Verification and pickup
 
-Current v0.3.0a2 verification: `python -m pytest -q` passes 460 tests on Python 3.12.14
+Current v0.3.0a3 verification: `python -m pytest -q` passes 510 tests on Python 3.12.14
 with demo dependencies; `python -m pip check` is clean. The v0.2.1 demo checkpoint
 originally passed 378 tests. Without Matplotlib, the figure
 integration test skips and the core simulator remains usable. Timeline/comparison/

@@ -41,7 +41,8 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 * **Question:** How do makespan, fault tolerance and energy form one scalar reward?
 * **Paper says:** Eq. (25) is the minimum of those three, but prose says minimize each and is inconsistent about reward sign; units and scales differ.
-* **Status:** BLOCKED before agent training.
+* **Status:** BLOCKED for paper-faithful reward replication. A-024 explicitly selects
+  a separate synthetic prototype surrogate; this does not resolve Eq. (25).
 * **Decision rule:** Implement metrics independently first. When the reward is needed, make an explicit configurable interpretation, write down all signs/scaling, and test simple cases. Never present the chosen interpretation as the paper's unambiguous formula.
 
 ## A-007 — Fault tolerance meaning

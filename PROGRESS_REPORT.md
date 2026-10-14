@@ -2,27 +2,50 @@
 
 **Report date:** 2026-10-14 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `29debfb`, v0.3.0a2 training-only normalization VERIFIED;
+**Implementation checkpoint:** `72255bf`, v0.3.0a3 synthetic reward/transitions VERIFIED;
+normalization `29debfb`;
 state/action foundation `a7a08bb`;
 prior `2083faa` professor demo;
 resource model `4f4307f`;
 prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
-**Working status:** state/action and normalization completed by Codex for **Aravindak3 /
+**Working status:** state/action, normalization and synthetic rewards completed by Codex for **Aravindak3 /
 Aravind**. Repository-local commit identity uses `195939576+Aravindak3@users.noreply.github.com`
 and credential selection requests that account. v0.1/v0.2 and the prior professor
-demo are verified. Initial synthetic reward/metric contract is the next unassigned
-task; agent transitions and DQN training remain pending.
+demo are verified. CPU Q-network/masked selection is the next unassigned task;
+interactive agent control, replay and DQN training remain pending.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
-reward-contract acceptance criteria and later source/DQN/evaluation gates.
+Q-network acceptance criteria and later source/DQN/evaluation gates.
 
 **Git publication:** the prior state/action implementation/handoff was pushed by the
 user and confirmed on main at `9604536`. For the latest checkpoint compare local HEAD
 with GitHub's main reference. Authentication may require a normal user terminal when
 the sandbox cannot run Git Credential Manager.
 
-## Latest checkpoint - v0.3.0a2 training-only normalization
+## Latest checkpoint - v0.3.0a3 causal rewards and transition exports
+
+Explicit `--reward-config configs/reward.yaml` enables decision capture and synthetic
+placement scoring. An admitted task gets S/(S+projected wait+own service), using only
+arrival-time queue/running work. Forced rejection gets -P. Fixture S=10 ms/P=1 are
+documented choices; this does not implement paper Eq. (25), energy or reliability.
+There is no completion/terminal bonus, and all-arrival return includes rejections.
+
+One raw state/action/reward/next-state record is exported per arrival. Only the last
+arrival is terminal. A separate pure learner adapter absorbs following forced costs
+with explicit gamma per arrival, then bootstraps an actionable state or terminates.
+Forced prefixes remain in episode metrics without invented actions. This is baseline
+transition data and an adapter, not live agent control, replay or DQN training.
+
+Actual verification: **510 tests pass**, including 50 new reward/transition tests;
+dependency check clean. Six-task result remains 4 completed/2 rejected and 4 ms,
+with return 23/21. The 100-task fixture remains 96/4, with 100 records, exactly one
+terminal and return 67.73152495135943. Hand values, forecast/actual latency, causal
+future extensions, normalizer preservation, empty/all-rejected runs, forced-chain
+gamma/terminal cases, invalid configs/actions, replay and actual CLI are verified.
+See A-024 and REWARD_CONTRACT.md for limits and the future learning boundary.
+
+## Previous checkpoint - v0.3.0a2 training-only normalization
 
 The frozen scaler fits only explicitly training-labelled raw traces. It scales
 numeric columns by their training maxima, excluding unknown resource amounts;
@@ -226,7 +249,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 460 tests above:
+virtual environment before its publication. The latest suite is 510 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -270,14 +293,14 @@ by Git; the command recreates the example. No training results or checkpoints ex
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-023.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-024.
 
 ## Next delivery
 
 v0.2's scoped baseline and the initial v0.3 state/action implementation are delivered.
-Training-only normalization is verified; next is the initial synthetic reward/timing
-contract. Metric/reward/source decisions must pass
-their gates before DQN work. Keep original paper-specific tasks open until verified.
+Training-only normalization and the synthetic reward/transition contract are verified;
+next is the CPU Q-network and legal action selector. Remaining source/learning checks
+must pass before DQN training. Keep original paper-specific tasks open until verified.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.
 Update [progress.md](progress.md) when a task is claimed or actually verified.

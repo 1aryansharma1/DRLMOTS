@@ -17,7 +17,8 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | 0.2.1 | User-requested professor demo: paired simple policies, offline report, figures and walkthrough | VERIFIED software checkpoint `2083faa`: 378 tests; browser layout manual check; A-021 |
 | 0.3.0a1 | Initial P6.1/P6.2/P7.2: immutable observations, pure raw encoding and legal actions | VERIFIED `a7a08bb` under A-022; 419 tests and clean dependency check |
 | 0.3.0a2 | P6.3: training-only scaling, schema/topology-bound statistics, held-out application | VERIFIED `29debfb` under A-023; 460 tests and clean dependency check |
-| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: initial state/action and scaling; next synthetic reward/timing contract; no training before metric/reward gates |
+| 0.3.0a3 | Initial synthetic P8/P11: causal reward, arrival transitions and forced-chain adapter | VERIFIED `72255bf` under A-024; 510 tests and clean dependency check |
+| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: initial contracts/scaling/reward export delivered; next CPU Q-network/masked selector; replay/live control/training pending |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
 v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,
@@ -50,8 +51,9 @@ early P13.1 synthetic comparison: least queue and first fit run identical worklo
 the report includes failures beside timings, occupancy, outcomes and input hashes.
 Three presets and reusable SVG/PNG figures support a five-minute walkthrough in
 PROFESSOR_DEMO.md. This completes the demonstration checkpoint, not the full P13
-paper comparisons or P15 multi-seed/task-count analysis. State/action design remains
-the next implementation task; energy/reliability/reward and DQN remain pending.
+paper comparisons or P15 multi-seed/task-count analysis. Subsequent prereleases below
+implement state/actions, normalization and a synthetic reward; paper energy/reliability
+and DQN remain pending.
 
 The initial v0.3 prerelease implements A-022 arrival-time snapshots and a fixed
 `3+R+V*(6+4R)` raw vector. VM/resource order, units and schema hash accompany an
@@ -59,7 +61,10 @@ opt-in trace. Legal masks use total capacity and waiting slots; all-false masks 
 explicit rejection. This is a provisional synthetic observation, with no claim of
 paper fidelity or Markov sufficiency. Training-only normalization is now verified
 under A-023 with saved statistics, compatibility checks and no held-out fitting.
-Metrics/reward and later agent/transition/learning tasks remain. State/action design
+The initial synthetic reward/transition export is now verified under A-024. It uses
+causal projected latency and explicit rejection penalties, with a forced-chain adapter
+requiring gamma per arrival. Full source metrics/reward, interactive agent control,
+replay and learning remain. State/action design
 does not complete the full P6-P12 milestone.
 
 ## Project directory (target)
