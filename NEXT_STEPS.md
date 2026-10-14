@@ -1,7 +1,7 @@
 # Remaining work and pickup checklist
 
 **Updated:** 2026-10-15
-**Latest verified implementation:** v0.3.0a4 CPU Q-network/selection in this delivery.
+**Latest verified implementation:** v0.3.0a4 CPU Q-network/selection plus demo template-opening fix.
 Prior rewards `72255bf`; normalization `29debfb`; state/actions `a7a08bb`; demo `2083faa`.
 **Working state:** completed by Codex for Aravindak3 / Aravind; next task unassigned.
 **Publication check:** prior state/action work was confirmed on main at `9604536`.
@@ -19,7 +19,7 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
 - [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
 - [x] Running-task resource reservation/release, trace and final balances without leaks.
-- [x] Verified suite with demo dependencies: 576 tests pass; dependency check is clean.
+- [x] Verified suite with demo dependencies: 577 tests pass; prior dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
 - [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
   eight resource events; old baseline outcomes/config/workload fingerprints preserved.
@@ -41,6 +41,8 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
   and all-false None; full context-bound JSON network snapshots and exact reload.
 - [x] Another 66 tests; actual 100-state held-out untrained inference CLI; no simulator
   behavior change. See Q_NETWORK.md for commands and limits.
+- [x] Opening the HTML source template shows instructions and a generated-report link;
+  raw-template startup and generated controls/exports verified. One regression test added.
 - [ ] Manually preview the generated HTML in a normal browser at desktop/mobile widths
   before presenting. The agent browser tool disallowed local-file preview; this check
   is independent of starting state/action work. See PROFESSOR_DEMO.md.

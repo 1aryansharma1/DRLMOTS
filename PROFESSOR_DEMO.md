@@ -15,6 +15,12 @@ From the repository root after README's virtual-environment setup:
 Start-Process .\outputs\demos\drlmots-demo.html
 ```
 
+Open **`outputs/demos/drlmots-demo.html`**, the generated report. The file
+`src/drlmots/templates/demo.html` is its source template and has no simulation data.
+Opening that source now shows a link to the generated report and the generation
+command instead of an empty dashboard. If you previously opened the source, close
+that tab and open the generated report above.
+
 The HTML is self-contained and works offline in a normal browser. No server, account,
 GPU or external assets are required. Selectors switch between precomputed simulator
 runs; changing a selector does not retrain an agent or rerun the simulation. Regenerate
@@ -88,7 +94,7 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Verification and pickup
 
-Current v0.3.0a4 verification: `python -m pytest -q` passes 576 tests on Python 3.12.14
+Current v0.3.0a4 verification: `python -m pytest -q` passes 577 tests on Python 3.12.14
 with demo dependencies; `python -m pip check` is clean. The v0.2.1 demo checkpoint
 originally passed 378 tests. Without Matplotlib, the figure
 integration test skips and the core simulator remains usable. Timeline/comparison/

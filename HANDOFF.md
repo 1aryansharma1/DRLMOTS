@@ -2,7 +2,8 @@
 
 **Last updated:** 2026-10-15
 **Current checkpoint:** v0.3.0a4 CPU Q-network/selection VERIFIED in this delivery:
-576 tests and clean dependency check. Prior rewards `72255bf`; normalization `29debfb`;
+577 tests including the demo template-opening fix; prior dependency check clean.
+Prior rewards `72255bf`; normalization `29debfb`;
 state/actions `a7a08bb`.
 **Next task:** bounded replay, Bellman targets and target-network updates (P10 subset), owner unassigned.
 **Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
@@ -58,7 +59,7 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
 ```
 
-Expected current checks: 576 tests pass with demo dependencies (575 pass/one figure
+Expected current checks: 577 tests pass with demo dependencies (576 pass/one figure
 test skips without Matplotlib); dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
 4 because all queues are full, accounting for every input. Configured fixture: six
@@ -72,7 +73,7 @@ created ignored `.venv312` with bundled Python 3.12.14. Use that interpreter in 
 checkout; new contributors can create a normal supported 3.11/3.12 venv. Runtime
 version contributes to workload hashes; captured/uncaptured hashes agree within one
 runtime. The shared config checksum and scheduling outcomes stay the same.
-The fresh 3.12 environment passes all 576 tests and pip check; a failed PyTorch
+The fresh 3.12 environment passes all 577 tests; the prior pip check is clean. A failed PyTorch
 download was rejected and replaced by a download matching the published PyPI hash.
 Stale generated egg-info was regenerated with setuptools. No dependency pins changed.
 
@@ -82,6 +83,9 @@ install, then run `python -m drlmots.demo --config configs/resources.yaml`. Open
 them in your checkout. Read PROFESSOR_DEMO.md for commands/results/model limitations.
 Representative PNGs and offline DOM-stub controls were checked; real desktop/mobile
 browser layout still needs manual preview because the agent tool blocked local files.
+The source template at `src/drlmots/templates/demo.html` now displays guidance and
+a link to the generated report instead of an empty dashboard. Its no-data startup
+and all six generated scenario/policy combinations plus three exports pass checks.
 
 ## Where the current behavior lives
 

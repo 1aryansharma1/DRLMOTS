@@ -2,7 +2,7 @@
 
 **Report date:** 2026-10-15 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** v0.3.0a4 CPU Q-network/selection VERIFIED in this delivery;
+**Implementation checkpoint:** v0.3.0a4 CPU Q-network/selection plus demo template-opening fix VERIFIED;
 prior rewards `72255bf`;
 normalization `29debfb`;
 state/action foundation `a7a08bb`;
@@ -24,7 +24,21 @@ user and confirmed on main at `9604536`. For the latest checkpoint compare local
 with GitHub's main reference. Authentication may require a normal user terminal when
 the sandbox cannot run Git Credential Manager.
 
-## Latest checkpoint - v0.3.0a4 CPU Q-network and legal selection
+## Latest fix - opening the demo source template
+
+The user opened `src/drlmots/templates/demo.html`, which contains the data placeholder,
+and saw empty controls/charts. The source now shows a clear explanation, generation
+command and relative link to `outputs/demos/drlmots-demo.html`; its dashboard is hidden
+and its script exits safely without data. The generator marks the real report ready,
+populates its embedded data and retains the existing controls/charts.
+
+Verification: **577 tests pass**, including the new source-opening regression; both
+source startup and all six generated selections/three exports pass the Node DOM-stub
+checks. Regenerated the offline report and 15 PNG/15 SVG figures. Browser automation
+was unavailable, so this is not a new browser-layout verification. Next implementation
+task remains replay/target updates.
+
+## Previous checkpoint - v0.3.0a4 CPU Q-network and legal selection
 
 The configurable two-hidden-layer CPU float32 network derives input/action counts
 from the schema. The resource fixture uses 47 -> 50/ReLU -> 50/ReLU -> 3 and 5,103
@@ -279,7 +293,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 576 tests above:
+virtual environment before its publication. The latest suite is 577 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q

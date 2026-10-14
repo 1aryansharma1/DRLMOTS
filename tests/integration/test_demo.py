@@ -1,4 +1,5 @@
 import json
+from html.parser import HTMLParser
 from pathlib import Path
 import re
 import subprocess
@@ -12,6 +13,28 @@ from drlmots.run_config import load_run_config
 
 
 CONFIG = Path(__file__).resolve().parents[2] / "configs" / "resources.yaml"
+TEMPLATE = CONFIG.parents[1] / "src" / "drlmots" / "templates" / "demo.html"
+
+
+class PageElements(HTMLParser):
+    def __init__(self, html):
+        super().__init__()
+        self.elements = []
+        self.feed(html)
+
+    def handle_starttag(self, tag, attrs):
+        self.elements.append((tag, dict(attrs)))
+
+
+def test_opening_source_template_explains_where_to_find_results():
+    html = TEMPLATE.read_text(encoding="utf-8")
+    elements = PageElements(html).elements
+    assert next(attrs for tag, attrs in elements if tag == "body")["data-demo"] == "template"
+    link = next(attrs for tag, attrs in elements if tag == "a")
+    assert (TEMPLATE.parent / link["href"]).resolve() == CONFIG.parents[1] / "outputs/demos/drlmots-demo.html"
+    assert "Open the generated professor demo" in html
+    assert "python -m drlmots.demo" in html
+    assert 'body[data-demo="template"] .demo-content{display:none}' in html
 
 
 def test_presets_keep_resource_inputs_and_pair_workloads():
@@ -37,6 +60,8 @@ def test_actual_demo_cli_exports_safe_embedded_data_and_valid_figures(tmp_path):
     result = subprocess.run([sys.executable, "-m", "drlmots.demo", "--config", str(config),
                              "--output-dir", str(output_dir)], capture_output=True, text=True, check=True)
     html = (output_dir / "drlmots-demo.html").read_text(encoding="utf-8")
+    elements = PageElements(html).elements
+    assert next(attrs for tag, attrs in elements if tag == "body")["data-demo"] == "report"
     embedded = re.search(r'<script id="demo-data" type="application/json">(.*?)</script>', html, re.S).group(1)
     assert "</script>" not in embedded
     bundle = json.loads(embedded)

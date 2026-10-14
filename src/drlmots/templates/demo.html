@@ -19,12 +19,23 @@
     .pool{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.vm{background:#f2f6f7;padding:10px 13px;border-radius:7px;font-size:12px}.vm b{display:block;font-size:13px}.quiet{color:var(--muted);font-size:12px}
     details{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}summary{cursor:pointer;font-size:13px;font-weight:600}pre{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6f7;padding:14px;border-radius:6px}#tasks-wrap{max-height:350px;overflow:auto;margin-top:12px}
     footer{font-size:12px;color:var(--muted);padding:0 4px 12px}.checks{font-size:12px;color:#22685d;margin-left:auto}.section-line{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+    .template-notice{display:none;max-width:760px;margin:60px auto;padding:28px;background:white;border:1px solid var(--line);border-radius:12px}
+    .template-notice h1{font-size:30px;margin-top:0}.template-notice a{display:inline-block;color:#126e68;font-weight:600;padding:10px 0}.template-notice code{overflow-wrap:anywhere}
+    body[data-demo="template"] .template-notice{display:block}body[data-demo="template"] .demo-content{display:none}
     @media(max-width:800px){main{padding:28px 18px}h1{font-size:34px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.pipeline{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:440px){main{padding:22px 12px}h1{font-size:29px}.badge{max-width:180px}.panel{padding:16px}.metric{padding:14px}.metric strong{font-size:24px}.pipeline{grid-template-columns:1fr}.controls{gap:12px}.controls label{width:100%}.controls p{margin:0}.checks{margin-left:0}}
     @media print{body{background:white}main{max-width:none;padding:10px}.controls button{display:none}.panel,.metric{break-inside:avoid}.metric{background:white;color:var(--ink);border:1px solid var(--line)}.metric span,.metric small{color:var(--muted)}details{display:none}}
   </style>
 </head>
-<body><main>
+<body data-demo="template">
+<aside class="template-notice" role="status">
+  <h1>Open the generated professor demo</h1>
+  <p>This is the dashboard's source template. Simulation results and charts are added when the report is generated.</p>
+  <a href="../../../outputs/demos/drlmots-demo.html">Open the dashboard with results →</a>
+  <p>If the report has not been generated yet, run this command from the repository folder:</p>
+  <pre>python -m drlmots.demo --config configs/resources.yaml --output-dir outputs/demos</pre>
+</aside>
+<main class="demo-content">
   <div class="topline"><span class="brand">DRLMOTS / RESEARCH PROTOTYPE</span><span class="badge">Synthetic simulator · <span id="version"></span></span></div>
   <h1>Where tasks run.<br>What makes them wait.</h1>
   <p class="lead">Explore resource-aware scheduling across fog and cloud VMs. Both policies use exactly the same arrivals, task lengths, resource demands and queue limits.</p>
@@ -65,7 +76,9 @@
 <script id="demo-data" type="application/json">__DEMO_DATA__</script>
 <script>
 (()=>{
-  const data=JSON.parse(document.getElementById('demo-data').textContent);
+  const payload=document.getElementById('demo-data').textContent.trim();
+  if(payload.charAt(0)!=='{')return; // The source template has no generated report yet.
+  const data=JSON.parse(payload);
   const el=id=>document.getElementById(id), scenarioSelect=el('scenario'), policySelect=el('policy');
   const option=(select,value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)};
   data.scenarios.forEach(s=>option(scenarioSelect,s.id,s.label));Object.entries(data.policy_labels).forEach(([value,label])=>option(policySelect,value,label));

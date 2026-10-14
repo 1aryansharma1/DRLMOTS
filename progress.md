@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.3.0a4 synthetic CPU Q-network/selection VERIFIED (2026-10-15).
+**Current stage:** v0.3.0a4 CPU Q-network/selection and demo template-opening fix VERIFIED (2026-10-15).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 source-audited resource interpretation, physical allocation and DQN remain pending.
@@ -107,6 +107,7 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | v0.3.0a3 dependency check | No broken requirements found |
 | v0.3.0a4 suite: `.venv312\Scripts\python.exe -m pytest -q` | 576 passed on Python 3.12.14 |
 | v0.3.0a4 dependency check | No broken requirements found |
+| Demo source-template opening regression | 577 tests pass; source explains missing data and links to the generated report; generated charts/controls/export still verified in DOM stub |
 | Resource fixture with `--reward-config configs/reward.yaml` | Six rewards/transitions; return 23/21; unchanged 4 completed/2 rejected, 4 ms and restored balances |
 | 100-task reward fixture | 96/4; 100 records; one terminal; return 67.73152495135943; no actual finish used in reward |
 | v0.3.0a2 dependency check | No broken requirements found |
@@ -147,7 +148,7 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 576-test suite verifies setup, entities/configuration/topology, fixed and
+The current 577-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
 resource admission/accounting, paired comparisons, figure exports and the initial
 synthetic state/action contract, training-only normalization and synthetic reward/

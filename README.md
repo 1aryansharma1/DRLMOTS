@@ -12,7 +12,7 @@ and offline professor demo. It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **576 tests** with the demo dependencies on Python 3.12.14
+The current suite passes **577 tests** with the demo dependencies on Python 3.12.14
 (2026-10-15); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
@@ -74,8 +74,8 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 576 passing tests with the demo extra
-(575 pass/one figure test skips without it). The last command prints
+Expected checks: no broken requirements; 577 passing tests with the demo extra
+(576 pass/one figure test skips without it). The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.

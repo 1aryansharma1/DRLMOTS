@@ -5,7 +5,8 @@ const vm = require('node:vm');
 const html = fs.readFileSync(process.argv[2] || 'outputs/demos/drlmots-demo.html', 'utf8');
 const embedded = html.match(/<script id="demo-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
-const data = JSON.parse(embedded);
+const isTemplate = /<body\b[^>]*data-demo="template"/.test(html);
+const data = isTemplate ? null : JSON.parse(embedded);
 let download;
 let exported;
 class Element {
@@ -24,6 +25,13 @@ vm.runInNewContext(script, { document, Blob, URL: {
 }, setTimeout: callback => callback() });
 
 (async () => {
+  if (isTemplate) {
+    assert.equal(elements.get('scenario').children.length, 0);
+    assert.match(html, /Open the generated professor demo/);
+    assert.match(html, /href="\.\.\/\.\.\/\.\.\/outputs\/demos\/drlmots-demo\.html"/);
+    console.log('Verified source-template guidance and safe startup without generated data.');
+    return;
+  }
   assert.equal(elements.get('scenario').value, 'seeded');
   assert.equal(elements.get('completed').textContent, 96);
   assert.equal(elements.get('failed').textContent, 4);

@@ -142,7 +142,10 @@ def generate_demo(config_path, output_dir):
     # A config identifier containing an HTML closing tag must stay inert in script data.
     embedded = content.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     template = Path(__file__).with_name("templates").joinpath("demo.html").read_text(encoding="utf-8")
-    output_dir.joinpath("drlmots-demo.html").write_text(template.replace("__DEMO_DATA__", embedded), encoding="utf-8")
+    html = template.replace("__DEMO_DATA__", embedded).replace(
+        '<body data-demo="template">', '<body data-demo="report">', 1
+    )
+    output_dir.joinpath("drlmots-demo.html").write_text(html, encoding="utf-8")
     output_dir.joinpath("comparison.json").write_text(content + "\n", encoding="utf-8")
     return output_dir / "drlmots-demo.html"
 
