@@ -10,6 +10,8 @@ from drlmots.entities import Host, ResourceTier, VM
 from drlmots.environment import simulate
 from drlmots.baselines import POLICIES
 from drlmots.run_config import RunConfig, load_run_config
+from drlmots.reward import RewardConfig, load_reward_config
+from drlmots.transitions import build_transitions, summarize_rewards
 from drlmots.topology import AccessPoint, CloudDatacenter, EndNode, FogNode, Topology
 from drlmots.workload import (
     SyntheticWorkloadSettings, fixed_workload, seeded_workload, workload_manifest,
@@ -23,6 +25,7 @@ def smoke_report(
     resource_units=None,
     policy: str = "least_queue_fcfs",
     capture_decisions: bool = False,
+    reward_config: RewardConfig | None = None,
 ) -> dict:
     if topology is None:
         topology = _smoke_topology()
@@ -33,7 +36,7 @@ def smoke_report(
     ], length_unit="bytes")
     units = {} if resource_units is None else resource_units
     result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units, policy=policy,
-                      capture_decisions=capture_decisions)
+                      capture_decisions=capture_decisions, reward_config=reward_config)
     return _report(topology, tasks, settings, result, units, policy)
 
 
@@ -79,16 +82,31 @@ def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
         "available_resources": result.available_resources,
     }
     if result.decision_schema is not None:
+        decisions = []
+        for decision in result.decisions:
+            item = asdict(decision)
+            if decision.reward is None:
+                item.pop("reward")
+            decisions.append(item)
         report["decision_trace"] = {
             "schema": result.decision_schema,
-            "decisions": [asdict(decision) for decision in result.decisions],
+            "decisions": decisions,
+        }
+    if result.reward_config is not None:
+        report["reward"] = {
+            "configuration": result.reward_config.manifest(),
+            "scope": "synthetic projected-latency surrogate; not paper Eq. (25)",
+            "timing": "immediate at each placement/rejection; no completion or terminal bonus",
+            "summary": summarize_rewards(result.decisions),
+            "transitions": [asdict(item) for item in build_transitions(result.decisions)],
         }
     return report
 
 
-def configured_report(config: RunConfig, *, policy: str = "least_queue_fcfs", capture_decisions: bool = False) -> dict:
+def configured_report(config: RunConfig, *, policy: str = "least_queue_fcfs", capture_decisions: bool = False,
+                      reward_config: RewardConfig | None = None) -> dict:
     report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units,
-                          policy=policy, capture_decisions=capture_decisions)
+                          policy=policy, capture_decisions=capture_decisions, reward_config=reward_config)
     report["milestone"] = "v0.2 resource-aware baseline" if config.schema_version == 2 else "v0.2 configured topology"
     report["run_configuration"] = config.manifest()
     return report
@@ -100,6 +118,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, help="Runnable synthetic YAML; cannot combine with workload flags")
     parser.add_argument("--policy", choices=POLICIES, default="least_queue_fcfs", help="Simple placement comparator")
     parser.add_argument("--capture-decisions", action="store_true", help="Save provisional state vectors, VM action masks and decisions")
+    parser.add_argument("--reward-config", type=Path, help="Synthetic reward YAML; implies decision capture")
     parser.add_argument("--task-count", type=int, help="Generate this many synthetic tasks; requires --seed")
     parser.add_argument("--seed", type=int, help="Explicit nonnegative synthetic-workload seed")
     parser.add_argument("--interarrival-ms", nargs=2, type=float, metavar=("MIN", "MAX"),
@@ -109,6 +128,10 @@ def main() -> None:
     parser.add_argument("--data-size-kb", nargs=2, type=float, metavar=("MIN", "MAX"),
                         help="Uniform data-size bounds; demo default: 20 to 150 kB")
     args = parser.parse_args()
+    try:
+        reward_config = load_reward_config(args.reward_config) if args.reward_config is not None else None
+    except (OSError, TypeError, ValueError) as error:
+        parser.error(str(error))
     synthetic_requested = any(value is not None for value in (
         args.task_count, args.seed, args.interarrival_ms, args.length_bytes, args.data_size_kb
     ))
@@ -117,7 +140,8 @@ def main() -> None:
         if synthetic_requested:
             parser.error("--config cannot be combined with seed/count/range workload flags")
         try:
-            report = configured_report(load_run_config(args.config), policy=args.policy, capture_decisions=args.capture_decisions)
+            report = configured_report(load_run_config(args.config), policy=args.policy,
+                                       capture_decisions=args.capture_decisions, reward_config=reward_config)
         except (OSError, TypeError, ValueError) as error:
             parser.error(str(error))
     elif synthetic_requested:
@@ -132,9 +156,16 @@ def main() -> None:
             )
         except (TypeError, ValueError) as error:
             parser.error(str(error))
-        report = smoke_report(settings, policy=args.policy, capture_decisions=args.capture_decisions)
+        try:
+            report = smoke_report(settings, policy=args.policy, capture_decisions=args.capture_decisions,
+                                  reward_config=reward_config)
+        except (TypeError, ValueError) as error:
+            parser.error(str(error))
     else:
-        report = smoke_report(policy=args.policy, capture_decisions=args.capture_decisions)
+        try:
+            report = smoke_report(policy=args.policy, capture_decisions=args.capture_decisions, reward_config=reward_config)
+        except (TypeError, ValueError) as error:
+            parser.error(str(error))
     content = json.dumps(report, indent=2, allow_nan=False)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,6 @@
+# Synthetic software fixture; these are explicit choices, not paper hyperparameters.
+schema_version: 1
+kind: synthetic_reward
+algorithm: projected_latency_v1
+latency_scale_ms: 10
+rejection_penalty: 1

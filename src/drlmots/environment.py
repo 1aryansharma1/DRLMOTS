@@ -16,6 +16,7 @@ from drlmots.workload import processing_time_ms
 from drlmots.baselines import POLICIES, choose_vm
 from drlmots.actions import ActionMap, action_mask
 from drlmots.state import DecisionObservation, StateSchema, VMObservation, encode_state
+from drlmots.reward import RewardConfig, RewardResult, score_action
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,7 @@ class DecisionRecord:
     selected_action: int | None
     selected_vm_id: str | None
     failure_reason: str | None
+    reward: RewardResult | None = None
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,7 @@ class SimulationResult:
     available_resources: dict = field(default_factory=dict)
     decision_schema: dict | None = None
     decisions: tuple[DecisionRecord, ...] = ()
+    reward_config: RewardConfig | None = None
 
     @property
     def completed_count(self) -> int:
@@ -77,6 +80,7 @@ def simulate(
     resource_units=None,
     policy: str = "least_queue_fcfs",
     capture_decisions: bool = False,
+    reward_config: RewardConfig | None = None,
 ) -> SimulationResult:
     """Place tasks using a selected baseline, then execute each VM's queue FCFS.
 
@@ -90,6 +94,9 @@ def simulate(
         raise ValueError(f"unknown policy {policy!r}; choose one of {POLICIES}")
     if type(capture_decisions) is not bool:
         raise TypeError("capture_decisions must be bool")
+    if reward_config is not None and not isinstance(reward_config, RewardConfig):
+        raise TypeError("reward_config must be RewardConfig or None")
+    capture_decisions = capture_decisions or reward_config is not None
     topology.validate()
     units = validate_resource_units({} if resource_units is None else resource_units)
     for vm in topology.vms:
@@ -117,7 +124,8 @@ def simulate(
         copied.append(task)
     if not copied:
         return SimulationResult((), available_resources=ledger.final_balances(),
-                                decision_schema=schema.manifest() if schema is not None else None)
+                                decision_schema=schema.manifest() if schema is not None else None,
+                                reward_config=reward_config)
     if not topology.vms:
         raise ValueError("at least one VM is required for a non-empty workload")
     for vm in topology.vms:
@@ -201,7 +209,9 @@ def simulate(
                     )
                     if observation is not None:
                         decisions.append(DecisionRecord(observation, encode_state(schema, observation), mask,
-                                                        None, None, outcomes[task.task_id].failure_reason))
+                                                        None, None, outcomes[task.task_id].failure_reason,
+                                                        score_action(observation, None, reward_config)
+                                                        if reward_config is not None else None))
                     continue
                 vm = choose_vm(policy, eligible, {
                     item.vm_id: len(queues[item.vm_id]) + int(item.vm_id in running)
@@ -209,7 +219,9 @@ def simulate(
                 })
                 if observation is not None:
                     decisions.append(DecisionRecord(observation, encode_state(schema, observation), mask,
-                                                    actions.index(vm.vm_id), vm.vm_id, None))
+                                                    actions.index(vm.vm_id), vm.vm_id, None,
+                                                    score_action(observation, actions.index(vm.vm_id), reward_config)
+                                                    if reward_config is not None else None))
                 task.transition_to(TaskStatus.QUEUED)
                 if vm.vm_id in running:
                     queues[vm.vm_id].append(task)
@@ -222,5 +234,5 @@ def simulate(
         raise RuntimeError("simulation did not account for every task")
     return SimulationResult(
         tuple(outcomes[task.task_id] for task in copied), tuple(ledger.events), ledger.final_balances(),
-        schema.manifest() if schema is not None else None, tuple(decisions),
+        schema.manifest() if schema is not None else None, tuple(decisions), reward_config,
     )

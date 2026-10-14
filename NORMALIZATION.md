@@ -2,6 +2,8 @@
 
 This v0.3.0a2/P6.3 checkpoint builds on synthetic state schema 1 (A-022). A-023
 defines the scaling approximation. It does not add rewards, agent transitions or DQN.
+v0.3.0a3 implements rewards/transition export separately in REWARD_CONTRACT.md;
+normalizer fitting/application still use unscored traces and do not change statistics.
 
 ## Formula and boundary cases
 

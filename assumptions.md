@@ -117,6 +117,44 @@ Do not treat any item below as an explicit specification from the paper. Each ch
 
 Whenever a decision is resolved, add: date, microtask ID, the exact selected rule, reason, paper references, tests affected, and whether it is a paper requirement / inference / implementation approximation. Do not delete the original unresolved note; update its status and preserve the history.
 
+## A-024 - Causal projected-latency reward and arrival transitions
+
+- **Date:** 2026-10-14. **Status:** DECIDED for a synthetic prototype only.
+- **Scope:** Initial P8 reward/metric subset and P11 transition-export subset;
+  A-006/A-007/A-008 remain unresolved for paper reproduction.
+- **Reward:** At placement, projected wait is the selected VM's remaining running
+  service plus queued service. Add this task's byte-fixture service time to get
+  projected completion latency L. Reward admission by S/(S+L), with explicit positive
+  scale S in ms; all-false-mask rejection receives -P, explicit positive penalty P.
+  Evaluate the ratio in a numerically safe form. This is dimensionless and prefers
+  shorter projected latency. Admission is in [0,1], allowing underflow to zero;
+  rejection is negative. It is not makespan/energy/reliability or paper Eq. (25).
+- **Timing:** Read only the pre-placement observation. No actual future finish or
+  evaluation-fitted statistics enter the reward. Under the serial FCFS/zero-network
+  model, future arrivals append behind this task and cannot delay its predicted work.
+  No extra completion/terminal reward is added; simulator drain remains for metrics.
+- **Accounting:** One reward and transition per arrival, including forced rejections.
+  Episode reporting sums rewards without discounting and averages over all arrivals;
+  empty runs have sum 0 and null average. Compare counts and timings alongside return.
+  More throughput is not universally guaranteed to increase return when other waits
+  change; this is an explicit surrogate with a configurable tradeoff.
+- **Transitions:** Next state/mask is the next arrival observation. Only the last
+  arrival is terminal; terminal next fields are null. Forced rejections have action
+  and VM null, not a fake VM or terminal marker. A pure learner adapter absorbs forced
+  chains with explicit gamma per arrival before bootstrapping; terminal continuation
+  is zero, and forced prefix costs remain in metrics without fake actions. Gamma is
+  required and is not inferred as a paper hyperparameter. No raw max over an empty
+  legal-action set is valid.
+- **Boundary:** Opt-in rewards imply decision capture. Existing unscored results,
+  normalizer statistics and raw feature schema stay unchanged. Exporting baseline
+  transitions does not implement interactive agent control, replay or DQN training.
+- **Verification:** 510 full-suite tests pass on Python 3.12.14, including 50 new
+  reward/transition tests; dependency check clean. Hand rewards, causal prefixes,
+  unchanged simulation/scaling, empty/all-rejected cases, terminal boundaries,
+  forced-chain discounts, strict configs/indices, replay and actual CLI verified.
+  Six-task fixture: return 23/21; 100-task fixture: 96 admitted/4 rejected, return
+  67.73152495135943; these are synthetic software results, not learned performance.
+
 ## A-023 - Training-only maximum scaling
 
 - **Date:** 2026-10-14. **Status:** DECIDED for provisional synthetic model inputs.

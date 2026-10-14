@@ -39,8 +39,9 @@ The pure encoder returns a tuple of finite Python floats in this order:
 Dimension = `3 + R + V * (6 + 4 * R)`. Unknown amounts use zero with a zero known flag;
 known available zero has a one known flag. Fog/cloud is binary 0/1. Values are raw,
 unscaled doubles in the raw trace. v0.3.0a2 adds separate training-only scaling and
-saved artifacts; see NORMALIZATION.md. Float32 model conversion, reward and
-transition/terminal semantics remain later tasks. Feature names and units,
+saved artifacts; see NORMALIZATION.md. v0.3.0a3 adds a separate synthetic reward and
+arrival-transition/forced-chain contract; see REWARD_CONTRACT.md. Float32 model
+conversion and interactive agent control remain later tasks. Feature names and units,
 VM/resource order, dimension and schema version accompany a captured trace.
 
 ## Legal actions
@@ -70,8 +71,9 @@ their schema. Replay with the saved config and policy, also enabling capture.
 
 Python entry points: `StateSchema.from_topology`, `encode_state`, `ActionMap`,
 `action_mask`; `simulate(..., capture_decisions=True)` returns its captured decisions.
-The environment still runs baseline policies to completion; there is no learned
-action callback, reward, step API, next-state transition or experience replay yet.
+The environment still runs baseline policies to completion. Opt-in rewards add
+raw arrival transitions and a pure learner adapter; there is no learned action
+callback, interactive step API, experience replay or DQN training yet.
 
 For the resource fixture: V=3, R=2, dimension=47, VM order cloud/fog-a/fog-b. Six
 simultaneous arrivals see masks TT F, TT F, TT F, FT F, FF F, FF F (spaces only for
