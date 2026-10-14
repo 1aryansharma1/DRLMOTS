@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.3.0a1 initial state/action contract VERIFIED (2026-10-14).
+**Current stage:** v0.3.0a2 training-only normalization VERIFIED (2026-10-14).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 source-audited resource interpretation, physical allocation and DQN remain pending.
@@ -10,19 +10,19 @@ complete, implemented and verified by Codex for ashishjha20. Configuration-drive
 topology and explicit per-VM resource admission/reservation are VERIFIED. v0.2 is
 complete for the A-017/A-020 synthetic baseline scope. The user-requested professor
 demo (A-021) is complete, implemented by Codex for **1aryansharma1 / Aryan Sharma**.
-**Latest delivery (2026-10-14): initial P6.1/P6.2/P7.2 state/action contract VERIFIED,
+**Latest delivery (2026-10-14): P6.3 training-only normalization VERIFIED,
 Codex for Aravindak3 / Aravind.** Repository-local author is Aravind with
 `195939576+Aravindak3@users.noreply.github.com`; credential username selects Aravindak3.
-Global identity is unchanged. No implementation task is active. Next is P6.3
-training-only normalization/schema persistence, owner unassigned. Learning/reward
-remain pending. v0.3 is partially implemented; only this initial scope is verified.
+Global identity is unchanged. No implementation task is active. Next is the initial
+synthetic reward/metric contract (P8 subset), owner unassigned. Reward, agent
+transitions and DQN remain pending; v0.3 is partially implemented.
 
-**Publication at this handoff:** new commits are local on main. Agent push failed
-because the Windows sandbox could not execute Git Credential Manager's authentication
-helper; remote main was still `62e0202`. Push from a normal authenticated terminal
-using `git push origin main` as Aravindak3, then confirm the remote commit.
+**Git publication:** the prior state/action implementation/handoff was verified on
+GitHub main at `9604536` before this task. Confirm the latest local/remote HEADs match
+when handing off. If sandboxed authentication fails, push from a normal user terminal.
 The verified v0.1 implementation commit is `993344d`.
-Latest verified implementation: `a7a08bb` (v0.3.0a1 state/actions); professor demo:
+Latest verified implementation: `29debfb` (v0.3.0a2 normalization); state/actions:
+`a7a08bb`; professor demo:
 `2083faa`; resource model:
 `4f4307f`; configured topology:
 `e97a14d`; seeded workloads:
@@ -77,7 +77,8 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P5.8 | Deterministic edge cases | VERIFIED for baseline scope | Empty workloads, simultaneous arrivals/completions, missing VMs, unknown/full queues, duplicate tasks and unsupported resource requests |
 | R004 / P7.3 baseline subset | Explicit per-VM demands/capacities, feasible placement and resource reservations | VERIFIED for synthetic model | Shared declared units, missing capacity never inferred, exact-fit/oversize/full-feasible-queue failures, reserve/release trace, no oversubscription/leak. Original paper resource specification and full P7 remain open |
 | P13.1 synthetic subset / professor demo | Two deterministic placement rules, paired evaluation and visual presentation | VERIFIED software scope | Same inputs/hashes, accounting and restored balances; three presets, offline HTML/JSON/SVG/PNG and talk track. Browser layout not automatically verified; full P13/P15 remain open |
-| P6.1/P6.2/P7.2 initial synthetic subset | Immutable decision observations, raw feature encoding, VM action mapping/masks and opt-in trace | VERIFIED under A-022 | 41 new tests; hand vectors/masks, unknown flags, event timing, detachment, all-false rejection, baseline preservation, seeded replay and CLI. No normalizer/agent transitions/reward/DQN yet |
+| P6.1/P6.2/P7.2 initial synthetic subset | Immutable decision observations, raw feature encoding, VM action mapping/masks and opt-in trace | VERIFIED under A-022 | 41 new tests; hand vectors/masks, unknown flags, event timing, detachment, all-false rejection, baseline preservation, seeded replay and CLI. Normalization is delivered separately below; agent transitions/reward/DQN remain pending |
+| P6.3 synthetic subset | Training-only bounded maximum scaling and saved compatible artifacts | VERIFIED under A-023 | 41 new tests; hand scales, known flags, constants/extremes, immutable statistics, split/task overlap, schema/full topology checks, strict save/load and CLI. No reward/DQN yet |
 
 ## Verification in this checkout
 
@@ -95,6 +96,9 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | Final v0.2.0 suite: `.venv\Scripts\python.exe -m pytest -q` | 367 passed |
 | v0.2.1 suite with demo extra: `.venv\Scripts\python.exe -m pytest -q` | 378 passed |
 | v0.3.0a1 suite: `.venv312\Scripts\python.exe -m pytest -q` | 419 passed on Python 3.12.14 |
+| v0.3.0a2 suite: `.venv312\Scripts\python.exe -m pytest -q` | 460 passed on Python 3.12.14 |
+| v0.3.0a2 dependency check | No broken requirements found |
+| Normalizer fit/apply CLI with named fixtures | 100 train states; 100 held-out 47-feature states in [0,1]; unchanged 92 completed/8 rejected on evaluation; artifact unchanged |
 | v0.3.0a1 dependency check: `.venv312\Scripts\python.exe -m pip check` | No broken requirements found |
 | `--config configs/resources.yaml --capture-decisions` | Six 47-feature states; actions 0,1,0,1,null,null; 4 completed/2 failed, 4 ms and restored balances |
 | `python -m drlmots.demo` | Three paired presets, 15 SVG/15 PNG figures and offline report generated |
@@ -111,7 +115,7 @@ serial execution, feasibility, accounting and repeatability. It validates the do
 synthetic resource model, not physical host budgets, DQN behavior, energy, fault tolerance
 or experimental improvements. Old schema-1 config and demand-free workload checksums
 remain unchanged; schema 2 records explicit units/capacities/demands. Editable package
-metadata is now 0.3.0a1 in the separate supported Python 3.12.14 `.venv312`; the earlier
+metadata is now 0.3.0a2 in the separate supported Python 3.12.14 `.venv312`; the earlier
 3.11 `.venv` is preserved. The unchanged base lock is extended by the separate
 optional `requirements-demo-lock.txt`. Representative PNG figures were visually
 inspected; valid SVG namespaces/tooltips and safe embedded JSON are tested. The browser
@@ -131,20 +135,21 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 419-test suite verifies setup, entities/configuration/topology, fixed and
+The current 460-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
 resource admission/accounting, paired comparisons, figure exports and the initial
-synthetic state/action contract. This establishes only the documented
+synthetic state/action contract and training-only normalization. This establishes only the documented
 baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
 attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
 DRLMOTS algorithm; see decision A-017.
 
 ## Resume protocol
 
-Initial state/action work is verified under A-022; see STATE_ACTION_CONTRACT.md.
-Next implement P6.3 training-only normalization, saved statistics/schema compatibility
-and no held-out fitting. Preserve binary known flags and unknown-vs-zero semantics.
-Do not change the legal mask to available-capacity fit: queueable tasks use total fit.
+State/action work and normalization are verified under A-022/A-023; see
+STATE_ACTION_CONTRACT.md and NORMALIZATION.md. Next define a provisional synthetic
+reward and its causal timing/credit contract, preserving unknown flags, legal masks
+and all baseline/scaler outputs. Do not use held-out outcomes for fitted references
+or claim the paper's unresolved multi-objective reward is reproduced.
 P4.3/P4.6, configured P5.1 and resource feasibility are verified for A-018/A-020 synthetic
 models, not a source-audited paper topology/distribution or physical host allocation.
 Retain the deterministic tests and run each applicable gate before moving on. Keep

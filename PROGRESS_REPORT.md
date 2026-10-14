@@ -2,26 +2,50 @@
 
 **Report date:** 2026-10-14 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `a7a08bb`, v0.3.0a1 initial state/action step VERIFIED;
+**Implementation checkpoint:** `29debfb`, v0.3.0a2 training-only normalization VERIFIED;
+state/action foundation `a7a08bb`;
 prior `2083faa` professor demo;
 resource model `4f4307f`;
 prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
-**Working status:** initial state/action step completed by Codex for **Aravindak3 /
+**Working status:** state/action and normalization completed by Codex for **Aravindak3 /
 Aravind**. Repository-local commit identity uses `195939576+Aravindak3@users.noreply.github.com`
 and credential selection requests that account. v0.1/v0.2 and the prior professor
-demo are verified. Training-only normalization is the next unassigned implementation
-task; rewards, transitions and DQN training remain pending.
+demo are verified. Initial synthetic reward/metric contract is the next unassigned
+task; agent transitions and DQN training remain pending.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
-normalization acceptance criteria and later source/DQN/evaluation gates.
+reward-contract acceptance criteria and later source/DQN/evaluation gates.
 
-**Publication at handoff:** local commits on main; push failed because the Windows
-sandbox could not run Git Credential Manager's authentication helper. Remote main
-was still `62e0202`. Run `git push origin main` in a normal Aravindak3-authenticated
-terminal and verify publication; author identity is already correct on the commits.
+**Git publication:** the prior state/action implementation/handoff was pushed by the
+user and confirmed on main at `9604536`. For the latest checkpoint compare local HEAD
+with GitHub's main reference. Authentication may require a normal user terminal when
+the sandbox cannot run Git Credential Manager.
 
-## Latest checkpoint - v0.3.0a1 initial state/action contract
+## Latest checkpoint - v0.3.0a2 training-only normalization
+
+The frozen scaler fits only explicitly training-labelled raw traces. It scales
+numeric columns by their training maxima, excluding unknown resource amounts;
+binary flags pass through. Zero/unseen columns use scale 1 and held-out outliers
+clip to 1 before division, keeping even subnormal/huge inputs finite. A-023 and
+NORMALIZATION.md document these approximations and caller split responsibilities.
+
+Separate fit/apply commands save/load JSON with maxima/counts/scales, full feature
+schema, canonical topology hash, training configuration/workload/generator/software
+provenance and checksum. Apply never fits or changes saved statistics. Schema,
+units, capacities, queues, tiers and links must match; pure list permutations are
+compatible. Held-out training-source/exact-task overlap and malformed artifacts
+are rejected. Outputs retain the raw simulator report and add normalized vectors.
+
+Actual verification: **460 tests pass**, including 41 normalization tests; `pip check`
+is clean. Named seed-42 training fixture fits 100 observations; seed-314159 held-out
+fixture transforms 100 47-feature observations into [0,1], retaining 92 completed/
+8 rejected tasks. Training remains 96/4. Hand ratios, zero/constant/unknown columns,
+binary-unit spelling, extreme values, immutable fit, repeated save/load, actual CLI,
+equal-dimension incompatible contexts and input overwrite protection pass.
+These are software checks; there is still no learned policy, reward or DQN training.
+
+## Previous checkpoint - v0.3.0a1 initial state/action contract
 
 New frozen observation structures detach arrival-time queues, running service,
 capacities and ledger balances from runtime state. The observation boundary follows
@@ -202,7 +226,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 419 tests above:
+virtual environment before its publication. The latest suite is 460 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -246,12 +270,13 @@ by Git; the command recreates the example. No training results or checkpoints ex
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-022.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-023.
 
 ## Next delivery
 
 v0.2's scoped baseline and the initial v0.3 state/action implementation are delivered.
-Next is training-only normalization/schema persistence. Metric/reward/source decisions must pass
+Training-only normalization is verified; next is the initial synthetic reward/timing
+contract. Metric/reward/source decisions must pass
 their gates before DQN work. Keep original paper-specific tasks open until verified.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.

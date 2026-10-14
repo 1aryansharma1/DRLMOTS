@@ -1,21 +1,21 @@
 # DRLMOTS collaborator handoff
 
 **Last updated:** 2026-10-14
-**Current checkpoint:** `a7a08bb`, v0.3.0a1 initial state/action contract VERIFIED:
-419 tests and clean dependency check. Prior demo `2083faa`, resource foundation `4f4307f`.
-**Next task:** P6.3 training-only normalization and schema persistence, owner unassigned.
+**Current checkpoint:** `29debfb`, v0.3.0a2 training-only normalization VERIFIED:
+460 tests and clean dependency check. State/action foundation `a7a08bb`.
+**Next task:** initial synthetic reward/metric contract (P8 subset), owner unassigned.
 **Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
-earlier v0.2 work was for ashishjha20. State/action work is owned by Codex for
+earlier v0.2 work was for ashishjha20. State/actions and normalization completed by Codex for
 **Aravindak3 / Aravind** per the user's account switch. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
-**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its state/action
+**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its reward-contract
 checklist, then follow the ordered backlog. No implementation task is active.
 
-**Publication at handoff:** code/docs are committed locally on main. The sandbox
-blocked Git Credential Manager's authentication helper during push; remote was still
-`62e0202`. From a normal terminal authenticated as Aravindak3, run `git push origin main`
-and verify the remote commit. Do not assume this local checkpoint is already published.
+**Git workflow:** previous state/action commits were pushed by the user and main was
+confirmed at `9604536` before this task. Git authentication may require a normal user
+terminal because the sandbox blocks the credential helper. Verify latest publication
+by comparing `git rev-parse HEAD` with `git ls-remote origin refs/heads/main`.
 
 ## Read this first
 
@@ -28,6 +28,7 @@ and verify the remote commit. Do not assume this local checkpoint is already pub
 7. [NEXT_STEPS.md](NEXT_STEPS.md): all remaining work through DQN and final evaluation.
 8. [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md): offline report and five-minute walkthrough.
 9. [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md): exact observation/features/actions.
+10. [NORMALIZATION.md](NORMALIZATION.md): separate fitting/application, artifacts and limitations.
 
 The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
 10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes
@@ -54,13 +55,13 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
 ```
 
-Expected current checks: 419 tests pass with demo dependencies (418 pass/one figure
+Expected current checks: 460 tests pass with demo dependencies (459 pass/one figure
 test skips without Matplotlib); dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
 4 because all queues are full, accounting for every input. Configured fixture: six
 tasks on three VMs, all completed in 4 ms. Resource fixture: four complete/two full-feasible-
 queue failures, 4 ms makespan, eight resource events, all balances restored. The editable
-install refreshes version metadata to 0.3.0a1 after pulling. `.venv` is local, not in Git. Python
+install refreshes version metadata to 0.3.0a2 after pulling. `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
 
 On 2026-10-14 the agent's Store Python was inaccessible, so it preserved `.venv` and
@@ -68,7 +69,7 @@ created ignored `.venv312` with bundled Python 3.12.14. Use that interpreter in 
 checkout; new contributors can create a normal supported 3.11/3.12 venv. Runtime
 version contributes to workload hashes; captured/uncaptured hashes agree within one
 runtime. The shared config checksum and scheduling outcomes stay the same.
-The fresh 3.12 environment passes all 419 tests and pip check; a failed PyTorch
+The fresh 3.12 environment passes all 460 tests and pip check; a failed PyTorch
 download was rejected and replaced by a download matching the published PyPI hash.
 Stale generated egg-info was regenerated with setuptools. No dependency pins changed.
 
@@ -95,6 +96,7 @@ browser layout still needs manual preview because the agent tool blocked local f
 | `src/drlmots/demo.py`, `templates/demo.html` | Three precomputed scenarios, offline report and SVG/PNG exports; optional Matplotlib |
 | `scripts/check_demo_controls.cjs` | Optional Node.js control/export check using a DOM stub, not a browser layout test |
 | `src/drlmots/state.py`, `actions.py` | Immutable provisional observations, schema/unit/hash metadata, raw encoder and stable VM action/mask APIs |
+| `src/drlmots/normalization.py` | Frozen training-only scaler, explicit splits, strict JSON artifacts and full topology/schema compatibility; separate fit/apply CLI |
 | `tests/unit/test_state_actions.py`, `tests/integration/test_decision_trace.py` | Hand vectors/masks, unknown-vs-zero, invalid shapes/indices, snapshot detachment, timing boundary, CLI/replay and baseline preservation |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
@@ -134,7 +136,7 @@ All previous P4.3 acceptance criteria are verified: local RNG without global mut
 repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
 ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
 file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
-246 tests; the configured-topology checkpoint passed 304. The latest suite passes 419.
+246 tests; the configured-topology checkpoint passed 304. The latest suite passes 460.
 
 ## Completed configuration-driven topology
 
@@ -147,7 +149,7 @@ flags cannot be combined with a run file. A-019 documents this checkpoint's scop
 The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
 and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
 pathname are excluded. The configured hand calculation and changed-queue-limit tests
-passed with 304 tests at that checkpoint. The latest suite is 419; full paper topology
+passed with 304 tests at that checkpoint. The latest suite is 460; full paper topology
 and VM-to-host allocation remain open.
 
 ## Completed v0.2 resource feasibility
@@ -196,26 +198,45 @@ fitting total capacity. Ordinary reports remain untraced and all baseline result
 preserved. Resource fixture: six 47-element vectors, actions 0,1,0,1,null,null.
 
 The environment still executes simple policies to completion. There is no learned
-callback, step/transition boundary or reward. Raw vectors are not normalized, and
-aggregated queued service is not proof of a Markov-complete state. Original A-001 and
+callback, step/transition boundary or reward. Raw traces keep their unscaled vectors;
+optional normalization is implemented separately below. Aggregated queued service
+does not prove a Markov-complete state. Original A-001 and
 source audit remain open. Read progress.md for actual final verification.
 
-## Pick up P6.3 normalization next
+## Completed P6.3 normalization
 
-1. Claim the task in progress.md and record a new assumption before choosing scales.
-2. Define which numeric columns scale; preserve binary known/tier/running flags and
-   keep unknown amounts inert. Decide constant-column/extreme-input behavior explicitly.
-3. Fit on explicitly identified training trajectories only, never evaluation/test
-   observations. Persist feature schema hash, column order, units and fitted statistics.
-4. Reject mismatched schemas/topology/catalogues on load or transform; do not silently
-   reuse a network/scaler just because dimensions match.
-5. Verify hand-calculated transformations, held-out inputs that cannot change fitted
-   statistics, unknown-vs-zero handling, constants/extremes and save/load round trips.
-   Preserve simulator outcomes/masks and update the handoff with actual verification.
+`29debfb` and A-023 add per-column training maxima and numeric sample counts. Flags
+pass through; unknown amounts are excluded from fitting and remain zero. Zero/unseen
+columns use scale 1; larger held-out values clip before division to avoid overflow.
+Frozen fitted objects and separate fit/apply commands prevent application from updating
+statistics. Artifacts record full topology/schema hashes, provenance and checksums.
+Held-out application rejects training-source/exact-task overlap; caller split labels
+remain declarations. No independent real-dataset split audit or DQN training is claimed.
 
-Finish criterion: deterministic finite normalized vectors from saved training-only
-statistics, explicit schema compatibility and no evaluation leakage. Reward, energy/
-reliability, DQN network/replay and agent/environment transitions remain later tasks.
+See NORMALIZATION.md for the two commands. The named train/evaluation fixtures use
+seeds 42/314159 with 100 tasks each. Training fits 100 states; evaluation transforms
+100 47-feature states into [0,1], retaining the baseline's 92 completed/8 rejected.
+All 460 tests pass (41 new normalization tests), including actual CLI, save/load,
+hand ratios, extreme inputs, split isolation, malformed files and context changes.
+
+## Pick up the initial synthetic reward contract next
+
+1. Claim the task and document a new assumption. Review A-006/A-007/A-008 and P8;
+   keep the source's ambiguous multi-objective formula unresolved.
+2. Specify one clearly labelled synthetic scalar reward with units/sign, success/
+   rejection behavior and any reference scales. Define when reward becomes available
+   and how a placement decision gets credit for delayed completion.
+3. Use only causal information available at that boundary. Do not feed held-out
+   outcomes into fitted scales or silently use future task completions as step input.
+4. Verify metric accounting and hand-worked reward preferences for shorter waits,
+   infeasible/full queues, all-rejected/empty runs and terminal cases. Failure-heavy
+   runs must not look better solely because successful-only timings shrink.
+5. Record formula/config/version in provenance and preserve raw simulator/scaler
+   outputs. Decide the later agent step/transition boundary before replay/training.
+
+Finish criterion: documented synthetic reward/timing contract with finite hand-checked
+values and explicit limitations. Energy/reliability, original-paper reward fidelity,
+DQN network/replay and full agent/environment transitions remain separate work.
 
 Keep each change small enough to review. v0.3 is partially implemented, not complete.
 Do not begin DQN training until state/action/reward definitions, metrics and simulator

@@ -64,4 +64,3 @@ workload:
   length_bytes_range: [500, 2000]
   data_size_kb_range: [20, 150]
   required_resources: {cpu_units: 2, memory_gb: 4}
-

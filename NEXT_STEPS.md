@@ -1,12 +1,12 @@
 # Remaining work and pickup checklist
 
 **Updated:** 2026-10-14
-**Latest verified implementation:** `a7a08bb`, v0.3.0a1 initial state/action contract.
-Prior demo `2083faa`; resource foundation `4f4307f`.
+**Latest verified implementation:** `29debfb`, v0.3.0a2 training-only normalization.
+State/action foundation `a7a08bb`; prior demo `2083faa`; resource foundation `4f4307f`.
 **Working state:** completed by Codex for Aravindak3 / Aravind; next task unassigned.
-**Publication:** new commits remain local; agent push was blocked by sandboxed Git
-Credential Manager. Run `git push origin main` from a normal Aravindak3-authenticated
-terminal and confirm remote HEAD before coordinating new work.
+**Publication check:** prior state/action work was confirmed on main at `9604536`.
+Compare local HEAD with the remote reference before coordinating new work. The
+sandbox may require the user to push from a normal Aravindak3-authenticated terminal.
 **Milestone:** v0.1/v0.2 synthetic baseline and v0.2.1 demo software checks verified;
 v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Aryan Sharma.
 
@@ -19,7 +19,7 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
 - [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
 - [x] Running-task resource reservation/release, trace and final balances without leaks.
-- [x] Verified suite with demo dependencies: 419 tests pass; dependency check is clean.
+- [x] Verified suite with demo dependencies: 460 tests pass; dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
 - [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
   eight resource events; old baseline outcomes/config/workload fingerprints preserved.
@@ -29,6 +29,10 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 - [x] Initial observation/feature/action contract documented in STATE_ACTION_CONTRACT.md.
 - [x] Immutable snapshots, raw encoder, stable masks/actions and opt-in decision traces
   verified; 41 targeted tests and all 419 full-suite tests pass on Python 3.12.14.
+- [x] Training-only maximum scaling, raw/binary/unknown semantics, frozen statistics
+  and separate held-out application; another 41 tests pass (460 total).
+- [x] Strict JSON artifact persistence, source provenance, topology/schema compatibility
+  and two runnable 100-task train/evaluation fixtures; no simulator behavior change.
 - [ ] Manually preview the generated HTML in a normal browser at desktop/mobile widths
   before presenting. The agent browser tool disallowed local-file preview; this check
   is independent of starting state/action work. See PROFESSOR_DEMO.md.
@@ -36,29 +40,29 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 These checks establish the current synthetic baseline, not the paper's full algorithm
 or experimental results. See [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for evidence.
 
-## Pick up this task next - P6.3 training-only normalization
+## Pick up this task next - initial synthetic reward/metric contract
 
 **Owner:** unassigned. **Status:** NOT STARTED.
 
-The initial A-022 contract and raw trace are verified. Next,
-normalize model inputs with explicit training-only provenance before reward/DQN:
+The A-022 raw contract and A-023 normalization are verified. Next define a causal,
+explicitly synthetic reward before wiring an agent/replay/training loop:
 
 1. Claim this task in `progress.md` and record your name/handle and IN PROGRESS status.
-2. Read STATE_ACTION_CONTRACT.md, `state.py`, `actions.py`, the trace tests and A-022.
-3. Document per-column scaling, binary/known flags, constant columns and extreme input
-   behavior. The original paper encoding A-001 remains unresolved.
-4. Fit statistics only on explicitly identified training trajectories. Transform
-   held-out evaluation data without fitting or changing saved statistics.
-5. Persist schema hash, column order/units, training provenance and fitted statistics;
-   reject incompatible topology/catalogue/schema even when dimensions match.
-6. Test hand transforms, unknown-vs-zero preservation, constants/extremes, no held-out
-   leakage, repeatability and save/load. Preserve simulator outcomes and legal masks.
+2. Read P8, A-006/A-007/A-008, STATE_ACTION_CONTRACT.md and NORMALIZATION.md.
+3. Record a provisional formula's units, sign, success/rejection behavior and scales.
+   Do not label the source's ambiguous energy/reliability combination as resolved.
+4. Define the reward timestamp and credit for queued/delayed completion; use causal
+   information and keep held-out outcomes out of fitted reference statistics.
+5. Test hand values, shorter waits, full/infeasible queues, all-rejected/empty and
+   terminal cases. Reject timing-only comparisons that reward dropping more work.
+6. Save formula/config/version in provenance; preserve raw outcomes/masks/scaling and
+   state what the later agent transition API must provide before replay/training.
 7. Run the relevant tests and full suite. Record actual results, update this checklist
    and HANDOFF with the next task, then commit the reviewed change.
 
-**Finish criterion:** finite repeatable normalized vectors from saved training-only
-statistics, compatible schema checks and no evaluation leakage. This does not complete
-reward, agent transitions or DQN training.
+**Finish criterion:** a documented synthetic reward and timing contract with finite
+hand-checked behavior. Paper reward fidelity, energy/reliability, full agent transitions
+and DQN training remain later tasks.
 
 ## Everything still remaining
 
@@ -68,7 +72,7 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 
 | Order | Scope / plan reference | Remaining deliverable | Completion evidence |
 |---|---|---|---|
-| 1 | v0.3 P6.3 and later P6.4 | Training-only normalization, schema/statistics persistence and model-input edge coverage; initial raw contract implemented | Hand transforms, no held-out leakage, stable shapes and schema-compatible save/load |
+| 1 | Initial synthetic P8 subset | Explicit scalar reward, metric/rejection semantics and causal timing/credit contract | Hand values, direction/bounds, no future leakage and formula provenance |
 | 2 | Paper-specific placement, P7.1/P7.4/P7.5 | Decide priority/tier thresholds and fallback beyond the implemented all-tier least-queue baseline | Source-supported or labelled policy; ordering/threshold/no-capacity tests |
 | 3 | P0.2-P0.4 / R001-R040 | Independently audit the original DRLMOTS paper and extraction; classify each source-supported vs assumed behavior | Paper-to-code/test traceability and updated assumptions; no invented requirement |
 | 4 | P4.4 | Handle the paper's conflicting task-count ranges explicitly in experiment configs | Exact requested counts; separate named experiment settings; manifests |
@@ -100,7 +104,7 @@ reward sign/normalization; energy units/coefficients; fault-tolerance interpreta
 initial epsilon, episode counts and unspecified DQN settings; real dataset identity;
 exact CNN/LSTM/GGCN baselines; task-count conflicts and reported improvement arithmetic.
 The synthetic per-VM resource model does not resolve the paper's physical capacities
-or mapping. See assumptions A-001 through A-022 and retain the unresolved entries.
+or mapping. See assumptions A-001 through A-023 and retain the unresolved entries.
 
 ## Before handing off again
 

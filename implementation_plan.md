@@ -16,7 +16,8 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | VERIFIED for A-020 synthetic baseline: package 0.2.0, 367 tests pass; no paper/physical-model claim |
 | 0.2.1 | User-requested professor demo: paired simple policies, offline report, figures and walkthrough | VERIFIED software checkpoint `2083faa`: 378 tests; browser layout manual check; A-021 |
 | 0.3.0a1 | Initial P6.1/P6.2/P7.2: immutable observations, pure raw encoding and legal actions | VERIFIED `a7a08bb` under A-022; 419 tests and clean dependency check |
-| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: initial state/action; next P6.3 training-only normalization; no training before metric/reward gates |
+| 0.3.0a2 | P6.3: training-only scaling, schema/topology-bound statistics, held-out application | VERIFIED `29debfb` under A-023; 460 tests and clean dependency check |
+| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: initial state/action and scaling; next synthetic reward/timing contract; no training before metric/reward gates |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
 v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,
@@ -56,8 +57,9 @@ The initial v0.3 prerelease implements A-022 arrival-time snapshots and a fixed
 `3+R+V*(6+4R)` raw vector. VM/resource order, units and schema hash accompany an
 opt-in trace. Legal masks use total capacity and waiting slots; all-false masks retain
 explicit rejection. This is a provisional synthetic observation, with no claim of
-paper fidelity or Markov sufficiency. Training-only normalization is next, then
-metrics/reward and the later agent/transition/learning tasks. State/action design
+paper fidelity or Markov sufficiency. Training-only normalization is now verified
+under A-023 with saved statistics, compatibility checks and no held-out fitting.
+Metrics/reward and later agent/transition/learning tasks remain. State/action design
 does not complete the full P6-P12 milestone.
 
 ## Project directory (target)

@@ -6,12 +6,13 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Current status
 
-Version **0.3.0a1** adds the initial synthetic state/action contract to the baseline
+Version **0.3.0a2** adds training-only normalization and saved scaling artifacts to the
+initial synthetic state/action contract, baseline
 and offline professor demo. It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **419 tests** with the demo dependencies on Python 3.12.14
+The current suite passes **460 tests** with the demo dependencies on Python 3.12.14
 (2026-10-14); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
@@ -20,8 +21,8 @@ The original fixed example still completes three tasks with a 4 ms makespan. The
 resource example accounts for six simultaneous tasks: four complete and two fail when
 all feasible waiting queues are full; makespan is 4 ms and all capacities are restored.
 v0.2 is complete for this explicitly documented software scope. The first v0.3
-state/action step is implemented; normalization, metrics/reward and DQN remain pending.
-The `a1` version marks a partial v0.3 milestone, not completion of its training scope.
+state/action and normalization steps are implemented; metrics/reward and DQN remain
+pending. The `a2` version is a partial v0.3 milestone, not a trained policy.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -40,6 +41,7 @@ original DRLMOTS paper against the existing extraction.
 - [NEXT_STEPS.md](NEXT_STEPS.md) — complete remaining-work checklist, pickup order, open decisions, and handoff rules.
 - [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md) — offline report, five-minute walkthrough and honest answers to likely questions.
 - [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) — observation timing, feature units/order, stable actions and trace replay.
+- [NORMALIZATION.md](NORMALIZATION.md) — training-only fitting, held-out application, scaling rules and artifact compatibility.
 
 ## Core approach
 
@@ -69,8 +71,8 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 419 passing tests with the demo extra
-(418 pass/one figure test skips without it). The last command prints
+Expected checks: no broken requirements; 460 passing tests with the demo extra
+(459 pass/one figure test skips without it). The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -79,7 +81,7 @@ If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python v
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
 After pulling v0.2 into an existing editable environment, rerun the editable install
-command to refresh package version metadata. The report should identify version 0.3.0a1.
+command to refresh package version metadata. The report should identify version 0.3.0a2.
 
 In the agent session on 2026-10-14, the Microsoft Store Python 3.11 interpreter was
 inaccessible. A separate ignored `.venv312` was created using the bundled Python
@@ -107,7 +109,27 @@ example has 47 features, six decisions and actions `0,1,0,1,null,null` for least
 
 Ordinary reports remain compact; capture does not change outcomes, timings or input
 hashes. See STATE_ACTION_CONTRACT.md for Python APIs and exact ordering. Vectors are
-unscaled; no learned selector, reward, training transition API or DQN is included.
+unscaled in the raw trace. The optional normalization command below adds scaled
+vectors. No learned selector, reward, training transition API or DQN is included.
+
+## Training-only normalization (P6.3)
+
+```powershell
+.\.venv312\Scripts\python.exe -m drlmots.normalization fit --train-config configs/normalization_train.yaml --output outputs/metrics/normalizer.json
+.\.venv312\Scripts\python.exe -m drlmots.normalization apply --config configs/normalization_evaluation.yaml --normalizer outputs/metrics/normalizer.json --output outputs/metrics/normalized-evaluation.json
+```
+
+The training fixture fits maxima from 100 observations (seed 42); held-out seed 314159
+uses the saved artifact without refitting. Numeric values scale into [0,1], clipping
+above the training range. Binary flags stay unchanged; unknown resource amounts stay
+zero with their known flags. The saved JSON includes counts/maxima, training provenance,
+feature schema, full topology fingerprint and checksum. Apply rejects incompatible
+topologies/catalogues, malformed artifacts and declared training-task overlap.
+
+The held-out report retains its raw decisions, masks, timings and resource evidence
+and adds `normalized_state`. It still completes 92/100 and rejects 8; no learned-policy
+performance is claimed. See NORMALIZATION.md for the scale-1 fallback, clipping,
+subnormal values, library APIs and caller responsibilities for split declarations.
 
 ## Professor demo and paired comparisons
 
@@ -249,7 +271,8 @@ cross-VM resource sharing. See assumption A-020 for this model's limits.
 | 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | VERIFIED; original resource checkpoint passed 367 tests |
 | 0.2.1 | Offline professor report, paired simple policies, figures and presentation guide | VERIFIED software checks: 378 tests; browser layout requires manual preview |
 | 0.3.0a1 | Initial synthetic observation/encoder/mask contract and optional traces | VERIFIED scoped checkpoint `a7a08bb`; 419 tests pass |
-| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Partial: initial state/action delivered; next training-only normalization |
+| 0.3.0a2 | Training-only state scaling, schema/topology-bound artifacts and held-out application | VERIFIED `29debfb`; 460 tests pass |
+| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Partial: state/actions and scaling delivered; next synthetic reward contract |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 
 See `implementation_plan.md` for microtask mapping and `progress.md` for actual
