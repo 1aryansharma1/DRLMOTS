@@ -1,4 +1,4 @@
-# Synthetic decision contract - schema 1
+# State and action contract - schema 1
 
 This is the initial v0.3 state/action milestone (A-022), not the paper's confirmed
 state vector, a trained policy or a complete learning environment.
@@ -76,6 +76,15 @@ raw arrival transitions and a pure learner adapter; there is no learned action
 callback, interactive step API, experience replay or DQN training yet.
 
 For the resource fixture: V=3, R=2, dimension=47, VM order cloud/fog-a/fog-b. Six
-simultaneous arrivals see masks TT F, TT F, TT F, FT F, FF F, FF F (spaces only for
-readability). Selected actions are 0,1,0,1,null,null. The normal 4 completed/2 rejected,
-4 ms makespan and restored balances are preserved.
+simultaneous arrivals see the masks below (T = legal, F = illegal, in VM order):
+
+| Arrival | Mask (cloud, fog-a, fog-b) | Selected action | Selected VM |
+|---|---|---|---|
+| 1 | TTF | 0 | cloud |
+| 2 | TTF | 1 | fog-a |
+| 3 | TTF | 0 | cloud |
+| 4 | FTF | 1 | fog-a |
+| 5 | FFF | null | none (rejected) |
+| 6 | FFF | null | none (rejected) |
+
+The normal 4 completed/2 rejected, 4 ms makespan and restored balances are  preserved.
