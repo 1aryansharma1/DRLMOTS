@@ -1,4 +1,4 @@
-# Professor demonstration guide - v0.2.1
+# Professor demonstration guide - updated for v0.3.0a1
 
 This checkpoint presents a tested synthetic resource-aware scheduling simulator and
 two simple placement rules. It is a foundation for the DRLMOTS implementation. There
@@ -46,8 +46,10 @@ Outputs (ignored by Git; another contributor regenerates them):
    Show that fog-b remains idle because it cannot satisfy the task demand.
 5. **Evidence and next step (90 seconds).** Expand reproducibility; export JSON. Show
    the unit catalogue, input hashes, queue limits and all-resource-restored check.
-   Explain the next deliverable: arrival-time state snapshots, stable VM action indices
-   and legal action masks; reward choices and DQN training follow that verified contract.
+   Explain the next deliverable: training-only normalization. Arrival-time snapshots,
+   stable VM action indices and legal masks are now implemented in v0.3.0a1; reward
+   choices and DQN training still follow that initial contract. Generate an optional
+   `--capture-decisions` report to show six 47-feature observations and explicit masks.
 
 ## Explain these numbers accurately
 
@@ -69,8 +71,8 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 ## Likely questions
 
 - **Where is reinforcement learning?** It is the next milestone. The simulator,
-  resource ledger and reproducible evaluation path are implemented; the state/reward
-  and learning loop are still pending.
+  resource ledger, reproducible evaluation and initial raw state/action trace are
+  implemented; normalization, reward and the learning loop are still pending.
 - **Why does a VM stay idle?** It lacks capacity for the declared task profile.
 - **Why these milliseconds?** The fixture explicitly interprets 1000 bytes as 2 ms.
   CPU units affect admission, not speed. The source's unitless task length is unresolved.
@@ -83,8 +85,9 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Verification and pickup
 
-Python verification: `python -m pytest -q` passes 378 tests with the optional demo
-dependencies installed; `python -m pip check` is clean. Without Matplotlib, the figure
+Current v0.3.0a1 verification: `python -m pytest -q` passes 419 tests on Python 3.12.14
+with demo dependencies; `python -m pip check` is clean. The v0.2.1 demo checkpoint
+originally passed 378 tests. Without Matplotlib, the figure
 integration test skips and the core simulator remains usable. Timeline/comparison/
 occupancy PNGs were visually inspected; SVG namespaces and task tooltips were checked.
 `node scripts/check_demo_controls.cjs` verifies controls/tables/provenance/exports in

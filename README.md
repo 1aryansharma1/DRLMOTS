@@ -6,18 +6,22 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Current status
 
-Version **0.2.1** is a verified synthetic scheduling baseline with an offline professor
-demo and paired least-queue/first-fit comparisons. It supports fixed/seeded
+Version **0.3.0a1** adds the initial synthetic state/action contract to the baseline
+and offline professor demo. It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
-JSON reports. The current suite passes **378 tests** with the demo extra on Python
-3.11.9 (2026-10-13). See [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md) for the presentation guide.
+JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
+The current suite passes **419 tests** with the demo dependencies on Python 3.12.14
+(2026-10-14); the dependency check is clean.
+See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
+[PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
 
 The original fixed example still completes three tasks with a 4 ms makespan. The
 resource example accounts for six simultaneous tasks: four complete and two fail when
 all feasible waiting queues are full; makespan is 4 ms and all capacities are restored.
-v0.2 is complete for this explicitly documented software scope. Next is v0.3 state/
-action design, followed by metric/reward decisions and DQN smoke training.
+v0.2 is complete for this explicitly documented software scope. The first v0.3
+state/action step is implemented; normalization, metrics/reward and DQN remain pending.
+The `a1` version marks a partial v0.3 milestone, not completion of its training scope.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -35,6 +39,7 @@ original DRLMOTS paper against the existing extraction.
 - [HANDOFF.md](HANDOFF.md) — collaborator starting point, module map, and the next task's acceptance criteria.
 - [NEXT_STEPS.md](NEXT_STEPS.md) — complete remaining-work checklist, pickup order, open decisions, and handoff rules.
 - [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md) — offline report, five-minute walkthrough and honest answers to likely questions.
+- [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) — observation timing, feature units/order, stable actions and trace replay.
 
 ## Core approach
 
@@ -64,8 +69,8 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 377 passing tests and one figure test skipped
-without the optional Matplotlib extra (378 passing with it). The last command prints
+Expected checks: no broken requirements; 419 passing tests with the demo extra
+(418 pass/one figure test skips without it). The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -74,7 +79,35 @@ If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python v
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
 After pulling v0.2 into an existing editable environment, rerun the editable install
-command to refresh package version metadata. The report should identify version 0.2.1.
+command to refresh package version metadata. The report should identify version 0.3.0a1.
+
+In the agent session on 2026-10-14, the Microsoft Store Python 3.11 interpreter was
+inaccessible. A separate ignored `.venv312` was created using the bundled Python
+3.12.14; `.venv` was preserved. You can use any supported 3.11/3.12 installation.
+For this checkout's verified 3.12 environment, replace `.venv` in commands with
+`.venv312`. Workload hashes include Python version, so compare them within the same
+runtime; the input config checksum and scheduling results are unaffected.
+If tests see stale editable-package version metadata in `src/drlmots.egg-info`,
+regenerate it using the same interpreter:
+`python -c "from setuptools import setup; setup(script_args=['egg_info'])"`.
+
+## Arrival-time states and legal actions (initial v0.3)
+
+```powershell
+.\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --capture-decisions --output outputs/metrics/decisions.json
+```
+
+The opt-in `decision_trace` contains schema/feature units, raw finite vectors,
+resource/queue masks and chosen action indices/VM IDs. Every arrival, including a
+rejection, gets a detached immutable snapshot after same-time completions and queued
+starts, before placement. VM/resource columns are sorted and stable for the run.
+Unknown capacity has an explicit known flag; a busy VM may accept a waiting task
+that fits total capacity even when its available resources are zero. The resource
+example has 47 features, six decisions and actions `0,1,0,1,null,null` for least queue.
+
+Ordinary reports remain compact; capture does not change outcomes, timings or input
+hashes. See STATE_ACTION_CONTRACT.md for Python APIs and exact ordering. Vectors are
+unscaled; no learned selector, reward, training transition API or DQN is included.
 
 ## Professor demo and paired comparisons
 
@@ -215,7 +248,8 @@ cross-VM resource sharing. See assumption A-020 for this model's limits.
 | 0.1 | Deterministic topology, queue simulation, exact timelines and saved inputs/results | VERIFIED |
 | 0.2 | Configurable seeded synthetic workloads and an explicit resource/placement model | VERIFIED; original resource checkpoint passed 367 tests |
 | 0.2.1 | Offline professor report, paired simple policies, figures and presentation guide | VERIFIED software checks: 378 tests; browser layout requires manual preview |
-| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Next: state/action contract first |
+| 0.3.0a1 | Initial synthetic observation/encoder/mask contract and optional traces | VERIFIED scoped checkpoint `a7a08bb`; 419 tests pass |
+| 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Partial: initial state/action delivered; next training-only normalization |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 
 See `implementation_plan.md` for microtask mapping and `progress.md` for actual

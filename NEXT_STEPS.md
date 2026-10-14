@@ -1,11 +1,14 @@
 # Remaining work and pickup checklist
 
-**Updated:** 2026-10-13
-**Latest verified implementation:** `2083faa` - v0.2.1 professor demo;
-resource foundation `4f4307f`.
-**Working state:** no implementation task is active; the next task is unassigned.
+**Updated:** 2026-10-14
+**Latest verified implementation:** `a7a08bb`, v0.3.0a1 initial state/action contract.
+Prior demo `2083faa`; resource foundation `4f4307f`.
+**Working state:** completed by Codex for Aravindak3 / Aravind; next task unassigned.
+**Publication:** new commits remain local; agent push was blocked by sandboxed Git
+Credential Manager. Run `git push origin main` from a normal Aravindak3-authenticated
+terminal and confirm remote HEAD before coordinating new work.
 **Milestone:** v0.1/v0.2 synthetic baseline and v0.2.1 demo software checks verified;
-v0.3 and v1.0 pending. Demo delivered for 1aryansharma1 / Aryan Sharma.
+v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Aryan Sharma.
 
 ## What already works
 
@@ -16,13 +19,16 @@ v0.3 and v1.0 pending. Demo delivered for 1aryansharma1 / Aryan Sharma.
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
 - [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
 - [x] Running-task resource reservation/release, trace and final balances without leaks.
-- [x] Verified suite with demo dependencies: 378 tests pass; dependency check is clean.
+- [x] Verified suite with demo dependencies: 419 tests pass; dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
 - [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
   eight resource events; old baseline outcomes/config/workload fingerprints preserved.
 - [x] Paired least-queue/first-fit comparisons with shared input checks and safe resources.
 - [x] Offline professor report, three scenarios, 15 SVG/15 PNG figures and talk track.
 - [x] Offline JavaScript control/export test in a DOM stub; wheel contains HTML template.
+- [x] Initial observation/feature/action contract documented in STATE_ACTION_CONTRACT.md.
+- [x] Immutable snapshots, raw encoder, stable masks/actions and opt-in decision traces
+  verified; 41 targeted tests and all 419 full-suite tests pass on Python 3.12.14.
 - [ ] Manually preview the generated HTML in a normal browser at desktop/mobile widths
   before presenting. The agent browser tool disallowed local-file preview; this check
   is independent of starting state/action work. See PROFESSOR_DEMO.md.
@@ -30,33 +36,29 @@ v0.3 and v1.0 pending. Demo delivered for 1aryansharma1 / Aryan Sharma.
 These checks establish the current synthetic baseline, not the paper's full algorithm
 or experimental results. See [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for evidence.
 
-## Pick up this task first - state/action contract for v0.3
+## Pick up this task next - P6.3 training-only normalization
 
 **Owner:** unassigned. **Status:** NOT STARTED.
 
-The resource-aware baseline is implemented under A-020. Next, define the decision-time
-state and fixed VM action mapping before reward/DQN. Begin here:
+The initial A-022 contract and raw trace are verified. Next,
+normalize model inputs with explicit training-only provenance before reward/DQN:
 
 1. Claim this task in `progress.md` and record your name/handle and IN PROGRESS status.
-2. Review `environment.py`, `resources.py`, `run_config.py`, `topology.py` and A-020.
-   Queues/running state and resource ledger are local runtime state, not input VM queues.
-3. Record a new assumption with feature names/order/units, fixed dimensions, action
-   ordering, unknown-capacity encoding and the observation/decision boundary. Source
-   extraction A-001 remains unresolved; label synthetic feature choices explicitly.
-4. Capture an arrival-time snapshot after same-time completions and before assignment.
-   Implement a pure encoder with finite fixed-shape output; preserve unknown-vs-zero
-   information instead of silently treating unknown resource values as known zero.
-5. Map action indices to configured VMs and build masks from total resource fit and
-   waiting-slot availability. A busy VM may accept a queued task that fits total capacity
-   even if its currently available resources are reserved; a full queue cannot.
-6. Test empty/busy/full/infeasible/unknown snapshots, mapping round-trips and event order.
-   Preserve existing outcomes/resource invariants; record schemas in run provenance.
+2. Read STATE_ACTION_CONTRACT.md, `state.py`, `actions.py`, the trace tests and A-022.
+3. Document per-column scaling, binary/known flags, constant columns and extreme input
+   behavior. The original paper encoding A-001 remains unresolved.
+4. Fit statistics only on explicitly identified training trajectories. Transform
+   held-out evaluation data without fitting or changing saved statistics.
+5. Persist schema hash, column order/units, training provenance and fitted statistics;
+   reject incompatible topology/catalogue/schema even when dimensions match.
+6. Test hand transforms, unknown-vs-zero preservation, constants/extremes, no held-out
+   leakage, repeatability and save/load. Preserve simulator outcomes and legal masks.
 7. Run the relevant tests and full suite. Record actual results, update this checklist
    and HANDOFF with the next task, then commit the reviewed change.
 
-**Finish criterion:** a tiny workload has hand-checked decision snapshots, fixed-shape
-state values and legal action masks; VM action mapping is stable and baseline/resource
-outcomes agree. This completes the next task, not normalization, reward or DQN training.
+**Finish criterion:** finite repeatable normalized vectors from saved training-only
+statistics, compatible schema checks and no evaluation leakage. This does not complete
+reward, agent transitions or DQN training.
 
 ## Everything still remaining
 
@@ -66,14 +68,14 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 
 | Order | Scope / plan reference | Remaining deliverable | Completion evidence |
 |---|---|---|---|
-| 1 | v0.3 state/action design, P6.1-P6.2/P7.2 | Runtime snapshots, feature/unit/order contract, pure encoder and stable VM actions | Hand-built/event snapshots, fixed dimensions and legal masks |
+| 1 | v0.3 P6.3 and later P6.4 | Training-only normalization, schema/statistics persistence and model-input edge coverage; initial raw contract implemented | Hand transforms, no held-out leakage, stable shapes and schema-compatible save/load |
 | 2 | Paper-specific placement, P7.1/P7.4/P7.5 | Decide priority/tier thresholds and fallback beyond the implemented all-tier least-queue baseline | Source-supported or labelled policy; ordering/threshold/no-capacity tests |
 | 3 | P0.2-P0.4 / R001-R040 | Independently audit the original DRLMOTS paper and extraction; classify each source-supported vs assumed behavior | Paper-to-code/test traceability and updated assumptions; no invented requirement |
 | 4 | P4.4 | Handle the paper's conflicting task-count ranges explicitly in experiment configs | Exact requested counts; separate named experiment settings; manifests |
 | 5 | P4.5 / A-011 | Identify dataset version/schema/filtering/mapping before any Google Jobs label | Verified provenance and ingestion tests, or explicitly unavailable with synthetic alternatives |
 | 6 | Full P5.1 | Configure the source-audited full paper topology and VM distribution | Counts/memberships match documented source or a labelled assumption |
 | 7 | P5.7 / A-014 | Decide and implement network/transfer delay and its units, if supported | Hand-calculated timestamps; clearly labelled inclusion/exclusion |
-| 8 | P6.3-P6.4 / A-001 | Training-only normalization and full state boundary coverage after the initial contract | No evaluation leakage; finite stable shapes; saturation/unknown checks |
+| 8 | Full P6.4 / A-001 | Extend the initial provisional observation with source-audited feature/boundary coverage if justified | Explicit schema evolution; finite stable shapes; saturation/unknown checks |
 | 9 | P7 / A-003-A-004 | Extend masks/mapping for the chosen paper tier policy after baseline actions are verified | No illegal selection; no-action outcome; policy/encoding compatibility |
 | 10 | P8 / A-006-A-008 | Audit makespan semantics, compute/transmission energy, reliability/fault metric and scalar reward | Hand-calculated units/sign/scales; reward direction verified |
 | 11 | P9 / A-010 | Confirm DQN width/layers and implement CPU network | Correct input/action dimensions, finite outputs, parameter checks |
@@ -98,7 +100,7 @@ reward sign/normalization; energy units/coefficients; fault-tolerance interpreta
 initial epsilon, episode counts and unspecified DQN settings; real dataset identity;
 exact CNN/LSTM/GGCN baselines; task-count conflicts and reported improvement arithmetic.
 The synthetic per-VM resource model does not resolve the paper's physical capacities
-or mapping. See assumptions A-001 through A-021 and retain the unresolved entries.
+or mapping. See assumptions A-001 through A-022 and retain the unresolved entries.
 
 ## Before handing off again
 

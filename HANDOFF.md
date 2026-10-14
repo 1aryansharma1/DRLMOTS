@@ -1,15 +1,21 @@
 # DRLMOTS collaborator handoff
 
-**Last updated:** 2026-10-13
-**Current checkpoint:** v0.2.1 professor-demo software checkpoint VERIFIED;
-latest implementation is `2083faa`; resource foundation `4f4307f`, v0.1 `993344d`.
-**Next task:** v0.3 state/action contract, runtime observations and encoding (P6.1/P7.2).
+**Last updated:** 2026-10-14
+**Current checkpoint:** `a7a08bb`, v0.3.0a1 initial state/action contract VERIFIED:
+419 tests and clean dependency check. Prior demo `2083faa`, resource foundation `4f4307f`.
+**Next task:** P6.3 training-only normalization and schema persistence, owner unassigned.
 **Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
-earlier v0.2 work was for ashishjha20. Next task unassigned. Record the owner and status
+earlier v0.2 work was for ashishjha20. State/action work is owned by Codex for
+**Aravindak3 / Aravind** per the user's account switch. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
 **Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its state/action
 checklist, then follow the ordered backlog. No implementation task is active.
+
+**Publication at handoff:** code/docs are committed locally on main. The sandbox
+blocked Git Credential Manager's authentication helper during push; remote was still
+`62e0202`. From a normal terminal authenticated as Aravindak3, run `git push origin main`
+and verify the remote commit. Do not assume this local checkpoint is already published.
 
 ## Read this first
 
@@ -21,6 +27,7 @@ checklist, then follow the ordered backlog. No implementation task is active.
 6. [paper_requirements.md](paper_requirements.md): recorded DRLMOTS source extraction.
 7. [NEXT_STEPS.md](NEXT_STEPS.md): all remaining work through DQN and final evaluation.
 8. [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md): offline report and five-minute walkthrough.
+9. [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md): exact observation/features/actions.
 
 The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
 10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes
@@ -47,14 +54,23 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
 ```
 
-Expected current checks: 378 tests pass with demo dependencies (377 pass/one figure
+Expected current checks: 419 tests pass with demo dependencies (418 pass/one figure
 test skips without Matplotlib); dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
 4 because all queues are full, accounting for every input. Configured fixture: six
 tasks on three VMs, all completed in 4 ms. Resource fixture: four complete/two full-feasible-
 queue failures, 4 ms makespan, eight resource events, all balances restored. The editable
-install refreshes version metadata to 0.2.1 after pulling. `.venv` is local, not in Git. Python
+install refreshes version metadata to 0.3.0a1 after pulling. `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
+
+On 2026-10-14 the agent's Store Python was inaccessible, so it preserved `.venv` and
+created ignored `.venv312` with bundled Python 3.12.14. Use that interpreter in this
+checkout; new contributors can create a normal supported 3.11/3.12 venv. Runtime
+version contributes to workload hashes; captured/uncaptured hashes agree within one
+runtime. The shared config checksum and scheduling outcomes stay the same.
+The fresh 3.12 environment passes all 419 tests and pip check; a failed PyTorch
+download was rejected and replaced by a download matching the published PyPI hash.
+Stale generated egg-info was regenerated with setuptools. No dependency pins changed.
 
 For the professor report, install `requirements-demo-lock.txt`, refresh the editable
 install, then run `python -m drlmots.demo --config configs/resources.yaml`. Open
@@ -78,6 +94,8 @@ browser layout still needs manual preview because the agent tool blocked local f
 | `src/drlmots/baselines.py`, `evaluation.py` | Least queue/first fit and paired reports; matched hashes, accounting, restored resources, waiting/occupancy |
 | `src/drlmots/demo.py`, `templates/demo.html` | Three precomputed scenarios, offline report and SVG/PNG exports; optional Matplotlib |
 | `scripts/check_demo_controls.cjs` | Optional Node.js control/export check using a DOM stub, not a browser layout test |
+| `src/drlmots/state.py`, `actions.py` | Immutable provisional observations, schema/unit/hash metadata, raw encoder and stable VM action/mask APIs |
+| `tests/unit/test_state_actions.py`, `tests/integration/test_decision_trace.py` | Hand vectors/masks, unknown-vs-zero, invalid shapes/indices, snapshot detachment, timing boundary, CLI/replay and baseline preservation |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
 | `tests/integration/test_seeded_cli.py` | Seeded simulator accounting, actual CLI output files and invalid-input handling |
@@ -116,7 +134,7 @@ All previous P4.3 acceptance criteria are verified: local RNG without global mut
 repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
 ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
 file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
-246 tests; the configured-topology checkpoint passed 304. The latest suite passes 378.
+246 tests; the configured-topology checkpoint passed 304. The latest suite passes 419.
 
 ## Completed configuration-driven topology
 
@@ -129,7 +147,7 @@ flags cannot be combined with a run file. A-019 documents this checkpoint's scop
 The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
 and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
 pathname are excluded. The configured hand calculation and changed-queue-limit tests
-passed with 304 tests at that checkpoint. The latest suite is 378; full paper topology
+passed with 304 tests at that checkpoint. The latest suite is 419; full paper topology
 and VM-to-host allocation remain open.
 
 ## Completed v0.2 resource feasibility
@@ -166,30 +184,40 @@ To replay a nondefault policy, pass the saved top-level `policy` to
 `configured_report(parse_run_config(saved_config_without_sha), policy=report["policy"])`.
 The shared input checksum intentionally excludes the separately recorded policy.
 
-## Start v0.3 state/action design
+## Initial v0.3 state/action delivery
 
-Write the P6.1/P7.2 contract and a new assumption before choosing features. Define one
-decision-time observation for an arriving task after all same-time completions and
-before placement. Queues/running flags and ledger balances live inside `simulate`;
-input VM queues are intentionally unchanged, and final report balances are post-run.
-Expose a real runtime snapshot rather than treating either as a live observation.
+A-022 and STATE_ACTION_CONTRACT.md define provisional synthetic state schema 1.
+`simulate(..., capture_decisions=True)` and CLI `--capture-decisions` capture one
+arrival-time snapshot/vector/mask/selection per arrival, including failures. Observations
+follow same-time completions and queued starts; simultaneous arrivals see earlier
+placements. VM/resource columns are sorted and dimensions fixed within a run.
+Unknown capacity is distinct from known available zero. Busy VMs can queue tasks
+fitting total capacity. Ordinary reports remain untraced and all baseline results are
+preserved. Resource fixture: six 47-element vectors, actions 0,1,0,1,null,null.
 
-Acceptance criteria:
+The environment still executes simple policies to completion. There is no learned
+callback, step/transition boundary or reward. Raw vectors are not normalized, and
+aggregated queued service is not proof of a Markov-complete state. Original A-001 and
+source audit remain open. Read progress.md for actual final verification.
 
-1. Feature list, order, units, dimensions and runtime snapshot boundary are documented.
-   Keep missing paper fields visible; unknown capacity is distinguishable from zero.
-2. VM action ordering is explicit/stable; action index maps to exactly one configured VM.
-3. Legal actions match the resource/queue model: fitting total capacity allows queueing
-   behind a running task even when currently available capacity is reserved; full waiting
-   queues and infeasible VMs are masked. No valid action has an explicit outcome.
-4. A pure encoder returns fixed-shape finite values for the configured run. Hand-built
-   empty/busy/full/unknown snapshots and same-time event tests agree with the contract.
-5. Before later learning, normalization uses documented training-only rules and avoids
-   evaluation leakage. Save feature/action schema in provenance and keep baseline
-   outcomes/resource balances unchanged. Update reports with actual verification.
+## Pick up P6.3 normalization next
 
-Keep each change small enough to review and document behavior changes. v0.2 is complete
-for the synthetic baseline scope; v0.3 is not started.
+1. Claim the task in progress.md and record a new assumption before choosing scales.
+2. Define which numeric columns scale; preserve binary known/tier/running flags and
+   keep unknown amounts inert. Decide constant-column/extreme-input behavior explicitly.
+3. Fit on explicitly identified training trajectories only, never evaluation/test
+   observations. Persist feature schema hash, column order, units and fitted statistics.
+4. Reject mismatched schemas/topology/catalogues on load or transform; do not silently
+   reuse a network/scaler just because dimensions match.
+5. Verify hand-calculated transformations, held-out inputs that cannot change fitted
+   statistics, unknown-vs-zero handling, constants/extremes and save/load round trips.
+   Preserve simulator outcomes/masks and update the handoff with actual verification.
+
+Finish criterion: deterministic finite normalized vectors from saved training-only
+statistics, explicit schema compatibility and no evaluation leakage. Reward, energy/
+reliability, DQN network/replay and agent/environment transitions remain later tasks.
+
+Keep each change small enough to review. v0.3 is partially implemented, not complete.
 Do not begin DQN training until state/action/reward definitions, metrics and simulator
 prerequisites are verified. Source ambiguity should become a recorded assumption or
 open item, never an undocumented formula or a claim of reproduced results.

@@ -1,21 +1,58 @@
 # DRLMOTS progress report
 
-**Report date:** 2026-10-13 (Asia/Kolkata)
+**Report date:** 2026-10-14 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** `2083faa` - v0.2.1 professor demo;
+**Implementation checkpoint:** `a7a08bb`, v0.3.0a1 initial state/action step VERIFIED;
+prior `2083faa` professor demo;
 resource model `4f4307f`;
 prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
-**Working status:** v0.1/v0.2 baseline and v0.2.1 professor-demo software scope verified.
-Demo implemented by Codex for **1aryansharma1 / Aryan Sharma**; commit identity uses
-the account's GitHub noreply email, repository-local credential selection uses that
-account, and Git Credential Manager authorization succeeded. State/action
-contract design is next for v0.3; no implementation task is active.
+**Working status:** initial state/action step completed by Codex for **Aravindak3 /
+Aravind**. Repository-local commit identity uses `195939576+Aravindak3@users.noreply.github.com`
+and credential selection requests that account. v0.1/v0.2 and the prior professor
+demo are verified. Training-only normalization is the next unassigned implementation
+task; rewards, transitions and DQN training remain pending.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
-state/action acceptance criteria and later source/DQN/evaluation gates.
+normalization acceptance criteria and later source/DQN/evaluation gates.
 
-## Latest checkpoint - v0.2.1 professor demo
+**Publication at handoff:** local commits on main; push failed because the Windows
+sandbox could not run Git Credential Manager's authentication helper. Remote main
+was still `62e0202`. Run `git push origin main` in a normal Aravindak3-authenticated
+terminal and verify publication; author identity is already correct on the commits.
+
+## Latest checkpoint - v0.3.0a1 initial state/action contract
+
+New frozen observation structures detach arrival-time queues, running service,
+capacities and ledger balances from runtime state. The observation boundary follows
+all same-time completions and queued starts, before each arrival's placement.
+Simultaneous arrivals retain input order and see earlier placements. Raw encoding
+uses sorted VM/resource columns, explicit unknown flags and documented units; its
+dimension is `3+R+V*(6+4R)`. A schema hash identifies the feature/action contract.
+
+Stable VM indices and componentwise masks match total-capacity fit plus waiting-slot
+availability, including busy-but-queueable VMs. All-false masks retain explicit
+failure and a null action/VM. Opt-in `--capture-decisions` records observations,
+vectors, masks and selected actions; ordinary reports remain compact. A-022 and
+STATE_ACTION_CONTRACT.md document the provisional synthetic scope.
+
+Final evidence: **419 tests passed**, including all 41 new tests, dependency imports
+and figure generation; `pip check` is clean. The resource
+fixture has six 47-element states, least-queue actions 0,1,0,1,null,null, four completions,
+two rejections, 4 ms makespan and restored balances. Trace replay, both policies,
+unknown-vs-zero, invalid snapshots/actions, immutable snapshots, event boundaries,
+baseline preservation and actual CLI pass. The professor demo was regenerated and
+the offline DOM-stub selections/exports check passed again.
+
+The old Store Python 3.11 environment was inaccessible inside this session. It was
+preserved and a separate ignored `.venv312` created using supported Python 3.12.14.
+The fresh environment uses the same pinned dependencies. A corrupt PyTorch download
+was rejected, and its replacement matched PyPI's published SHA-256; stale generated
+package metadata was regenerated through setuptools. The runtime version changes workload provenance hashes, not the shared config checksum
+or scheduling outcomes. No reward, normalizer, learned selector, step/transition API,
+Markov sufficiency or paper-faithful state representation is claimed.
+
+## Previous checkpoint - v0.2.1 professor demo
 
 The user requested a practical professor demonstration before continuing learning.
 The offline report now compares least queue and first fit on identical workloads and
@@ -165,7 +202,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 378 tests above:
+virtual environment before its publication. The latest suite is 419 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -202,19 +239,19 @@ by Git; the command recreates the example. No training results or checkpoints ex
 - P5.7: a documented network-delay model; the baseline explicitly uses zero delay.
 - Source-audited resource values and physical VM-to-host allocation remain unresolved.
   Explicit synthetic per-VM feasibility/reservation is implemented, with no inferred host budget.
-- Paper priorities, thresholds, state/action encoding, reward, energy/fault metrics,
+- Paper priorities, thresholds, source-audited state/action encoding, reward, energy/fault metrics,
   DQN training/checkpoints and full paper comparators/evaluation: pending. Two simple
   synthetic policies and paired demo evaluation are now verified under A-021.
 - The original DRLMOTS source needs an independent audit against `paper_requirements.md`.
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-021.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-022.
 
 ## Next delivery
 
-v0.2's scoped baseline is complete. Start v0.3 with live decision-state snapshots,
-feature/action schema and valid-action masks. Metric/reward/source decisions must pass
+v0.2's scoped baseline and the initial v0.3 state/action implementation are delivered.
+Next is training-only normalization/schema persistence. Metric/reward/source decisions must pass
 their gates before DQN work. Keep original paper-specific tasks open until verified.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.

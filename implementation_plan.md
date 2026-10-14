@@ -2,7 +2,7 @@
 
 This roadmap is intentionally incremental. Each implementation microtask will be delivered in a later response with exact file contents/changes, exact command(s), expected output, verification, troubleshooting, and a completion criterion. Do not skip a verification gate or mark a task VERIFIED without actual evidence.
 
-## Version milestones (2026-10-13)
+## Version milestones (2026-10-14)
 
 The user requested practically achievable versions before attempting the complete paper.
 The original phases below remain the full reproduction roadmap. Version gates apply
@@ -15,7 +15,8 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | 0.1 | P3.3-P3.5; P4.1-P4.2; fixed-list P4.6; deterministic P5.2-P5.6/P5.8 | VERIFIED: Phase 3 passed 136 tests before simulation; final suite 194 passed; exact 3-task example; `pip check` clean |
 | 0.2 | P4.3 workload/manifest; configurable topology; explicit capacities and documented feasibility/placement policy | VERIFIED for A-020 synthetic baseline: package 0.2.0, 367 tests pass; no paper/physical-model claim |
 | 0.2.1 | User-requested professor demo: paired simple policies, offline report, figures and walkthrough | VERIFIED software checkpoint `2083faa`: 378 tests; browser layout manual check; A-021 |
-| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Next: P6.1/P7.2 state/action contract; no training before assumptions/metric gates pass |
+| 0.3.0a1 | Initial P6.1/P6.2/P7.2: immutable observations, pure raw encoding and legal actions | VERIFIED `a7a08bb` under A-022; 419 tests and clean dependency check |
+| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: initial state/action; next P6.3 training-only normalization; no training before metric/reward gates |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
 v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,
@@ -50,6 +51,14 @@ Three presets and reusable SVG/PNG figures support a five-minute walkthrough in
 PROFESSOR_DEMO.md. This completes the demonstration checkpoint, not the full P13
 paper comparisons or P15 multi-seed/task-count analysis. State/action design remains
 the next implementation task; energy/reliability/reward and DQN remain pending.
+
+The initial v0.3 prerelease implements A-022 arrival-time snapshots and a fixed
+`3+R+V*(6+4R)` raw vector. VM/resource order, units and schema hash accompany an
+opt-in trace. Legal masks use total capacity and waiting slots; all-false masks retain
+explicit rejection. This is a provisional synthetic observation, with no claim of
+paper fidelity or Markov sufficiency. Training-only normalization is next, then
+metrics/reward and the later agent/transition/learning tasks. State/action design
+does not complete the full P6-P12 milestone.
 
 ## Project directory (target)
 

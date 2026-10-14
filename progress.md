@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.2.1 professor-demo software checkpoint VERIFIED (2026-10-13).
+**Current stage:** v0.3.0a1 initial state/action contract VERIFIED (2026-10-14).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 source-audited resource interpretation, physical allocation and DQN remain pending.
@@ -10,11 +10,20 @@ complete, implemented and verified by Codex for ashishjha20. Configuration-drive
 topology and explicit per-VM resource admission/reservation are VERIFIED. v0.2 is
 complete for the A-017/A-020 synthetic baseline scope. The user-requested professor
 demo (A-021) is complete, implemented by Codex for **1aryansharma1 / Aryan Sharma**.
-Local Git identity and GitHub credential account select 1aryansharma1; global Git
-identity was not changed. No implementation task is currently active;
-next is v0.3 state/action contract design, owner unassigned.
+**Latest delivery (2026-10-14): initial P6.1/P6.2/P7.2 state/action contract VERIFIED,
+Codex for Aravindak3 / Aravind.** Repository-local author is Aravind with
+`195939576+Aravindak3@users.noreply.github.com`; credential username selects Aravindak3.
+Global identity is unchanged. No implementation task is active. Next is P6.3
+training-only normalization/schema persistence, owner unassigned. Learning/reward
+remain pending. v0.3 is partially implemented; only this initial scope is verified.
+
+**Publication at this handoff:** new commits are local on main. Agent push failed
+because the Windows sandbox could not execute Git Credential Manager's authentication
+helper; remote main was still `62e0202`. Push from a normal authenticated terminal
+using `git push origin main` as Aravindak3, then confirm the remote commit.
 The verified v0.1 implementation commit is `993344d`.
-Latest verified implementation: `2083faa` (v0.2.1 professor demo); resource model:
+Latest verified implementation: `a7a08bb` (v0.3.0a1 state/actions); professor demo:
+`2083faa`; resource model:
 `4f4307f`; configured topology:
 `e97a14d`; seeded workloads:
 `7ebf8d6`. The complete remaining backlog and immediate pickup checklist are in
@@ -68,6 +77,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P5.8 | Deterministic edge cases | VERIFIED for baseline scope | Empty workloads, simultaneous arrivals/completions, missing VMs, unknown/full queues, duplicate tasks and unsupported resource requests |
 | R004 / P7.3 baseline subset | Explicit per-VM demands/capacities, feasible placement and resource reservations | VERIFIED for synthetic model | Shared declared units, missing capacity never inferred, exact-fit/oversize/full-feasible-queue failures, reserve/release trace, no oversubscription/leak. Original paper resource specification and full P7 remain open |
 | P13.1 synthetic subset / professor demo | Two deterministic placement rules, paired evaluation and visual presentation | VERIFIED software scope | Same inputs/hashes, accounting and restored balances; three presets, offline HTML/JSON/SVG/PNG and talk track. Browser layout not automatically verified; full P13/P15 remain open |
+| P6.1/P6.2/P7.2 initial synthetic subset | Immutable decision observations, raw feature encoding, VM action mapping/masks and opt-in trace | VERIFIED under A-022 | 41 new tests; hand vectors/masks, unknown flags, event timing, detachment, all-false rejection, baseline preservation, seeded replay and CLI. No normalizer/agent transitions/reward/DQN yet |
 
 ## Verification in this checkout
 
@@ -84,6 +94,9 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | Configured-topology checkpoint suite (historical): `.venv\Scripts\python.exe -m pytest -q` | 304 passed |
 | Final v0.2.0 suite: `.venv\Scripts\python.exe -m pytest -q` | 367 passed |
 | v0.2.1 suite with demo extra: `.venv\Scripts\python.exe -m pytest -q` | 378 passed |
+| v0.3.0a1 suite: `.venv312\Scripts\python.exe -m pytest -q` | 419 passed on Python 3.12.14 |
+| v0.3.0a1 dependency check: `.venv312\Scripts\python.exe -m pip check` | No broken requirements found |
+| `--config configs/resources.yaml --capture-decisions` | Six 47-feature states; actions 0,1,0,1,null,null; 4 completed/2 failed, 4 ms and restored balances |
 | `python -m drlmots.demo` | Three paired presets, 15 SVG/15 PNG figures and offline report generated |
 | `node scripts/check_demo_controls.cjs` | All six scenario/policy selections, outcome tables, provenance and three JSON exports verified in DOM stub; no layout claim |
 | Wheel packaging | 0.2.1 wheel includes `drlmots/templates/demo.html` |
@@ -98,7 +111,8 @@ serial execution, feasibility, accounting and repeatability. It validates the do
 synthetic resource model, not physical host budgets, DQN behavior, energy, fault tolerance
 or experimental improvements. Old schema-1 config and demand-free workload checksums
 remain unchanged; schema 2 records explicit units/capacities/demands. Editable package
-metadata was refreshed to 0.2.1. The unchanged base lock is extended by the separate
+metadata is now 0.3.0a1 in the separate supported Python 3.12.14 `.venv312`; the earlier
+3.11 `.venv` is preserved. The unchanged base lock is extended by the separate
 optional `requirements-demo-lock.txt`. Representative PNG figures were visually
 inspected; valid SVG namespaces/tooltips and safe embedded JSON are tested. The browser
 tool disallowed local-file preview, so real browser/mobile layout remains a manual check.
@@ -117,21 +131,20 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 378-test suite verifies setup, entities/configuration/topology, fixed and
+The current 419-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
-resource admission/accounting, paired comparisons and figure exports. This establishes only the documented
+resource admission/accounting, paired comparisons, figure exports and the initial
+synthetic state/action contract. This establishes only the documented
 baseline behavior. It does not reproduce the DRLMOTS algorithm or its results. The
 attached DRL-MLS Kubernetes paper is a separate source and was not used to change the
 DRLMOTS algorithm; see decision A-017.
 
 ## Resume protocol
 
-Start v0.3 with the P6.1/P7.2 state/action contract: define the decision-time runtime
-snapshot, feature units/order, fixed VM action ordering and valid-action semantics.
-Expose live queues/running/resource balances rather than using unchanged input VM queues
-or post-run balances as observations. Document the feature choices as a new assumption
-and verify pure encoding/masks before reward or training. A queued task may fit total
-capacity even when a running task has reserved it; masks must respect this queue model.
+Initial state/action work is verified under A-022; see STATE_ACTION_CONTRACT.md.
+Next implement P6.3 training-only normalization, saved statistics/schema compatibility
+and no held-out fitting. Preserve binary known flags and unknown-vs-zero semantics.
+Do not change the legal mask to available-capacity fit: queueable tasks use total fit.
 P4.3/P4.6, configured P5.1 and resource feasibility are verified for A-018/A-020 synthetic
 models, not a source-audited paper topology/distribution or physical host allocation.
 Retain the deterministic tests and run each applicable gate before moving on. Keep
