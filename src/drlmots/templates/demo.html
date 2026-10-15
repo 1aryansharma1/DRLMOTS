@@ -17,7 +17,7 @@
     table{border-collapse:collapse;width:100%;font-size:13px} th{text-align:left;color:var(--muted);font-size:12px;font-weight:600} th,td{padding:10px 8px;border-bottom:1px solid var(--line)}td.num{text-align:right;font-variant-numeric:tabular-nums}th.num{text-align:right}.selected-row{background:#eff7f5}.table-wrap{overflow:auto}
     .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.stage{border-left:3px solid #87b9b3;padding:8px 12px;background:#f7fafa}.stage b{font-size:13px}.stage p{font-size:12px;color:var(--muted);margin:5px 0 0}
     .pool{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.vm{background:#f2f6f7;padding:10px 13px;border-radius:7px;font-size:12px}.vm b{display:block;font-size:13px}.quiet{color:var(--muted);font-size:12px}
-    details{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}summary{cursor:pointer;font-size:13px;font-weight:600}pre{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6f7;padding:14px;border-radius:6px}#tasks-wrap{max-height:350px;overflow:auto;margin-top:12px}
+    details{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}summary{cursor:pointer;font-size:13px;font-weight:600}pre{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6f7;padding:14px;border-radius:6px}#tasks-wrap,#placement-wrap{max-height:350px;overflow:auto;margin-top:12px}
     footer{font-size:12px;color:var(--muted);padding:0 4px 12px}.checks{font-size:12px;color:#22685d;margin-left:auto}.section-line{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
     .template-notice{display:none;max-width:760px;margin:60px auto;padding:28px;background:white;border:1px solid var(--line);border-radius:12px}
     .template-notice h1{font-size:30px;margin-top:0}.template-notice a{display:inline-block;color:#126e68;font-weight:600;padding:10px 0}.template-notice code{overflow-wrap:anywhere}
@@ -38,7 +38,7 @@
 <main class="demo-content">
   <div class="topline"><span class="brand">DRLMOTS / RESEARCH PROTOTYPE</span><span class="badge">Synthetic simulator · <span id="version"></span></span></div>
   <h1>Where tasks run.<br>What makes them wait.</h1>
-  <p class="lead">Explore resource-aware scheduling across fog and cloud VMs. Both policies use exactly the same arrivals, task lengths, resource demands and queue limits.</p>
+  <p class="lead">Explore resource-aware scheduling across fog and cloud VMs. All compared policies use exactly the same arrivals, task lengths, resource demands and queue limits.</p>
   <div class="controls">
     <label>Scenario<select id="scenario" aria-label="Scenario"></select></label>
     <label>Timeline policy<select id="policy" aria-label="Timeline policy"></select></label>
@@ -52,23 +52,24 @@
     <div class="metric"><span>Average completion time</span><strong id="average"></strong><small>Successful tasks only, includes waiting</small></div>
   </div>
   <div class="panel">
-    <div class="section-line"><h2>One workload, two placement rules</h2><span class="checks" id="checks"></span></div>
+    <div class="section-line"><h2 id="comparison-title">One workload, two placement rules</h2><span class="checks" id="checks"></span></div>
     <div class="grid"><div class="chart" id="comparison" role="img" aria-label="Completed and failed tasks by policy"></div>
     <div><div class="table-wrap"><table><thead><tr><th>Policy</th><th class="num">Done</th><th class="num">Failed</th><th class="num">Makespan ms</th><th class="num">Mean ms</th></tr></thead><tbody id="comparison-rows"></tbody></table></div>
     <p class="caption">Read timing alongside completion counts. A smaller makespan can reflect more rejected tasks; failed tasks are excluded from average latency.</p>
-    <p class="caption">Least queue chooses the least running + waiting load. First fit chooses the first eligible VM by ID. Both drain each VM queue FCFS.</p></div></div>
+    <p class="caption" id="policy-description">Least queue chooses the least running + waiting load. First fit chooses the first eligible VM by ID. Both drain each VM queue FCFS.</p></div></div>
   </div>
   <div class="grid"><div class="panel"><div class="chart" id="timeline" role="img" aria-label="Task execution intervals by VM"></div><p class="caption">Each block is one completed task. Hover for its task ID and start/finish times. Waiting precedes execution; rejected tasks have no block.</p></div>
-    <div class="panel"><div class="chart" id="usage" role="img" aria-label="VM busy time as percentage of makespan"></div><p class="caption">Occupancy measures VM service time, not physical CPU utilization. One task runs per VM; network delay is zero.</p></div></div>
+    <div class="panel"><div class="chart" id="usage" role="img" aria-label="VM busy time as percentage of makespan"></div><p class="caption" id="network-note">Occupancy measures VM service time, not physical CPU utilization. One task runs per VM; network delay is zero.</p></div></div>
   <div class="panel"><h2>Prototype pipeline</h2><div class="pipeline">
     <div class="stage"><b>01 · Arrivals</b><p>Seeded, explicit bytes and milliseconds</p></div>
     <div class="stage"><b>02 · Resource fit</b><p>Every demand must fit declared capacity</p></div>
     <div class="stage"><b>03 · Placement</b><p>Eligible VM plus a free waiting slot</p></div>
-    <div class="stage"><b>04 · Execution</b><p>FCFS service; reserve then release</p></div>
+    <div class="stage"><b>04 · Execution</b><p id="execution-description">FCFS service; reserve then release</p></div>
     <div class="stage"><b>05 · Evidence</b><p>Task outcomes, timelines and input checksums</p></div>
   </div><div class="pool" id="pool"></div>
   <p class="quiet" id="topology"></p>
   <details><summary>Task outcomes and rejection reasons</summary><div id="tasks-wrap"><table><thead><tr><th>Task</th><th>VM / failure reason</th><th class="num">Arrival ms</th><th class="num">Start ms</th><th class="num">Finish ms</th></tr></thead><tbody id="task-rows"></tbody></table></div></details>
+  <details id="placement-details" hidden><summary>Fog/cloud decisions and transmission times</summary><p class="caption">Total time includes input upload, queued work and execution, measured from each task's arrival. Fog-first prefers fog on equal finishes. Uploads overlap existing execution.</p><div id="placement-wrap"><table><thead><tr><th>Task</th><th>Selected VM</th><th>Reason</th><th class="num">Best fog total ms</th><th class="num">Best cloud total ms</th><th class="num">Upload ms</th><th class="num">Predicted finish ms</th></tr></thead><tbody id="placement-rows"></tbody></table></div></details>
   <details><summary>Reproducibility and model limits</summary><pre id="provenance"></pre><p class="quiet">Task length uses the explicit byte-valued test formula, not the paper's unresolved table length. CPU units control admission, not execution speed. No physical host budget, learned policy, energy/reliability result or exact paper reproduction is claimed.</p></details>
   </div>
   <footer>Professor demo · Reproducible synthetic software baseline. Initial states, normalization, synthetic rewards and an untrained CPU Q-network are implemented. Replay, interactive agent control and DQN training remain future work. SVG/PNG figures and full JSON are exported by the repository command.</footer>
@@ -82,12 +83,19 @@
   const el=id=>document.getElementById(id), scenarioSelect=el('scenario'), policySelect=el('policy');
   const option=(select,value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)};
   data.scenarios.forEach(s=>option(scenarioSelect,s.id,s.label));Object.entries(data.policy_labels).forEach(([value,label])=>option(policySelect,value,label));
-  scenarioSelect.value='seeded';el('version').textContent=data.version;
+  scenarioSelect.value='seeded';policySelect.value=data.default_policy||'least_queue_fcfs';el('version').textContent=data.version;
   const fmt=(n,digits=2)=>n===null?'—':Number(n).toFixed(digits);
   const cell=(row,text,numeric=false)=>{const c=document.createElement('td');c.textContent=text;if(numeric)c.className='num';row.append(c)};
   function selected(){const s=data.scenarios.find(x=>x.id===scenarioSelect.value);return [s,s.comparison.reports.find(x=>x.policy===policySelect.value)]}
   function render(){
     const [scenario,report]=selected();el('scenario-description').textContent=scenario.description;
+    const network=report.placement;
+    el('placement-details').hidden=!network;el('placement-rows').replaceChildren();
+    if(network)network.decisions.forEach(decision=>{const row=document.createElement('tr'),chosen=decision.candidates.find(item=>item.vm_id===decision.selected_vm_id);const best=tier=>decision.candidates.filter(item=>item.tier===tier).reduce((value,item)=>value===null?item.completion_duration_ms:Math.min(value,item.completion_duration_ms),null);cell(row,decision.task_id);cell(row,decision.selected_vm_id||'Rejected');cell(row,decision.reason.replaceAll('_',' '));cell(row,fmt(best('fog')),true);cell(row,fmt(best('cloud')),true);cell(row,fmt(chosen?chosen.upload_ms:null),true);cell(row,fmt(chosen?chosen.predicted_finish_time_ms:null),true);el('placement-rows').append(row)});
+    el('comparison-title').textContent='One workload, '+(network?'three':'two')+' placement rules';
+    el('policy-description').textContent='Least queue compares running + waiting counts; first fit uses the first eligible VM by ID. '+(network?'Fog-first compares predicted finishes including uploads and queued execution; equal finishes prefer fog. All three use the same links and FCFS queues.':'Both drain each VM queue FCFS.');
+    el('network-note').textContent='Occupancy measures VM service time, not physical CPU utilization. One task runs per VM; '+(network?'uploads and propagation are included, with independent uploads and no shared-link contention.':'network delay is zero.');
+    el('execution-description').textContent=network?'Upload readiness + FCFS service; reserve then release':'FCFS service; reserve then release';
     el('completed').textContent=report.completed_count;el('failed').textContent=report.failed_count;el('task-total').textContent=`Of ${report.outcomes.length} submitted tasks`;
     el('makespan').textContent=fmt(report.makespan_ms)+' ms';el('average').textContent=fmt(report.average_completion_time_ms)+' ms';
     el('checks').textContent='Matched input checksums · resources restored';
@@ -96,7 +104,7 @@
     el('pool').replaceChildren();report.topology.vms.forEach(vm=>{const node=document.createElement('div');node.className='vm';const title=document.createElement('b');title.textContent=vm.vm_id+' · '+vm.tier;node.append(title);const text=document.createElement('span');text.textContent='Queue: '+vm.queue_capacity+' waiting · '+(vm.resource_capacities?Object.entries(vm.resource_capacities).map(([key,value])=>value+' '+key+' ('+report.resource_units[key]+')').join(', '):'resource capacities unknown');node.append(text);el('pool').append(node)});
     const counts=report.topology_counts;el('topology').textContent=`Declared topology: ${counts.access_points} AP, ${counts.end_nodes} end node, ${counts.fog_nodes} fog nodes, ${counts.cloud_datacenters} cloud datacenter, ${counts.vms} VMs. Physical VM-to-host allocation is not inferred.`;
     el('task-rows').replaceChildren();report.outcomes.forEach(item=>{const row=document.createElement('tr');cell(row,item.task_id);cell(row,item.vm_id||item.failure_reason);cell(row,fmt(item.arrival_time_ms),true);cell(row,fmt(item.start_time_ms),true);cell(row,fmt(item.finish_time_ms),true);el('task-rows').append(row)});
-    el('provenance').textContent=JSON.stringify({software_version:data.version,policy:report.policy,seed:report.workload.seed,generator:report.workload.generator,units:report.resource_units,workload_sha256:scenario.comparison.workload_sha256,config_sha256:scenario.comparison.configuration_sha256,scope:data.scope},null,2);
+    el('provenance').textContent=JSON.stringify({software_version:data.version,policy:report.policy,seed:report.workload.seed,generator:report.workload.generator,units:report.resource_units,network:network?network.configuration:null,workload_sha256:scenario.comparison.workload_sha256,config_sha256:scenario.comparison.configuration_sha256,scope:data.scope},null,2);
   }
   scenarioSelect.addEventListener('change',render);policySelect.addEventListener('change',render);
   el('export').addEventListener('click',()=>{const [scenario]=selected();const blob=new Blob([JSON.stringify(scenario.comparison,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='drlmots-'+scenario.id+'-comparison.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});

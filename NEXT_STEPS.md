@@ -1,7 +1,8 @@
 # Remaining work and pickup checklist
 
 **Updated:** 2026-10-15
-**Latest verified implementation:** v0.3.0a4 CPU Q-network/selection plus demo template-opening fix.
+**Latest verified implementation:** v0.3.0a5 fog-first completion/network timing.
+Prior Q-network `96a5407`; source-template fix `6f87c53`.
 Prior rewards `72255bf`; normalization `29debfb`; state/actions `a7a08bb`; demo `2083faa`.
 **Working state:** completed by Codex for Aravindak3 / Aravind; next task unassigned.
 **Publication check:** prior state/action work was confirmed on main at `9604536`.
@@ -19,7 +20,7 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 - [x] Strict runnable YAML, configurable topology/workload, JSON reports and config replay.
 - [x] Explicit demand/capacity/unit model, feasible placement and distinct failure reasons.
 - [x] Running-task resource reservation/release, trace and final balances without leaks.
-- [x] Verified suite with demo dependencies: 577 tests pass; prior dependency check is clean.
+- [x] Verified suite with demo dependencies: 618 tests pass; dependency check is clean.
 - [x] Runnable fixture: six tasks on three VMs, six completions, 4 ms makespan.
 - [x] Resource fixture: four complete/two full-feasible-queue failures, 4 ms makespan,
   eight resource events; old baseline outcomes/config/workload fingerprints preserved.
@@ -43,6 +44,11 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
   behavior change. See Q_NETWORK.md for commands and limits.
 - [x] Opening the HTML source template shows instructions and a generated-report link;
   raw-template startup and generated controls/exports verified. One regression test added.
+- [x] User-requested fog-first completion with explicit input uploads, propagation,
+  origin reachability and queue readiness. Busy fog wins if no slower than cloud;
+  ties favor fog. Forty-one new tests; schema-3 CLI and three-policy demo verified.
+- [x] Separate network decision logs and explicit legacy RL compatibility guard;
+  schema-1/2 baselines keep their earlier results. See FOG_CLOUD_POLICY.md.
 - [ ] Manually preview the generated HTML in a normal browser at desktop/mobile widths
   before presenting. The agent browser tool disallowed local-file preview; this check
   is independent of starting state/action work. See PROFESSOR_DEMO.md.
@@ -50,12 +56,30 @@ v0.3 partially implemented; v1.0 pending. Demo delivered for 1aryansharma1 / Ary
 These checks establish the current synthetic baseline, not the paper's full algorithm
 or experimental results. See [PROGRESS_REPORT.md](PROGRESS_REPORT.md) for evidence.
 
-## Pick up this task next - replay, Bellman targets and target-network updates
+## Pick up this task next - network-aware RL observation/reward/transition contract
 
 **Owner:** unassigned. **Status:** NOT STARTED.
 
-The A-022 through A-025 state/scaling/reward/network gates are verified. The model
-is untrained; implement P10 updates before interactive control:
+The A-022 through A-025 gates are verified for zero-network observations only.
+A-026 adds uploads and head-of-line waiting that the old contract cannot represent.
+Before training on schema 3:
+
+1. Claim the task and define a new, explicitly versioned state/action/context contract
+   covering origin/reachability, link/upload readiness, queued execution and idle-upload
+   states. Do not silently mutate schema 1 or reuse its scaler/checkpoints.
+2. Specify causal total-time/rejection reward timing and transitions, including forced
+   rejections and terminal semantics. Do not reuse the zero-network forecast formula.
+3. Test hand vectors/masks/normalization, upload/completion event boundaries, context
+   mismatch, reward forecasts and actual timings before enabling RL capture.
+4. Preserve old contracts and all 618 tests. Update docs with new assumptions and
+   the following replay/update pickup gate.
+
+**Finish criterion:** tested network-aware traces/normalization/rewards with versioned
+compatibility. No network-aware trained policy is claimed at this gate.
+
+## Following gate - replay, Bellman targets and target-network updates
+
+The existing zero-network contract can support this gate independently:
 
 1. Claim this task in `progress.md` and record your name/handle and IN PROGRESS status.
 2. Read P10, A-009, Q_NETWORK.md, REWARD_CONTRACT.md and the learner adapter.
@@ -84,13 +108,14 @@ paper-faithful training/evaluation. Detailed microtasks remain in implementation
 
 | Order | Scope / plan reference | Remaining deliverable | Completion evidence |
 |---|---|---|---|
+| 0 | Network-aware P6/P8/P11 contract | Version observations/reward/transitions for A-026 uploads and reachability | Hand vectors/masks/scaling/reward, event boundaries and context isolation |
 | 1 | P10 replay/update subset | Bounded replay, masked Bellman targets, finite updates and target sync | Local sampling, hand targets, finite actual update and independent target/sync checks |
 | 2 | Paper-specific placement, P7.1/P7.4/P7.5 | Decide priority/tier thresholds and fallback beyond the implemented all-tier least-queue baseline | Source-supported or labelled policy; ordering/threshold/no-capacity tests |
 | 3 | P0.2-P0.4 / R001-R040 | Independently audit the original DRLMOTS paper and extraction; classify each source-supported vs assumed behavior | Paper-to-code/test traceability and updated assumptions; no invented requirement |
 | 4 | P4.4 | Handle the paper's conflicting task-count ranges explicitly in experiment configs | Exact requested counts; separate named experiment settings; manifests |
 | 5 | P4.5 / A-011 | Identify dataset version/schema/filtering/mapping before any Google Jobs label | Verified provenance and ingestion tests, or explicitly unavailable with synthetic alternatives |
 | 6 | Full P5.1 | Configure the source-audited full paper topology and VM distribution | Counts/memberships match documented source or a labelled assumption |
-| 7 | P5.7 / A-014 | Decide and implement network/transfer delay and its units, if supported | Hand-calculated timestamps; clearly labelled inclusion/exclusion |
+| 7 | Paper P5.7 / A-014 | Source-audit/extend the implemented A-026 synthetic upload model, including contention/downloads if justified | Keep implemented units/timing tests; source-supported or clearly labelled extensions |
 | 8 | Full P6.4 / A-001 | Extend the initial provisional observation with source-audited feature/boundary coverage if justified | Explicit schema evolution; finite stable shapes; saturation/unknown checks |
 | 9 | P7 / A-003-A-004 | Extend masks/mapping for the chosen paper tier policy after baseline actions are verified | No illegal selection; no-action outcome; policy/encoding compatibility |
 | 10 | Full paper P8 / A-006-A-008 | Audit paper metrics, compute/transmission energy, reliability/fault meaning and multi-objective reward; synthetic surrogate is implemented separately | Source-supported units/sign/scales; hand values and semantic audit |
@@ -116,7 +141,7 @@ reward sign/normalization; energy units/coefficients; fault-tolerance interpreta
 initial epsilon, episode counts and unspecified DQN settings; real dataset identity;
 exact CNN/LSTM/GGCN baselines; task-count conflicts and reported improvement arithmetic.
 The synthetic per-VM resource model does not resolve the paper's physical capacities
-or mapping. See assumptions A-001 through A-025 and retain the unresolved entries.
+or mapping. See assumptions A-001 through A-026 and retain the unresolved entries.
 
 ## Before handing off again
 

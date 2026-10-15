@@ -1,17 +1,18 @@
 # DRLMOTS collaborator handoff
 
 **Last updated:** 2026-10-15
-**Current checkpoint:** v0.3.0a4 CPU Q-network/selection VERIFIED in this delivery:
-577 tests including the demo template-opening fix; prior dependency check clean.
+**Current checkpoint:** v0.3.0a5 fog-first completion/network timing VERIFIED:
+618 tests and clean dependency check. Prior Q-network `96a5407`; template fix `6f87c53`.
 Prior rewards `72255bf`; normalization `29debfb`;
 state/actions `a7a08bb`.
-**Next task:** bounded replay, Bellman targets and target-network updates (P10 subset), owner unassigned.
+**Next task:** version network-aware observations/reward/transitions before RL on uploads;
+owner unassigned. Zero-network replay/target updates remain a separate available gate.
 **Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
 earlier v0.2 work was for ashishjha20. State/actions, normalization, rewards and Q-network completed by Codex for
 **Aravindak3 / Aravind** per the user's account switch. Record the owner and status
 in `progress.md` when starting so another contributor can see what is in progress.
 
-**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its replay/targets
+**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its network-aware RL contract
 checklist, then follow the ordered backlog. No implementation task is active.
 
 **Git workflow:** previous state/action commits were pushed by the user and main was
@@ -33,6 +34,7 @@ by comparing `git rev-parse HEAD` with `git ls-remote origin refs/heads/main`.
 10. [NORMALIZATION.md](NORMALIZATION.md): separate fitting/application, artifacts and limitations.
 11. [REWARD_CONTRACT.md](REWARD_CONTRACT.md): reward timing, transition boundaries and forced-step discounts.
 12. [Q_NETWORK.md](Q_NETWORK.md): CPU model, legal selector, context-bound snapshots and inference command.
+13. [FOG_CLOUD_POLICY.md](FOG_CLOUD_POLICY.md): user-requested fog preference, real simulated upload timing, schema 3 and RL compatibility boundary.
 
 The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
 10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes
@@ -59,13 +61,13 @@ From a configured repository root on Windows:
 .\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
 ```
 
-Expected current checks: 577 tests pass with demo dependencies (576 pass/one figure
+Expected current checks: 618 tests pass with demo dependencies (616 pass/two figure
 test skips without Matplotlib); dependency check is clean; fixed example completes three
 tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
 4 because all queues are full, accounting for every input. Configured fixture: six
 tasks on three VMs, all completed in 4 ms. Resource fixture: four complete/two full-feasible-
 queue failures, 4 ms makespan, eight resource events, all balances restored. The editable
-install refreshes version metadata to 0.3.0a4 after pulling. `.venv` is local, not in Git. Python
+install refreshes version metadata to 0.3.0a5 after pulling. `.venv` is local, not in Git. Python
 3.11.9 was used here; the project requires Python >=3.11,<3.13.
 
 On 2026-10-14 the agent's Store Python was inaccessible, so it preserved `.venv` and
@@ -73,7 +75,7 @@ created ignored `.venv312` with bundled Python 3.12.14. Use that interpreter in 
 checkout; new contributors can create a normal supported 3.11/3.12 venv. Runtime
 version contributes to workload hashes; captured/uncaptured hashes agree within one
 runtime. The shared config checksum and scheduling outcomes stay the same.
-The fresh 3.12 environment passes all 577 tests; the prior pip check is clean. A failed PyTorch
+The fresh 3.12 environment passes all 618 tests and pip check. A failed PyTorch
 download was rejected and replaced by a download matching the published PyPI hash.
 Stale generated egg-info was regenerated with setuptools. No dependency pins changed.
 
@@ -106,6 +108,7 @@ and all six generated scenario/policy combinations plus three exports pass check
 | `src/drlmots/normalization.py` | Frozen training-only scaler, explicit splits, strict JSON artifacts and full topology/schema compatibility; separate fit/apply CLI |
 | `src/drlmots/reward.py`, `transitions.py` | Explicit synthetic reward config, causal forecasts, all-arrival return, terminal records and forced-chain learner adapter |
 | `src/drlmots/q_network.py` | Context-bound CPU network, finite normalized forward/inference, seeded legal selector, strict JSON network snapshots and held-out inference CLI |
+| `src/drlmots/fog_cloud.py`, `configs/fog_cloud.yaml` | Explicit source/links, fog-preferred predicted finish, FCFS uploading queues, actual upload/execution events and separate decision logs |
 | `tests/unit/test_state_actions.py`, `tests/integration/test_decision_trace.py` | Hand vectors/masks, unknown-vs-zero, invalid shapes/indices, snapshot detachment, timing boundary, CLI/replay and baseline preservation |
 | `tests/unit/` | Entities, topology, configuration and workload boundaries |
 | `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
@@ -131,7 +134,7 @@ Preserve these tested semantics unless a documented task intentionally changes t
   declared per-run unit catalogue. Missing/null capacity is unknown, not unlimited.
   Queue limits stay explicit. Only running tasks reserve; completion releases before
   queued starts and same-time arrivals. CPU admission units do not change service speed.
-- Network delay is zero. Synthetic rewards are available; paper energy/reliability
+- Schema-1/2 network delay is zero; schema 3 models A-026 uploads. Synthetic zero-network rewards are available; paper energy/reliability
   and multi-objective reward remain pending.
 
 ## Completed P4.3 checkpoint
@@ -146,7 +149,7 @@ All previous P4.3 acceptance criteria are verified: local RNG without global mut
 repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
 ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
 file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
-246 tests; the configured-topology checkpoint passed 304. The latest suite passes 576.
+246 tests; the configured-topology checkpoint passed 304. The latest suite passes 618.
 
 ## Completed configuration-driven topology
 
@@ -159,7 +162,7 @@ flags cannot be combined with a run file. A-019 documents this checkpoint's scop
 The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
 and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
 pathname are excluded. The configured hand calculation and changed-queue-limit tests
-passed with 304 tests at that checkpoint. The latest suite is 576; full paper topology
+passed with 304 tests at that checkpoint. The latest suite is 618; full paper topology
 and VM-to-host allocation remain open.
 
 ## Completed v0.2 resource feasibility
@@ -270,7 +273,31 @@ real observations and actual CLI pass. The standalone command in Q_NETWORK.md fi
 and reloads identical Q-values. These choices are untrained and were not executed.
 Simulator/scaler/reward results remain intact. No learned-policy result is claimed.
 
-## Pick up replay and target updates next
+## Latest network-aware policy and immediate pickup
+
+The user requested fog preference when fog's overall completion is no later than
+cloud, including busy fog. A-026/FOG_CLOUD_POLICY.md define explicit decimal kB/Mbps/ms
+links and source-end reachability. Compare max(upload-ready, FCFS queue-tail finish)
++ service, with fog winning equal finishes. Actual execution waits for upload and
+reserves resources only when running. Uploading tasks occupy queue slots. All three
+policies use the same network when comparing schema-3 runs; old schemas stay unchanged.
+
+618 tests pass (41 new); forecast/actual timestamps, busy fog/faster cloud/ties,
+source routing, queue pressure, resources, causality, manifest replay and real CLI
+are verified. Network demo: 9 choices/3 exports in DOM stub, 21 PNG/21 SVG, decision
+table. Seed-42 fixture: fog-first 65/35 versus baselines 62/38; this is not a general
+performance claim. See the policy doc for the command and limits.
+
+**Claim this before network-aware RL:** define a versioned observation, action mask,
+normalizer/checkpoint context, reward timing and forced-transition contract that can
+represent idle VMs uploading queued inputs. Include source/link readiness and test
+hand vectors, masks, upload/completion ordering, causal total-time rewards and context
+rejection. Legacy capture/reward/normalization deliberately fail on network runs;
+do not bypass that guard or reuse old checkpoints under a new timing model. The
+existing zero-network Q-network is untrained. After the new contract gate, continue
+with replay/target updates below, live agent control and training.
+
+## Remaining replay and target update gate (zero-network contracts already available)
 
 1. Claim P10 in progress.md. Record provisional gamma, optimizer/learning rate,
    batch size, replay capacity, seed and sync interval under a new assumption/config;
@@ -284,7 +311,7 @@ Simulator/scaler/reward results remain intact. No learned-policy result is claim
    terminal target is reward. Target network is separate, frozen/no-grad and initially
    copied exactly. Verify online updates leave target unchanged until explicit sync.
 5. Test capacity/eviction/sampling, gamma boundaries, illegal actions, terminal/forced
-   chains, finite loss/gradients and a real parameter update. Retain all 576 tests.
+   chains, finite loss/gradients and a real parameter update. Retain all 618 tests.
 6. Update reports and commit the verified gate. Live agent control (P11), CPU smoke
    training/checkpoints/evaluation (P12) remain the following tasks.
 

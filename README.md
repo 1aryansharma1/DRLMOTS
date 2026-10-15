@@ -6,13 +6,14 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Current status
 
-Version **0.3.0a4** adds a context-bound CPU Q-network, legal epsilon-greedy selection
-and reloadable network snapshots to causal rewards, training-only normalization and the baseline
-and offline professor demo. It supports fixed/seeded
+Version **0.3.0a5** adds the requested fog-first completion-time policy with explicit
+upload/propagation timing, reachable local fog nodes, decision estimates and a three-policy
+demo. Prior Q-network, normalization, synthetic rewards and baseline demos remain available.
+It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **577 tests** with the demo dependencies on Python 3.12.14
+The current suite passes **618 tests** with the demo dependencies on Python 3.12.14
 (2026-10-15); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
@@ -23,8 +24,11 @@ all feasible waiting queues are full; makespan is 4 ms and all capacities are re
 v0.2 is complete for this explicitly documented software scope. The first v0.3
 state/action, normalization, synthetic reward/export and CPU Q-network steps are implemented.
 Replay, interactive agent control and DQN training remain pending.
-The `a4` version is a partial v0.3 milestone, not a trained policy.
+The `a5` version is a partial v0.3 milestone, not a trained policy.
 See [Q_NETWORK.md](Q_NETWORK.md) for the runnable inference/checkpoint example and API.
+See [FOG_CLOUD_POLICY.md](FOG_CLOUD_POLICY.md) and `configs/fog_cloud.yaml` for the
+network-aware policy. Legacy RL capture is explicitly blocked on network-aware runs
+until its state/reward contract is extended; schema-1/2 behavior is preserved.
 
 This version verifies software behavior. It does not implement DQN training or reproduce
 the paper's experimental results. The source supplied during this iteration was the
@@ -74,8 +78,8 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 577 passing tests with the demo extra
-(576 pass/one figure test skips without it). The last command prints
+Expected checks: no broken requirements; 618 passing tests with the demo extra
+(616 pass/two figure tests skip without it). The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -84,7 +88,7 @@ If Python 3.11 is unavailable, inspect `py -0p` and install a supported Python v
 before creating the environment. If the package cannot be imported, run the editable
 installation command using the same `.venv` interpreter. Do not use system Python 3.13.
 After pulling v0.2 into an existing editable environment, rerun the editable install
-command to refresh package version metadata. The report should identify version 0.3.0a4.
+command to refresh package version metadata. The report should identify version 0.3.0a5.
 
 In the agent session on 2026-10-14, the Microsoft Store Python 3.11 interpreter was
 inaccessible. A separate ignored `.venv312` was created using the bundled Python
@@ -231,7 +235,8 @@ workload provenance and outcomes. The saved `run_configuration`, excluding its
 File location and YAML formatting do not affect the effective configuration checksum.
 `configs/default.yaml` retains unresolved paper settings and is not a runnable config.
 Schema 1 preserves the demand-free baseline. Use schema 2 below for resource-aware
-admission. Physical VM placement, network delay and DQN remain pending.
+admission. Physical VM placement and DQN remain pending. Schema 3 adds an explicitly
+configured network model; see FOG_CLOUD_POLICY.md.
 
 ## Resource-aware example (schema 2)
 
@@ -281,8 +286,9 @@ cross-VM resource sharing. See assumption A-020 for this model's limits.
 - The example's small topology and queue limits are test fixtures. Paper experiment
   settings are separate in `configs/default.yaml`, including the 20-200 VM range.
 - Explicit resource feasibility/reservation is implemented for the synthetic per-VM
-  model. VM-to-host allocation, network delay, paper-specific priorities/thresholds,
-  energy, reliability, reward and DQN remain open. Network delay is zero.
+  model. VM-to-host allocation, paper-specific priorities/thresholds, energy, reliability,
+  paper reward and DQN remain open. These schema-1/2 examples use zero network delay;
+  the separate schema-3 fixture includes explicit uploads/propagation under A-026.
 - The API copies input tasks and keeps caller-owned VM queues unchanged, allowing
   repeated runs on the same fixture.
 
@@ -297,6 +303,7 @@ cross-VM resource sharing. See assumption A-020 for this model's limits.
 | 0.3.0a2 | Training-only state scaling, schema/topology-bound artifacts and held-out application | VERIFIED `29debfb`; 460 tests pass |
 | 0.3.0a3 | Causal synthetic rewards, arrival transitions and forced-chain learner adapter | VERIFIED `72255bf`; 510 tests pass |
 | 0.3.0a4 | CPU Q-network, legal selection and context-bound network snapshots | VERIFIED under A-025; 576 tests pass |
+| 0.3.0a5 | Fog-first completion, explicit uploads/reachability and three-policy demo | VERIFIED under A-026; 618 tests pass |
 | 0.3 | Documented state/action/reward definitions, DQN CPU smoke training and checkpoints | Partial: network delivered; next replay/Bellman targets; live control/training pending |
 | 1.0 | Source audit, matched experiments and honest evaluation against the selected paper | Planned; source gaps remain |
 

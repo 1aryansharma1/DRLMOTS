@@ -11,6 +11,7 @@ from drlmots.config import ConfigError
 from drlmots.topology import Topology, build_topology
 from drlmots.workload import SyntheticWorkloadSettings
 from drlmots.resources import require_declared_units, validate_resource_units
+from drlmots.fog_cloud import FogCloudSettings, parse_placement_settings
 
 
 def _exact_keys(value, keys, name):
@@ -26,14 +27,21 @@ class RunConfig:
     workload: SyntheticWorkloadSettings
     resource_units: dict[str, str] = field(default_factory=dict)
     schema_version: int = 1
+    placement: FogCloudSettings | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "resource_units", validate_resource_units(self.resource_units))
         self._validate_schema()
 
     def _validate_schema(self):
-        if type(self.schema_version) is not int or self.schema_version not in (1, 2):
-            raise ConfigError("run schema_version must be integer 1 or 2")
+        if type(self.schema_version) is not int or self.schema_version not in (1, 2, 3):
+            raise ConfigError("run schema_version must be integer 1, 2 or 3")
+        if self.schema_version == 3:
+            if not isinstance(self.placement, FogCloudSettings):
+                raise ConfigError("run schema 3 requires placement/network settings")
+            self.placement.candidates(self.topology)
+        elif self.placement is not None:
+            raise ConfigError("placement/network settings require run schema 3")
         self.topology.validate()
         if self.schema_version == 1 and (
             self.resource_units or self.workload.required_resources
@@ -63,9 +71,11 @@ class RunConfig:
                 **self.workload.manifest_settings(),
             },
         }
-        if self.schema_version == 2:
+        if self.schema_version >= 2:
             payload["resource_units"] = dict(self.resource_units)
             payload["workload"]["required_resources"] = dict(self.workload.required_resources)
+        if self.placement is not None:
+            payload["placement"] = self.placement.manifest()
         encoded = json.dumps(payload, sort_keys=True, allow_nan=False).encode("utf-8")
         return {**json.loads(encoded), "sha256": hashlib.sha256(encoded).hexdigest()}
 
@@ -88,12 +98,14 @@ def parse_run_config(data) -> RunConfig:
     if not isinstance(data, dict):
         raise ConfigError("run configuration must be a mapping")
     schema_version = data.get("schema_version")
-    if type(schema_version) is not int or schema_version not in (1, 2):
-        raise ConfigError("run schema_version must be integer 1 or 2")
-    resource_aware = schema_version == 2
+    if type(schema_version) is not int or schema_version not in (1, 2, 3):
+        raise ConfigError("run schema_version must be integer 1, 2 or 3")
+    resource_aware = schema_version >= 2
     root_keys = {"schema_version", "kind", "topology", "workload"}
     if resource_aware:
         root_keys.add("resource_units")
+    if schema_version == 3:
+        root_keys.add("placement")
     _exact_keys(data, root_keys, "run configuration")
     if data["kind"] != "synthetic_baseline":
         raise ConfigError("run kind must be synthetic_baseline")
@@ -119,7 +131,11 @@ def parse_run_config(data) -> RunConfig:
         raise ConfigError(str(error)) from error
     if settings.task_count and not topology.vms:
         raise ConfigError("non-empty workload requires at least one VM")
-    return RunConfig(topology, settings, units, schema_version)
+    try:
+        placement = parse_placement_settings(data["placement"]) if schema_version == 3 else None
+        return RunConfig(topology, settings, units, schema_version, placement)
+    except (TypeError, ValueError) as error:
+        raise ConfigError(str(error)) from error
 
 
 def load_run_config(path: str | Path) -> RunConfig:

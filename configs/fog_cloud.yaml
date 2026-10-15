@@ -1,0 +1,55 @@
+# Explicit synthetic network fixture; these link values are not paper measurements.
+schema_version: 3
+kind: synthetic_baseline
+resource_units:
+  cpu_units: abstract CPU units
+  memory_gb: GB
+topology:
+  hosts:
+    - {host_id: host-fog-a, storage_tb: 3, memory_gb: 32, bandwidth_reported: 1000}
+    - {host_id: host-fog-b, storage_tb: 3, memory_gb: 32, bandwidth_reported: 1000}
+    - {host_id: host-cloud, storage_tb: 3, memory_gb: 32, bandwidth_reported: 1000}
+  vms:
+    - vm_id: vm-fog-a
+      tier: fog
+      bandwidth_reported: 200
+      queue_capacity: 2
+      resource_capacities: {cpu_units: 2, memory_gb: 4}
+    - vm_id: vm-fog-b
+      tier: fog
+      bandwidth_reported: 200
+      queue_capacity: 1
+      resource_capacities: {cpu_units: 1, memory_gb: 2}
+    - vm_id: vm-cloud
+      tier: cloud
+      bandwidth_reported: 200
+      queue_capacity: 2
+      resource_capacities: {cpu_units: 4, memory_gb: 8}
+  fog_nodes:
+    - {fog_node_id: fog-a, host_ids: [host-fog-a], vm_ids: [vm-fog-a]}
+    - {fog_node_id: fog-b, host_ids: [host-fog-b], vm_ids: [vm-fog-b]}
+  cloud_datacenters:
+    - {datacenter_id: cloud, host_ids: [host-cloud], vm_ids: [vm-cloud]}
+  access_points:
+    - {access_point_id: ap, end_node_id: end}
+  end_nodes:
+    - {end_node_id: end, fog_node_ids: [fog-a, fog-b]}
+placement:
+  policy: fog_first_completion
+  source_end_node_id: end
+  data_size_unit: decimal_kB
+  upload_model: parallel_no_contention
+  links:
+    - {vm_id: vm-fog-a, bandwidth_mbps: 160, propagation_ms: 0.2}
+    - {vm_id: vm-fog-b, bandwidth_mbps: 80, propagation_ms: 0.5}
+    - {vm_id: vm-cloud, bandwidth_mbps: 80, propagation_ms: 5}
+workload:
+  generator: uniform_interarrival
+  length_unit: bytes
+  arrival_time_unit: milliseconds
+  task_count: 100
+  seed: 42
+  interarrival_ms_range: [0, 3]
+  length_bytes_range: [500, 2000]
+  data_size_kb_range: [20, 150]
+  required_resources: {cpu_units: 2, memory_gb: 4}

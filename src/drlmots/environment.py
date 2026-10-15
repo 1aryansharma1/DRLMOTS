@@ -13,7 +13,7 @@ from drlmots.resources import (
     ResourceEvent, ResourceLedger, fits_resources, require_declared_units, validate_resource_units,
 )
 from drlmots.workload import processing_time_ms
-from drlmots.baselines import POLICIES, choose_vm
+from drlmots.baselines import POLICIES, FOG_FIRST_POLICY, choose_vm
 from drlmots.actions import ActionMap, action_mask
 from drlmots.state import DecisionObservation, StateSchema, VMObservation, encode_state
 from drlmots.reward import RewardConfig, RewardResult, score_action
@@ -49,6 +49,9 @@ class SimulationResult:
     decision_schema: dict | None = None
     decisions: tuple[DecisionRecord, ...] = ()
     reward_config: RewardConfig | None = None
+    placement_config: dict | None = None
+    placement_decisions: tuple = ()
+    transfers: tuple = ()
 
     @property
     def completed_count(self) -> int:
@@ -81,6 +84,7 @@ def simulate(
     policy: str = "least_queue_fcfs",
     capture_decisions: bool = False,
     reward_config: RewardConfig | None = None,
+    placement_config=None,
 ) -> SimulationResult:
     """Place tasks using a selected baseline, then execute each VM's queue FCFS.
 
@@ -96,6 +100,14 @@ def simulate(
         raise TypeError("capture_decisions must be bool")
     if reward_config is not None and not isinstance(reward_config, RewardConfig):
         raise TypeError("reward_config must be RewardConfig or None")
+    if placement_config is not None:
+        if capture_decisions or reward_config is not None:
+            raise ValueError("network-aware runs require a new state/reward contract; legacy RL capture is unsupported")
+        from drlmots.fog_cloud import simulate_network
+        return simulate_network(topology, tasks, task_length_unit=task_length_unit,
+                                resource_units=resource_units, policy=policy, placement=placement_config)
+    if policy == FOG_FIRST_POLICY:
+        raise ValueError("fog_first_completion requires schema-3 placement/network settings")
     capture_decisions = capture_decisions or reward_config is not None
     topology.validate()
     units = validate_resource_units({} if resource_units is None else resource_units)

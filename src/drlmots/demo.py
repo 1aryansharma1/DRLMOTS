@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-from drlmots.baselines import POLICY_LABELS
+from drlmots.baselines import POLICY_LABELS, FOG_FIRST_POLICY
 from drlmots.evaluation import compare_policies
 from drlmots.run_config import load_run_config
 
@@ -112,7 +112,7 @@ def _charts(scenario, output_dir):
     ax.barh(labels, failed, left=complete, height=0.45, color="#dba66a", label="Failed")
     ax.invert_yaxis()
     ax.set_xlim(0, max(1, len(reports[0]["outcomes"])))
-    ax.set_xlabel("Tasks (same inputs for both policies)")
+    ax.set_xlabel("Tasks (same inputs for all policies)")
     ax.set_title("Completion and rejection", loc="left", pad=14, color="#152835")
     ax.legend(loc="lower right", frameon=False, ncols=2, bbox_to_anchor=(1, 1.04))
     _style_axis(ax)
@@ -135,7 +135,8 @@ def generate_demo(config_path, output_dir):
         "title": "DRLMOTS · Scheduling prototype",
         "version": scenarios[0]["comparison"]["reports"][0]["version"],
         "scope": "Synthetic resource-aware simulator; no trained reinforcement-learning agent or paper reproduction claim.",
-        "policy_labels": POLICY_LABELS,
+        "policy_labels": {policy: POLICY_LABELS[policy] for policy in scenarios[0]["comparison"]["policies"]},
+        "default_policy": FOG_FIRST_POLICY if config.placement else "least_queue_fcfs",
         "scenarios": scenarios,
     }
     content = json.dumps(bundle, ensure_ascii=True, allow_nan=False)

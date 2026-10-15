@@ -1,11 +1,13 @@
 """Paired synthetic comparisons with fixed inputs and explicit rejection metrics."""
 
-from drlmots.baselines import POLICIES
+from drlmots.baselines import BASELINE_POLICIES, FOG_FIRST_POLICY
 from drlmots.__main__ import configured_report
 from drlmots.run_config import RunConfig
 
 
-def compare_policies(config: RunConfig, policies=POLICIES) -> dict:
+def compare_policies(config: RunConfig, policies=None) -> dict:
+    if policies is None:
+        policies = (*BASELINE_POLICIES, FOG_FIRST_POLICY) if config.placement else BASELINE_POLICIES
     if not policies or len(policies) != len(set(policies)):
         raise ValueError("comparison policies must be nonempty and unique")
     reports = [configured_report(config, policy=policy) for policy in policies]

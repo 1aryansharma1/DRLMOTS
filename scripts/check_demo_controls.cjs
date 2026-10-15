@@ -33,8 +33,10 @@ vm.runInNewContext(script, { document, Blob, URL: {
     return;
   }
   assert.equal(elements.get('scenario').value, 'seeded');
-  assert.equal(elements.get('completed').textContent, 96);
-  assert.equal(elements.get('failed').textContent, 4);
+  const initial = data.scenarios.find(s => s.id === 'seeded').comparison.reports.find(r => r.policy === elements.get('policy').value);
+  assert.equal(elements.get('completed').textContent, initial.completed_count);
+  assert.equal(elements.get('failed').textContent, initial.failed_count);
+  assert.equal(elements.get('policy').children.length, initial.placement ? 3 : 2);
   for (const scenario of data.scenarios) {
     elements.get('scenario').value = scenario.id;
     elements.get('scenario').listeners.change();
@@ -44,7 +46,10 @@ vm.runInNewContext(script, { document, Blob, URL: {
       assert.equal(elements.get('completed').textContent, report.completed_count);
       assert.equal(elements.get('failed').textContent, report.failed_count);
       assert.equal(elements.get('task-rows').children.length, report.outcomes.length);
-      assert.equal(elements.get('comparison-rows').children.length, 2);
+      assert.equal(elements.get('placement-details').hidden, !report.placement);
+      assert.equal(elements.get('placement-rows').children.length, report.placement ? report.outcomes.length : 0);
+      assert.equal(elements.get('comparison-rows').children.length, scenario.comparison.reports.length);
+      assert.match(elements.get('network-note').textContent, report.placement ? /uploads and propagation/ : /network delay is zero/);
       assert.equal(elements.get('pool').children.length, report.topology.vms.length);
       assert.equal(JSON.parse(elements.get('provenance').textContent).seed, 42);
       assert.match(elements.get('timeline').innerHTML, /^<svg\s/);
@@ -54,5 +59,5 @@ vm.runInNewContext(script, { document, Blob, URL: {
     assert.equal(download.download, `drlmots-${scenario.id}-comparison.json`);
     assert.deepEqual(JSON.parse(await exported.text()), scenario.comparison);
   }
-  console.log('Verified all 6 scenario/policy selections, tables, SVG selection, provenance and 3 JSON exports (DOM stub; layout untested).');
+  console.log(`Verified all ${data.scenarios.reduce((sum,s)=>sum+s.comparison.reports.length,0)} scenario/policy selections, tables, SVG selection, provenance and 3 JSON exports (DOM stub; layout untested).`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,6 +1,6 @@
 # DRLMOTS Implementation Progress
 
-**Current stage:** v0.3.0a4 CPU Q-network/selection and demo template-opening fix VERIFIED (2026-10-15).
+**Current stage:** v0.3.0a5 fog-first completion-time scheduling VERIFIED (2026-10-15).
 Phase 3 is verified for the current data/configuration model. Deterministic subsets
 of Phases 4-5 and seeded workload generation are verified. The full paper topology,
 source-audited resource interpretation, physical allocation and DQN remain pending.
@@ -10,12 +10,15 @@ complete, implemented and verified by Codex for ashishjha20. Configuration-drive
 topology and explicit per-VM resource admission/reservation are VERIFIED. v0.2 is
 complete for the A-017/A-020 synthetic baseline scope. The user-requested professor
 demo (A-021) is complete, implemented by Codex for **1aryansharma1 / Aryan Sharma**.
-**Latest delivery (2026-10-15): synthetic P9 Q-network/selection VERIFIED,
+**Latest delivery (2026-10-15): user-requested fog-first/network timing VERIFIED,
 Codex for Aravindak3 / Aravind.** Repository-local author is Aravind with
 `195939576+Aravindak3@users.noreply.github.com`; credential username selects Aravindak3.
 Global identity is unchanged. CPU Q-network and legal masked selector (P9 subset)
 is complete, owned by Codex for Aravindak3 / Aravind (started 2026-10-14, verified
-2026-10-15). No implementation task is active; next is replay/Bellman targets and
+2026-10-15). User-requested fog-first completion-time scheduling is VERIFIED,
+owned by Codex for Aravindak3 / Aravind. No task is active. Before learning on this
+new model, extend/version network-aware observations/reward/transitions; the legacy
+zero-network learning backlog still includes replay/Bellman targets and
 target-network updates (P10 subset), owner unassigned. Replay, interactive
 agent control and DQN training remain pending; v0.3 is partially implemented.
 
@@ -23,7 +26,8 @@ agent control and DQN training remain pending; v0.3 is partially implemented.
 GitHub main at `9604536` before this task. Confirm the latest local/remote HEADs match
 when handing off. If sandboxed authentication fails, push from a normal user terminal.
 The verified v0.1 implementation commit is `993344d`.
-Latest verified implementation: v0.3.0a4 Q-network/selection in this delivery;
+Latest verified implementation: v0.3.0a5 fog-first completion in this delivery;
+prior Q-network `96a5407` and template fix `6f87c53`;
 prior `72255bf` (v0.3.0a3 reward/transitions); normalization:
 `29debfb`; state/actions:
 `a7a08bb`; professor demo:
@@ -77,7 +81,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P5.1 | Configured topology builder | VERIFIED for explicit synthetic topology | `build_topology`, strict runnable YAML schema, `RunConfig` manifest/replay and `--config`; full source-audited paper topology remains NOT STARTED |
 | P5.2-P5.5 | SimPy arrivals, FCFS execution and completion timestamps | VERIFIED for deterministic baseline | Hand-calculated one-task/two-VM cases; waiting and service times; exactly-once outcomes |
 | P5.6 | Queue capacity and fallback | VERIFIED for baseline policy | Explicit capacities, alternate fog-node fallback, full-cluster failure. Paper threshold/tier policy remains open |
-| P5.7 | Network-transfer delays | NOT STARTED | Zero-delay fixture is explicitly recorded in report; no transfer formula is inferred |
+| P5.7 synthetic subset | Explicit network-transfer delays | VERIFIED under A-026 | Per-VM Mbps/ms links, input upload readiness and FCFS overlap/head-of-line events; original-paper network model remains open |
 | P5.8 | Deterministic edge cases | VERIFIED for baseline scope | Empty workloads, simultaneous arrivals/completions, missing VMs, unknown/full queues, duplicate tasks and unsupported resource requests |
 | R004 / P7.3 baseline subset | Explicit per-VM demands/capacities, feasible placement and resource reservations | VERIFIED for synthetic model | Shared declared units, missing capacity never inferred, exact-fit/oversize/full-feasible-queue failures, reserve/release trace, no oversubscription/leak. Original paper resource specification and full P7 remain open |
 | P13.1 synthetic subset / professor demo | Two deterministic placement rules, paired evaluation and visual presentation | VERIFIED software scope | Same inputs/hashes, accounting and restored balances; three presets, offline HTML/JSON/SVG/PNG and talk track. Browser layout not automatically verified; full P13/P15 remain open |
@@ -85,6 +89,7 @@ Use [HANDOFF.md](HANDOFF.md) to begin or hand over a task, and
 | P6.3 synthetic subset | Training-only bounded maximum scaling and saved compatible artifacts | VERIFIED under A-023 | 41 new tests; hand scales, known flags, constants/extremes, immutable statistics, split/task overlap, schema/full topology checks, strict save/load and CLI. Reward delivered separately below; no DQN yet |
 | Initial P8/P11 synthetic subsets | Causal reward, all-arrival return, raw transition export and forced-chain learner adapter | VERIFIED under A-024 | 50 new tests; hand values, causal forecasts, baseline/scaler preservation, terminal/empty/all-rejected runs, gamma boundaries, forced prefixes/chains/suffixes, strict config/action and actual CLI. No live agent or DQN yet |
 | P9 / P10 selection synthetic subsets | CPU Q-network, legal epsilon-greedy and network snapshots | VERIFIED under A-025 | 66 new tests; 47 -> 50 -> 50 -> 3, 5,103 parameters, finite gradients/shapes, local seeds, legal ties/exploration, full artifact context, strict JSON round trip and actual held-out CLI. Replay/updates/live control pending |
+| User-requested P5.7/P7 subset | Fog-first completion with origin reachability and actual transmission timing | VERIFIED under A-026 | 41 new tests; fog wins earlier/equal predicted finishes even when busy, faster cloud fallback, honest upload/queue timing, strict schema-3 replay and 3-policy demo; legacy RL capture blocked |
 
 ## Verification in this checkout
 
@@ -108,6 +113,8 @@ match the resolved runtime versions (filelock changed to 4.1.1).
 | v0.3.0a4 suite: `.venv312\Scripts\python.exe -m pytest -q` | 576 passed on Python 3.12.14 |
 | v0.3.0a4 dependency check | No broken requirements found |
 | Demo source-template opening regression | 577 tests pass; source explains missing data and links to the generated report; generated charts/controls/export still verified in DOM stub |
+| v0.3.0a5 suite / dependency check | 618 tests pass in 48.53 s; no broken requirements |
+| Network CLI / demo | 65 completed/35 rejected; predicted selected finishes match actual; 9 selections/3 exports verified; 21 PNG/21 SVG figures |
 | Resource fixture with `--reward-config configs/reward.yaml` | Six rewards/transitions; return 23/21; unchanged 4 completed/2 rejected, 4 ms and restored balances |
 | 100-task reward fixture | 96/4; 100 records; one terminal; return 67.73152495135943; no actual finish used in reward |
 | v0.3.0a2 dependency check | No broken requirements found |
@@ -128,7 +135,7 @@ serial execution, feasibility, accounting and repeatability. It validates the do
 synthetic resource model, not physical host budgets, DQN behavior, energy, fault tolerance
 or experimental improvements. Old schema-1 config and demand-free workload checksums
 remain unchanged; schema 2 records explicit units/capacities/demands. Editable package
-metadata is now 0.3.0a4 in the separate supported Python 3.12.14 `.venv312`; the earlier
+metadata is now 0.3.0a5 in the separate supported Python 3.12.14 `.venv312`; the earlier
 3.11 `.venv` is preserved. The unchanged base lock is extended by the separate
 optional `requirements-demo-lock.txt`. Representative PNG figures were visually
 inspected; valid SVG namespaces/tooltips and safe embedded JSON are tested. The browser
@@ -148,7 +155,7 @@ These must remain explicit until resolved from the paper or documented as implem
 
 ## Important distinction
 
-The current 577-test suite verifies setup, entities/configuration/topology, fixed and
+The current 618-test suite verifies setup, entities/configuration/topology, fixed and
 seeded workloads, strict runnable YAML, effective-config replay, CLI behavior and
 resource admission/accounting, paired comparisons, figure exports and the initial
 synthetic state/action contract, training-only normalization and synthetic reward/
@@ -161,7 +168,9 @@ DRLMOTS algorithm; see decision A-017.
 ## Resume protocol
 
 State/action, normalization, reward/transitions and CPU Q-network/selection are verified
-under A-022 through A-025. Next implement bounded replay, hand Bellman targets and
+for the zero-network model under A-022 through A-025. A-026 adds a separate network-aware
+rule; extend its observation/reward/transition schema before training on uploads. See
+FOG_CLOUD_POLICY.md. The remaining zero-network gate is bounded replay, hand Bellman targets and
 target-network updates. Document explicit prototype optimizer/gamma/capacity/batch/sync
 choices before updates. Keep current/next vectors normalized with saved training
 statistics. The forced-aware adapter already supplies discounted reward and bootstrap

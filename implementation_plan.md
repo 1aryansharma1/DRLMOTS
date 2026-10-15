@@ -19,6 +19,7 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | 0.3.0a2 | P6.3: training-only scaling, schema/topology-bound statistics, held-out application | VERIFIED `29debfb` under A-023; 460 tests and clean dependency check |
 | 0.3.0a3 | Initial synthetic P8/P11: causal reward, arrival transitions and forced-chain adapter | VERIFIED `72255bf` under A-024; 510 tests and clean dependency check |
 | 0.3.0a4 | Synthetic P9 / P10 selection subset: CPU Q-network, legal epsilon-greedy and compatible snapshots | VERIFIED under A-025; 576 tests, exact reload and held-out inference; see Q_NETWORK.md |
+| 0.3.0a5 | User-requested P5.7/P7 subset: explicit uploads, local fog reachability and fog-preferred finish-time selection | VERIFIED under A-026; 618 tests, network-aware CLI/three-policy demo; legacy RL capture intentionally guarded |
 | 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: network/selection delivered; next replay/targets; live control/training pending |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from drlmots.entities import Host, ResourceTier, VM
 from drlmots.environment import simulate
-from drlmots.baselines import POLICIES
+from drlmots.baselines import POLICIES, FOG_FIRST_POLICY
 from drlmots.run_config import RunConfig, load_run_config
 from drlmots.reward import RewardConfig, load_reward_config
 from drlmots.transitions import build_transitions, summarize_rewards
@@ -26,6 +26,7 @@ def smoke_report(
     policy: str = "least_queue_fcfs",
     capture_decisions: bool = False,
     reward_config: RewardConfig | None = None,
+    placement_config=None,
 ) -> dict:
     if topology is None:
         topology = _smoke_topology()
@@ -36,7 +37,8 @@ def smoke_report(
     ], length_unit="bytes")
     units = {} if resource_units is None else resource_units
     result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units, policy=policy,
-                      capture_decisions=capture_decisions, reward_config=reward_config)
+                      capture_decisions=capture_decisions, reward_config=reward_config,
+                      placement_config=placement_config)
     return _report(topology, tasks, settings, result, units, policy)
 
 
@@ -92,6 +94,17 @@ def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
             "schema": result.decision_schema,
             "decisions": decisions,
         }
+    if result.placement_config is not None:
+        report["network_delay_ms"] = None
+        report["network_delay_model"] = "per-task upload plus propagation; see placement configuration and transfers"
+        report["queue_capacity_semantics"] = "waiting/uploading tasks only; one additional running task per VM"
+        report["no_capacity_policy"] = "reject if no reachable VM satisfies every task demand"
+        report["overflow_policy"] = "reject when all reachable resource-feasible VM queues are full"
+        if policy == FOG_FIRST_POLICY:
+            report["tie_breaking"] = "earliest predicted finish; equal fog/cloud finish prefers fog; VM ID within tier; completions/ready starts precede arrivals"
+        report["placement"] = {"configuration": result.placement_config,
+                               "decisions": [asdict(item) for item in result.placement_decisions],
+                               "transfers": list(result.transfers)}
     if result.reward_config is not None:
         report["reward"] = {
             "configuration": result.reward_config.manifest(),
@@ -103,12 +116,16 @@ def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
     return report
 
 
-def configured_report(config: RunConfig, *, policy: str = "least_queue_fcfs", capture_decisions: bool = False,
+def configured_report(config: RunConfig, *, policy: str | None = None, capture_decisions: bool = False,
                       reward_config: RewardConfig | None = None) -> dict:
+    selected_policy = policy if policy is not None else FOG_FIRST_POLICY if config.placement else "least_queue_fcfs"
     report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units,
-                          policy=policy, capture_decisions=capture_decisions, reward_config=reward_config)
+                          policy=selected_policy, capture_decisions=capture_decisions, reward_config=reward_config,
+                          placement_config=config.placement)
     report["milestone"] = "v0.2 resource-aware baseline" if config.schema_version == 2 else "v0.2 configured topology"
     report["run_configuration"] = config.manifest()
+    if config.placement is not None:
+        report["milestone"] = "network-aware synthetic scheduling"
     return report
 
 
@@ -116,7 +133,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the DRLMOTS software baseline with fixed or seeded inputs")
     parser.add_argument("--output", type=Path, help="Also save the exact inputs and results as JSON")
     parser.add_argument("--config", type=Path, help="Runnable synthetic YAML; cannot combine with workload flags")
-    parser.add_argument("--policy", choices=POLICIES, default="least_queue_fcfs", help="Simple placement comparator")
+    parser.add_argument("--policy", choices=POLICIES, help="Placement policy; schema 3 defaults to fog-first completion")
     parser.add_argument("--capture-decisions", action="store_true", help="Save provisional state vectors, VM action masks and decisions")
     parser.add_argument("--reward-config", type=Path, help="Synthetic reward YAML; implies decision capture")
     parser.add_argument("--task-count", type=int, help="Generate this many synthetic tasks; requires --seed")
@@ -157,13 +174,13 @@ def main() -> None:
         except (TypeError, ValueError) as error:
             parser.error(str(error))
         try:
-            report = smoke_report(settings, policy=args.policy, capture_decisions=args.capture_decisions,
+            report = smoke_report(settings, policy=args.policy or "least_queue_fcfs", capture_decisions=args.capture_decisions,
                                   reward_config=reward_config)
         except (TypeError, ValueError) as error:
             parser.error(str(error))
     else:
         try:
-            report = smoke_report(policy=args.policy, capture_decisions=args.capture_decisions, reward_config=reward_config)
+            report = smoke_report(policy=args.policy or "least_queue_fcfs", capture_decisions=args.capture_decisions, reward_config=reward_config)
         except (TypeError, ValueError) as error:
             parser.error(str(error))
     content = json.dumps(report, indent=2, allow_nan=False)

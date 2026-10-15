@@ -2,6 +2,33 @@
 
 Do not treat any item below as an explicit specification from the paper. Each choice remains **PENDING** until a microtask explicitly resolves it.
 
+## A-026 — User-requested fog-first completion-time scheduling
+
+- **Date/owner:** 2026-10-15, Codex for Aravindak3 / Aravind.
+- **Status:** DECIDED for the requested synthetic policy, not the paper's threshold.
+- **Origin/reachability:** one explicitly configured source end node per run; its
+  linked fog nodes define local fog candidates. All configured cloud VMs are remote
+  candidates. No nearest-by-distance or physical routing is inferred.
+- **Network:** explicit per-candidate bandwidth in decimal Mbps and one-way fixed
+  propagation in ms. Input data_size_kb is decimal kB. Upload time is
+  propagation_ms + 8 * data_size_kb / bandwidth_mbps. Independent uploads overlap
+  without bandwidth contention; response downloads, energy and outages are excluded.
+  Reported paper bandwidth fields are not used as network parameters.
+- **FCFS timing:** accepted uploads occupy a waiting slot until execution starts;
+  only running tasks reserve CPU/memory. A VM runs one task at a time. For each
+  preceding queued task, finish = max(previous finish, its upload-ready time) +
+  service. An arriving task starts at max(queue-tail finish, its upload-ready time).
+  Head-of-line upload waiting is preserved; uploads overlap prior execution.
+- **Preference:** compare the best eligible local fog VM with the best cloud VM.
+  Choose fog if its predicted finish is <= cloud's (exact ties prefer fog); otherwise
+  choose cloud. Within a tier, finish time then VM ID breaks ties. Busy fog is eligible
+  while its waiting queue has room. No arbitrary fog slack or deadline is invented.
+- **Scope:** schema-3 placement settings are explicit/replayable. Earlier schema-1/2
+  zero-network baselines remain unchanged. Legacy state/normalizer/reward traces do
+  not model uploading/head-of-line idle states, so their capture/training path rejects
+  network-aware runs until that contract is extended. Network decision estimates and
+  actual transfer/execution timestamps are exported separately.
+
 ## A-025 — Synthetic CPU Q-network and selection
 
 - **Date/owner:** 2026-10-14, Codex for Aravindak3 / Aravind.

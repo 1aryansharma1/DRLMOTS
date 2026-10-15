@@ -1,4 +1,4 @@
-# Professor demonstration guide - updated for v0.3.0a4
+# Professor demonstration guide - updated for v0.3.0a5
 
 This checkpoint presents a tested synthetic resource-aware scheduling simulator and
 two simple placement rules. It is a foundation for the DRLMOTS implementation. There
@@ -20,6 +20,14 @@ Open **`outputs/demos/drlmots-demo.html`**, the generated report. The file
 Opening that source now shows a link to the generated report and the generation
 command instead of an empty dashboard. If you previously opened the source, close
 that tab and open the generated report above.
+
+For the **network-aware, three-policy demo**, use `configs/fog_cloud.yaml` and
+`--output-dir outputs/demos/fog-cloud`, then open the report in that subfolder.
+It includes explicit uploads/propagation, defaults to fog-first completion, exports
+21 PNG/21 SVG figures and shows **Fog/cloud decisions and transmission times**.
+Read FOG_CLOUD_POLICY.md for the exact timing rule and input assumptions. Its scenario
+counts differ from the original zero-network walkthrough below; never mix their results.
+All three compared policies use identical network settings within each scenario.
 
 The HTML is self-contained and works offline in a normal browser. No server, account,
 GPU or external assets are required. Selectors switch between precomputed simulator
@@ -52,7 +60,7 @@ Outputs (ignored by Git; another contributor regenerates them):
    Show that fog-b remains idle because it cannot satisfy the task demand.
 5. **Evidence and next step (90 seconds).** Expand reproducibility; export JSON. Show
    the unit catalogue, input hashes, queue limits and all-resource-restored check.
-   Explain the next deliverable: replay and target-network learning updates.
+   Explain the next deliverable: a network-aware RL contract, then replay and target updates.
    Arrival-time snapshots, masks, normalization, synthetic rewards/transitions and an
    untrained CPU Q-network are implemented; interactive control and training follow. Generate an optional
    `--capture-decisions` report to show six 47-feature observations and explicit masks.
@@ -86,7 +94,8 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 - **Why these milliseconds?** The fixture explicitly interprets 1000 bytes as 2 ms.
   CPU units affect admission, not speed. The source's unitless task length is unresolved.
 - **Is this a real cloud deployment?** No. It uses SimPy, serial service per VM and
-  zero transfer delay. Physical host budgets, energy/reliability and real datasets
+  zero transfer delay in the original mode; the network mode adds explicit simulated
+  uploads/propagation. Physical host budgets, energy/reliability and real datasets
   have not been implemented.
 - **Which paper?** The repo targets DRLMOTS cloud/fog (DOI 10.1007/s10586-024-04712-z).
   The supplied DRL-MLS Kubernetes PDF is a different paper and its definitions are
@@ -94,7 +103,7 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Verification and pickup
 
-Current v0.3.0a4 verification: `python -m pytest -q` passes 577 tests on Python 3.12.14
+Current v0.3.0a5 verification: `python -m pytest -q` passes 618 tests on Python 3.12.14
 with demo dependencies; `python -m pip check` is clean. The v0.2.1 demo checkpoint
 originally passed 378 tests. Without Matplotlib, the figure
 integration test skips and the core simulator remains usable. Timeline/comparison/
