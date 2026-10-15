@@ -72,7 +72,7 @@
   <details id="placement-details" hidden><summary>Fog/cloud decisions and transmission times</summary><p class="caption">Total time includes input upload, queued work and execution, measured from each task's arrival. Fog-first prefers fog on equal finishes. Uploads overlap existing execution.</p><div id="placement-wrap"><table><thead><tr><th>Task</th><th>Selected VM</th><th>Reason</th><th class="num">Best fog total ms</th><th class="num">Best cloud total ms</th><th class="num">Upload ms</th><th class="num">Predicted finish ms</th></tr></thead><tbody id="placement-rows"></tbody></table></div></details>
   <details><summary>Reproducibility and model limits</summary><pre id="provenance"></pre><p class="quiet">Task length uses the explicit byte-valued test formula, not the paper's unresolved table length. CPU units control admission, not execution speed. No physical host budget, learned policy, energy/reliability result or exact paper reproduction is claimed.</p></details>
   </div>
-  <footer>Professor demo · Reproducible synthetic software baseline. Initial states, normalization, synthetic rewards and an untrained CPU Q-network are implemented. Replay, interactive agent control and DQN training remain future work. SVG/PNG figures and full JSON are exported by the repository command.</footer>
+  <footer>Professor demo · This view compares reference scheduling rules. Standard and network-aware DQN can also train with live simulated placement; their results are in the separate training report. SVG/PNG figures and full JSON are exported by the repository command.</footer>
 </main>
 <script id="demo-data" type="application/json">__DEMO_DATA__</script>
 <script>

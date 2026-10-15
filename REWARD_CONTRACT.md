@@ -20,4 +20,9 @@ masks receive `-P`; the fixture chooses penalty P=1. Both parameters are configu
 finite and positive. Rewards are dimensionless. Admission lies in [0,1] (floating
 underflow may produce zero); rejection is strictly negative. With S=10: a 2 ms task
 starting now gets 5/6, the same task behind 2 ms work gets 5/7, and rejection gets -1.
-The ratio is evaluated without forming potentially overflowing S+L or
+The ratio is evaluated without forming potentially overflowing S+L or L/S.
+
+The original contract-1 API is preserved. The end-to-end live contract-2 pipeline
+uses the same explicit surrogate direction with causal upload-plus-queue timing,
+forced-chain replay credit and no completion bonus. See [LIVE_DQN.md](LIVE_DQN.md)
+for both standard/network-aware training, actual results and full checkpoint resume.

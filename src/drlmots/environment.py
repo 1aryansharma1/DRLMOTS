@@ -85,6 +85,7 @@ def simulate(
     capture_decisions: bool = False,
     reward_config: RewardConfig | None = None,
     placement_config=None,
+    controller=None,
 ) -> SimulationResult:
     """Place tasks using a selected baseline, then execute each VM's queue FCFS.
 
@@ -94,7 +95,11 @@ def simulate(
     task explicitly. This is a software baseline, not the paper's DQN/threshold
     policy. Caller-owned tasks and VM queues are never changed.
     """
-    if policy not in POLICIES:
+    if controller is not None and not callable(controller):
+        raise TypeError("controller must be callable")
+    if controller is not None and (not isinstance(policy, str) or not policy.strip()):
+        raise ValueError("controller requires an explicit policy label")
+    if controller is None and policy not in POLICIES:
         raise ValueError(f"unknown policy {policy!r}; choose one of {POLICIES}")
     if type(capture_decisions) is not bool:
         raise TypeError("capture_decisions must be bool")
@@ -105,7 +110,8 @@ def simulate(
             raise ValueError("network-aware runs require a new state/reward contract; legacy RL capture is unsupported")
         from drlmots.fog_cloud import simulate_network
         return simulate_network(topology, tasks, task_length_unit=task_length_unit,
-                                resource_units=resource_units, policy=policy, placement=placement_config)
+                                resource_units=resource_units, policy=policy, placement=placement_config,
+                                controller=controller)
     if policy == FOG_FIRST_POLICY:
         raise ValueError("fog_first_completion requires schema-3 placement/network settings")
     capture_decisions = capture_decisions or reward_config is not None
@@ -211,6 +217,13 @@ def simulate(
                     vm.vm_id for vm in eligible
                 }:
                     raise RuntimeError("action mask disagrees with simulator eligibility")
+                controlled_vm_id = None
+                if controller is not None:
+                    from drlmots.control import checked_action, decision_frame, zero_network_estimates
+                    estimates = zero_network_estimates(task, env.now, eligible, queues, running, durations)
+                    frame = decision_frame(task, env.now, topology.vms, units, queues, running, durations,
+                                           ledger, estimates, remaining=len(incoming) - index)
+                    controlled_vm_id = checked_action(controller, frame)
                 if not eligible:
                     task.transition_to(TaskStatus.FAILED)
                     outcomes[task.task_id] = TaskOutcome(
@@ -225,7 +238,7 @@ def simulate(
                                                         score_action(observation, None, reward_config)
                                                         if reward_config is not None else None))
                     continue
-                vm = choose_vm(policy, eligible, {
+                vm = next(item for item in eligible if item.vm_id == controlled_vm_id) if controller is not None else choose_vm(policy, eligible, {
                     item.vm_id: len(queues[item.vm_id]) + int(item.vm_id in running)
                     for item in eligible
                 })

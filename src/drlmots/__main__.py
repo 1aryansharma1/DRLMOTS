@@ -27,6 +27,7 @@ def smoke_report(
     capture_decisions: bool = False,
     reward_config: RewardConfig | None = None,
     placement_config=None,
+    controller=None,
 ) -> dict:
     if topology is None:
         topology = _smoke_topology()
@@ -38,7 +39,7 @@ def smoke_report(
     units = {} if resource_units is None else resource_units
     result = simulate(topology, tasks, task_length_unit="bytes", resource_units=units, policy=policy,
                       capture_decisions=capture_decisions, reward_config=reward_config,
-                      placement_config=placement_config)
+                      placement_config=placement_config, controller=controller)
     return _report(topology, tasks, settings, result, units, policy)
 
 
@@ -117,11 +118,13 @@ def _report(topology, tasks, settings, result, resource_units, policy) -> dict:
 
 
 def configured_report(config: RunConfig, *, policy: str | None = None, capture_decisions: bool = False,
-                      reward_config: RewardConfig | None = None) -> dict:
+                      reward_config: RewardConfig | None = None, controller=None) -> dict:
+    if controller is not None and policy is None:
+        raise ValueError("controller requires an explicit policy label")
     selected_policy = policy if policy is not None else FOG_FIRST_POLICY if config.placement else "least_queue_fcfs"
     report = smoke_report(config.workload, topology=config.topology, resource_units=config.resource_units,
                           policy=selected_policy, capture_decisions=capture_decisions, reward_config=reward_config,
-                          placement_config=config.placement)
+                          placement_config=config.placement, controller=controller)
     report["milestone"] = "v0.2 resource-aware baseline" if config.schema_version == 2 else "v0.2 configured topology"
     report["run_configuration"] = config.manifest()
     if config.placement is not None:

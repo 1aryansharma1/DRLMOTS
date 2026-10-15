@@ -1,5 +1,10 @@
 # State and action contract - schema 1
 
+This preserved legacy contract is separate from the live schema-2 training pipeline
+delivered in v0.3.1. See [LIVE_DQN.md](LIVE_DQN.md) for network-ready states, actual
+agent-controlled placement, replay/updates and resumable checkpoints. Historical
+"not yet implemented" statements below refer to the original schema-1 checkpoint.
+
 This is the initial v0.3 state/action milestone (A-022), not the paper's confirmed
 state vector, a trained policy or a complete learning environment.
 

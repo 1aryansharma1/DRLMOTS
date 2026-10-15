@@ -56,6 +56,8 @@ def _layout(schema):
             offset = start + 6 + 4 * resource
             binary.update((offset, offset + 2))
             guards[offset + 1], guards[offset + 3] = offset, offset + 2
+    binary.update(getattr(schema, "extra_binary_indices", ()))
+    guards.update(getattr(schema, "extra_guards", {}))
     return frozenset(binary), guards
 
 
@@ -220,9 +222,12 @@ class StateNormalizer:
 
     @classmethod
     def load(cls, path, *, context):
+        return cls.from_manifest(_read_json(Path(path).read_text(encoding="utf-8")), context=context)
+
+    @classmethod
+    def from_manifest(cls, payload, *, context):
         if not isinstance(context, NormalizationContext):
             raise TypeError("load requires a NormalizationContext")
-        payload = _read_json(Path(path).read_text(encoding="utf-8"))
         fields = {"schema_version", "kind", "algorithm", "context", "maxima", "counts", "scales",
                   "training_vector_count", "training_sources", "sha256"}
         if not isinstance(payload, dict) or set(payload) != fields:

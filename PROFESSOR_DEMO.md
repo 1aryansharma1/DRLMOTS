@@ -1,8 +1,24 @@
-# Professor demonstration guide - updated for v0.3.0a5
+# Professor demonstration guide - updated for v0.3.1
 
-This checkpoint presents a tested synthetic resource-aware scheduling simulator and
-two simple placement rules. It is a foundation for the DRLMOTS implementation. There
-is no trained DQN or claim of reproducing the paper's numbers yet.
+There are now separate reference-rule demos and an actual trained-policy report.
+The standard mode remains; network-aware standard/fog-preferred agents were also
+trained with live simulated placement. No exact paper-reproduction claim is made.
+
+## Actual trained-policy presentation
+
+Run the one-command benchmark in LIVE_DQN.md. Open
+`outputs/training/professor/training-demo.html`, or extract `professor-demo.zip` and
+open the HTML inside the extracted folder. It displays real completed runs without
+JavaScript or a server. Each of three models trained for 20 episodes; full checkpoints,
+loss/return logs and actual task traces are linked. Evaluation is greedy/frozen on
+three held-out workload seeds. The fog variant's tier preference is an explicit rule;
+DQN learns placement among its permitted VMs. Show the rule-only fog-first row too.
+
+Explain the actual finding: trained models do not beat every heuristic after these
+short runs. Three workload seeds are not three independent model initializations.
+Separate zero-network and network comparisons; do not compare their timings as if
+they shared the same environment. Research robustness is the next study, not a claim
+supported by this demo. Browser layout still needs normal desktop/mobile preview.
 
 ## Generate and open
 
@@ -60,9 +76,9 @@ Outputs (ignored by Git; another contributor regenerates them):
    Show that fog-b remains idle because it cannot satisfy the task demand.
 5. **Evidence and next step (90 seconds).** Expand reproducibility; export JSON. Show
    the unit catalogue, input hashes, queue limits and all-resource-restored check.
-   Explain the next deliverable: a network-aware RL contract, then replay and target updates.
+   Explain the next research deliverable: independent model seeds and validation-controlled studies.
    Arrival-time snapshots, masks, normalization, synthetic rewards/transitions and an
-   untrained CPU Q-network are implemented; interactive control and training follow. Generate an optional
+   live trained CPU DQN are implemented in the separate trained report. Generate an optional
    `--capture-decisions` report to show six 47-feature observations and explicit masks.
 
 ## Explain these numbers accurately
@@ -84,12 +100,13 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Likely questions
 
-- **Where is reinforcement learning?** Training is the next milestone. The simulator,
+- **Where is reinforcement learning?** The separate training report shows actual
+  agent-controlled episodes, losses and checkpoints under LIVE_DQN.md. The simulator,
   resource ledger, reproducible evaluation and initial raw state/action trace are
   implemented, along with training-only normalization and a causal synthetic reward.
-  The CPU Q-network and legal selector now work; Q_NETWORK.md demonstrates untrained
-  inference and checkpoint reload. Replay updates and the interactive learning loop
-  are pending, so baseline figures are not learned-policy results.
+  The CPU network, legal selector, replay, optimizer/target updates and full resume
+  now work. The figures in this older reference-rule demo remain baseline results;
+  trained-policy results are clearly separated.
 - **Why does a VM stay idle?** It lacks capacity for the declared task profile.
 - **Why these milliseconds?** The fixture explicitly interprets 1000 bytes as 2 ms.
   CPU units affect admission, not speed. The source's unitless task length is unresolved.
@@ -103,7 +120,7 @@ eligible VM ID. They are synthetic comparators, not CNN/LSTM/GGCN paper implemen
 
 ## Verification and pickup
 
-Current v0.3.0a5 verification: `python -m pytest -q` passes 618 tests on Python 3.12.14
+Current v0.3.1 verification: `python -m pytest -q` passes 677 tests on Python 3.12.14
 with demo dependencies; `python -m pip check` is clean. The v0.2.1 demo checkpoint
 originally passed 378 tests. Without Matplotlib, the figure
 integration test skips and the core simulator remains usable. Timeline/comparison/

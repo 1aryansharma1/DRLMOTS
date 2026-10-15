@@ -1,325 +1,124 @@
 # DRLMOTS collaborator handoff
 
-**Last updated:** 2026-10-15
-**Current checkpoint:** v0.3.0a5 fog-first completion/network timing VERIFIED:
-618 tests and clean dependency check. Prior Q-network `96a5407`; template fix `6f87c53`.
-Prior rewards `72255bf`; normalization `29debfb`;
-state/actions `a7a08bb`.
-**Next task:** version network-aware observations/reward/transitions before RL on uploads;
-owner unassigned. Zero-network replay/target updates remain a separate available gate.
-**Task ownership:** professor demo completed by Codex for **1aryansharma1 / Aryan Sharma**;
-earlier v0.2 work was for ashishjha20. State/actions, normalization, rewards and Q-network completed by Codex for
-**Aravindak3 / Aravind** per the user's account switch. Record the owner and status
-in `progress.md` when starting so another contributor can see what is in progress.
+**Updated:** 2026-10-15. **Current:** v0.3.1 end-to-end synthetic CPU DQN VERIFIED.
+**Tests:** 677 pass with demo dependencies; pip check clean.
+**Owner:** Codex for Aravindak3 / Aravind; no task active.
+Earlier professor demo: Codex for 1aryansharma1 / Aryan Sharma. Earlier baseline work:
+ashishjha20. Preserve contributors' history and the user-selected repo-local identity.
+**Next research task:** independent model-initialization/validation study in NEXT_STEPS.md.
 
-**Full remaining-work list:** [NEXT_STEPS.md](NEXT_STEPS.md). Start with its network-aware RL contract
-checklist, then follow the ordered backlog. No implementation task is active.
+## What now works
 
-**Git workflow:** previous state/action commits were pushed by the user and main was
-confirmed at `9604536` before this task. Git authentication may require a normal user
-terminal because the sandbox blocks the credential helper. Verify latest publication
-by comparing `git rev-parse HEAD` with `git ls-remote origin refs/heads/main`.
+The network actually chooses VMs inside the SimPy arrival loop. Standard zero-network
+mode, network-aware standard DQN and network-aware fog-preferred DQN all work end to
+end, with training-only scaling, replay/targets/Adam, frozen held-out evaluation and
+full JSON checkpoint resume. Old reference rules, schema-1/2 behavior, schema-3
+fog-first rule, legacy raw traces and standalone Q-network artifacts are retained.
 
-## Read this first
+Read LIVE_DQN.md first for complete commands/contracts/results; then NEXT_STEPS.md,
+progress.md, PROGRESS_REPORT.md, assumptions.md (A-027) and implementation_plan.md.
+Older STATE_ACTION_CONTRACT.md, NORMALIZATION.md, REWARD_CONTRACT.md and Q_NETWORK.md
+describe preserved contract-1 APIs; the live pipeline uses a separate contract 2.
 
-1. [README.md](README.md): setup, runnable example, versions and baseline semantics.
-2. [PROGRESS_REPORT.md](PROGRESS_REPORT.md): delivered functionality and latest checks.
-3. [progress.md](progress.md): authoritative microtask state and resume point.
-4. [assumptions.md](assumptions.md): open scientific questions; A-017/A-020 define baseline scopes.
-5. [implementation_plan.md](implementation_plan.md): version gates and full roadmap.
-6. [paper_requirements.md](paper_requirements.md): recorded DRLMOTS source extraction.
-7. [NEXT_STEPS.md](NEXT_STEPS.md): all remaining work through DQN and final evaluation.
-8. [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md): offline report and five-minute walkthrough.
-9. [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md): exact observation/features/actions.
-10. [NORMALIZATION.md](NORMALIZATION.md): separate fitting/application, artifacts and limitations.
-11. [REWARD_CONTRACT.md](REWARD_CONTRACT.md): reward timing, transition boundaries and forced-step discounts.
-12. [Q_NETWORK.md](Q_NETWORK.md): CPU model, legal selector, context-bound snapshots and inference command.
-13. [FOG_CLOUD_POLICY.md](FOG_CLOUD_POLICY.md): user-requested fog preference, real simulated upload timing, schema 3 and RL compatibility boundary.
+## Reproduce
 
-The target of the existing repository plan is DRLMOTS cloud/fog scheduling, DOI
-10.1007/s10586-024-04712-z. The recently supplied PDF describes DRL-MLS Kubernetes
-scheduling, DOI 10.1016/j.future.2026.108459. They are separate papers. v0.1 continues
-the existing repository plan; an independent original-source audit is still pending.
-Do not treat the attached paper's GPU/action/reward definitions as DRLMOTS requirements.
-
-## Get a working checkout
-
-For a new checkout, clone `https://github.com/1aryansharma1/DRLMOTS.git`, enter its
-directory, and follow the setup commands in README. For an existing checkout, inspect
-`git status` first, preserve your local changes, then fetch and fast-forward `main` when
-appropriate. Do not reset someone else's changes.
-
-From a configured repository root on Windows:
+Follow README setup using supported Python 3.11/3.12 and install the dev/demo extras.
+This agent checkout preserves its original .venv and uses ignored .venv312 (Python
+3.12.14); the Store Python was inaccessible. Neither venv is supplied by Git.
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install --no-deps -e .
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m pip check
-.\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
-.\.venv\Scripts\python.exe -m drlmots --task-count 100 --seed 42 --output outputs/metrics/seeded-demo.json
-.\.venv\Scripts\python.exe -m drlmots --config configs/synthetic.yaml --output outputs/metrics/configured-demo.json
-.\.venv\Scripts\python.exe -m drlmots --config configs/resources.yaml --output outputs/metrics/resources-demo.json
+python -m pip install -e '.[dev,demo]'
+python -m pytest -q
+python -m pip check
+python -m drlmots.train benchmark --standard-config configs/normalization_train.yaml --network-config configs/rl_network.yaml --training-config configs/training.yaml --output-dir outputs/training/professor
 ```
 
-Expected current checks: 618 tests pass with demo dependencies (616 pass/two figure
-test skips without Matplotlib); dependency check is clean; fixed example completes three
-tasks with zero failures and 4 ms makespan. The seeded example completes 96 and rejects
-4 because all queues are full, accounting for every input. Configured fixture: six
-tasks on three VMs, all completed in 4 ms. Resource fixture: four complete/two full-feasible-
-queue failures, 4 ms makespan, eight resource events, all balances restored. The editable
-install refreshes version metadata to 0.3.0a5 after pulling. `.venv` is local, not in Git. Python
-3.11.9 was used here; the project requires Python >=3.11,<3.13.
+Open outputs/training/professor/training-demo.html. The offline ZIP must be extracted
+before opening its HTML. Both link all paired runs, actual task traces, logs and
+resumable checkpoints. Outputs/training is ignored: regenerate or obtain the ZIP;
+do not assume another contributor has local artifacts. Fixed smoke workloads are
+unsuitable for held-out training experiments because different seeds can yield the
+same exact task list; that overlap is rejected.
 
-On 2026-10-14 the agent's Store Python was inaccessible, so it preserved `.venv` and
-created ignored `.venv312` with bundled Python 3.12.14. Use that interpreter in this
-checkout; new contributors can create a normal supported 3.11/3.12 venv. Runtime
-version contributes to workload hashes; captured/uncaptured hashes agree within one
-runtime. The shared config checksum and scheduling outcomes stay the same.
-The fresh 3.12 environment passes all 618 tests and pip check. A failed PyTorch
-download was rejected and replaced by a download matching the published PyPI hash.
-Stale generated egg-info was regenerated with setuptools. No dependency pins changed.
+If interrupted, rerun the benchmark with --resume. Matching completed models are
+retained; incomplete ones continue without reinitialization/refitting. Individual
+train/resume/evaluate commands are in LIVE_DQN.md. Resume requires the saved exact
+Python/Torch runtime (this run: Python 3.12.14, Torch 2.14.1+cpu as recorded by the
+checkpoint; inspect its actual runtime string rather than guessing an install build).
+The implementation tests deterministic resumed versus uninterrupted equality.
 
-For the professor report, install `requirements-demo-lock.txt`, refresh the editable
-install, then run `python -m drlmots.demo --config configs/resources.yaml`. Open
-`outputs/demos/drlmots-demo.html` in a normal browser. Outputs are ignored; regenerate
-them in your checkout. Read PROFESSOR_DEMO.md for commands/results/model limitations.
-Representative PNGs and offline DOM-stub controls were checked; real desktop/mobile
-browser layout still needs manual preview because the agent tool blocked local files.
-The source template at `src/drlmots/templates/demo.html` now displays guidance and
-a link to the generated report instead of an empty dashboard. Its no-data startup
-and all six generated scenario/policy combinations plus three exports pass checks.
+## Actual results
 
-## Where the current behavior lives
+Each model trained for 20 episodes (100 tasks each), initialization seed 42,
+training workloads 2000–2019 and calibration subset 2000–2002:
 
-| File / interface | Responsibility and constraints |
+| Model | Updates | Held-out mean completed / 100 |
+|---|---:|---:|
+| standard-zero | 1878 | 93.00 |
+| standard-network | 1885 | 94.33 |
+| fog-preferred-network | 1920 | 96.00 |
+
+Held-out workload seeds: 3000/3001/3002. Within the zero-network experiment least queue
+completes 95.67 on average; within the network experiment fog-first rule completes
+97.67. Do not claim the trained agents beat all rules, converged or reproduced paper
+results. One initialization plus three workload seeds is not an independent training
+seed study. Full timing/returns/sample standard deviations are in JSON/LIVE_DQN.md.
+
+## Code map
+
+| File | Responsibility |
 |---|---|
-| `src/drlmots/entities.py` | Task demands, optional VM resource capacities, Host/VM and lifecycle; amount validation/copying |
-| `src/drlmots/resources.py` | Declared unit catalogue, `fits_resources`, one-running-task ResourceLedger and reserve/release events |
-| `src/drlmots/config.py` | YAML validation; nullable unresolved settings; optional paper experiment settings separate from small fixtures |
-| `src/drlmots/topology.py` | Validated AP/end/fog/cloud links, single host/VM node membership and strict `build_topology`; no VM-to-host assignment |
-| `src/drlmots/run_config.py` | Strict schemas 1/2, effective config/checksum, unit/profile validation and replay; duplicate-safe YAML |
-| `src/drlmots/workload.py` | `SyntheticWorkloadSettings`, `seeded_workload`, `fixed_workload`, explicit-unit `processing_time_ms`, and `workload_manifest` with SHA-256/settings/runtime provenance |
-| `src/drlmots/environment.py` | `simulate(..., task_length_unit="bytes", resource_units=...)`; feasible placement, live local queues/running state, ledger, outcomes/events/final balances |
-| `src/drlmots/__main__.py` | Fixed/seeded/resource examples; `--config`, units/policies, resource events/balances and JSON provenance |
-| `src/drlmots/baselines.py`, `evaluation.py` | Least queue/first fit and paired reports; matched hashes, accounting, restored resources, waiting/occupancy |
-| `src/drlmots/demo.py`, `templates/demo.html` | Three precomputed scenarios, offline report and SVG/PNG exports; optional Matplotlib |
-| `scripts/check_demo_controls.cjs` | Optional Node.js control/export check using a DOM stub, not a browser layout test |
-| `src/drlmots/state.py`, `actions.py` | Immutable provisional observations, schema/unit/hash metadata, raw encoder and stable VM action/mask APIs |
-| `src/drlmots/normalization.py` | Frozen training-only scaler, explicit splits, strict JSON artifacts and full topology/schema compatibility; separate fit/apply CLI |
-| `src/drlmots/reward.py`, `transitions.py` | Explicit synthetic reward config, causal forecasts, all-arrival return, terminal records and forced-chain learner adapter |
-| `src/drlmots/q_network.py` | Context-bound CPU network, finite normalized forward/inference, seeded legal selector, strict JSON network snapshots and held-out inference CLI |
-| `src/drlmots/fog_cloud.py`, `configs/fog_cloud.yaml` | Explicit source/links, fog-preferred predicted finish, FCFS uploading queues, actual upload/execution events and separate decision logs |
-| `tests/unit/test_state_actions.py`, `tests/integration/test_decision_trace.py` | Hand vectors/masks, unknown-vs-zero, invalid shapes/indices, snapshot detachment, timing boundary, CLI/replay and baseline preservation |
-| `tests/unit/` | Entities, topology, configuration and workload boundaries |
-| `tests/integration/test_environment.py` | Exact timelines, fallback, overflow, same-time events, repeatability and accounting |
-| `tests/integration/test_seeded_cli.py` | Seeded simulator accounting, actual CLI output files and invalid-input handling |
-| `tests/unit/test_run_config.py`, `tests/integration/test_configured_run.py` | Strict schema/topology/YAML, effective config replay, exact configured timelines and CLI behavior |
-| `tests/unit/test_resource_*.py`, `tests/integration/test_resource_*.py` | Capacity/unit boundaries, ledger invariants, heterogeneous execution, actual CLI and resource replay |
-| `configs/default.yaml` | Unresolved fields stay null; source-reported settings are recorded separately |
-| `configs/synthetic.yaml` | Explicit runnable three-VM/six-task software fixture, not paper defaults |
-| `configs/resources.yaml` | Schema-2 capacities/units/demand profile; two feasible VMs and a third too small |
+| entities.py / topology.py / resources.py | Validated data, memberships and per-VM reservations; no physical host budget |
+| workload.py / run_config.py | Reproducible tasks, explicit units, strict schema 1/2/3 and effective manifests |
+| environment.py | Standard zero-network event loop; optional validated live callback |
+| fog_cloud.py | Explicit uploads/readiness/reachability, network event loop, fog-first estimates and callback |
+| control.py | Frozen detached task/VM/ordered-queue decision frames; illegal callback choices rejected |
+| rl_state.py | Version-2 encoding/layout, context identity, standard/fog preference masks and causal reward |
+| normalization.py | Existing frozen scaler, now also supports versioned extra flag/placeholder layout |
+| q_network.py | Existing CPU float32 network, selector and validated composable JSON weight artifacts |
+| dqn.py | Hyperparameters, immutable replay, legal targets, target sync/Adam and online forced-chain credit |
+| train.py | Calibration, train/resume/evaluate, exact-task split checks, full JSON checkpoint and atomic saves |
+| training_report.py | Three-model benchmark, actual training/held-out figures, static report and ZIP |
+| demo.py / templates/demo.html | Preserved two/three-reference-policy demos, separate from trained results |
+| configs/training.yaml | Explicit prototype optimizer/exploration/replay/seed settings |
+| configs/rl_network.yaml | Six-VM network fixture providing real within-tier learned choices |
 
-Preserve these tested semantics unless a documented task intentionally changes them:
+New tests: tests/unit/test_dqn.py, tests/integration/test_live_dqn.py,
+tests/integration/test_training_cli.py. They cover actual placement, targets,
+independent target sync, forced chains, frozen scaling/evaluation, context/split
+guards, corrupt checkpoints, exact resume, CLI/ZIP/report links and Windows locks.
+Earlier tests remain regression gates.
 
-- A VM runs one task and has a separately counted waiting queue with explicit capacity.
-- Placement filters componentwise resource-feasible VMs with a waiting slot, then uses
-  least running-plus-waiting count by default; VM ID breaks ties. The optional
-  `first_fit_fcfs` chooses minimum eligible VM ID. These are simple baselines,
-  not DQN or the paper's threshold policy. All configured tiers are eligible.
-- Simultaneous arrivals preserve input order. Completions precede same-time arrivals.
-- No VM satisfying demands and full feasible queues produce distinct FAILED reasons.
-- Task lengths must explicitly use bytes in this model; timestamps/durations use ms.
-  Data size is a separate field. Do not interpret the paper's unitless 700,000 value.
-- Inputs remain unchanged across runs. Every capacity/demand uses the same explicitly
-  declared per-run unit catalogue. Missing/null capacity is unknown, not unlimited.
-  Queue limits stay explicit. Only running tasks reserve; completion releases before
-  queued starts and same-time arrivals. CPU admission units do not change service speed.
-- Schema-1/2 network delay is zero; schema 3 models A-026 uploads. Synthetic zero-network rewards are available; paper energy/reliability
-  and multi-objective reward remain pending.
+## Contracts to preserve
 
-## Completed P4.3 checkpoint
+- Callback frames arrive after same-time completions/queued ready starts, before
+  each task placement. Network starts wait for input upload and FCFS predecessors.
+- One running task per VM; only execution reserves CPU/memory. Uploading tasks count
+  against waiting capacity. All inputs remain unchanged and every task is accounted for.
+- Standard DQN may choose any eligible VM. Fog-preferred DQN has an explicit user
+  constraint: fog choices must be no slower than best cloud when fog is preferred;
+  otherwise cloud choices must beat best fog. Do not present the constraint as learned.
+- Contract 2 retains ordered waiting-slot readiness/service/demand, reachable flags,
+  input upload and known remaining arrival budget. Future task values are hidden.
+- Normalization fits training calibration only and stays frozen. Context binds full
+  topology/units/links/model/action variant/reward/scaler; equal dimensions are insufficient.
+- Reward is immediate causal S/(S+end-to-end duration), rejection -P. Forced rewards
+  fold once into the previous real action; terminal/no-action states never bootstrap.
+- Checkpoints are checksummed non-executable JSON with online/target/optimizer/replay/
+  RNG/config/statistics/history. Logs save before the atomic checkpoint commit marker.
+  Windows sharing locks retry briefly without deleting the previous checkpoint.
+- Evaluation is greedy, has no updates/refit and rejects seed/exact-task overlap.
+  Pair inputs within environments; never conflate zero-network/network timings.
 
-`seeded_workload(SyntheticWorkloadSettings(...))` returns tasks. Pass the same settings
-as `generator_settings` to `workload_manifest` to record random-workload provenance.
-The settings explicitly contain task_count, seed, interarrival_ms_range,
-length_bytes_range and data_size_kb_range. A-018 documents the uniform synthetic model;
-the original paper distribution/dataset identity remain unresolved.
+## Git and remaining science
 
-All previous P4.3 acceptance criteria are verified: local RNG without global mutation;
-repeatable tasks/checksums; zero tasks; unique IDs; validated finite bounds and counts;
-ordered arrivals; seed/settings/versions recorded; actual CLI execution and no output
-file for invalid CLI inputs; existing baseline tests retained. That checkpoint passed
-246 tests; the configured-topology checkpoint passed 304. The latest suite passes 618.
+Work is only in 1aryansharma1/DRLMOTS, main. Inspect status and fetch before edits;
+collaborator documentation through 5dffde0 was merged during this delivery. Preserve
+normal commits/history and verify remote main equals local HEAD after publishing.
+Git Credential Manager may require an authorised unsandboxed push or normal terminal.
+Repo-local author is Aravind with 195939576+Aravindak3@users.noreply.github.com.
 
-## Completed configuration-driven topology
-
-Use `--config configs/synthetic.yaml` or `load_run_config`/`configured_report` to run
-explicit lists/links/capacities and an explicit seeded workload. All schema fields are
-required, unknown fields rejected, counts derived from lists and queue limits positive.
-`configs/default.yaml` is not used as a runnable configuration. CLI seed/count/range
-flags cannot be combined with a run file. A-019 documents this checkpoint's scope.
-
-The effective config/checksum is recorded as `run_configuration`; remove only `sha256`
-and feed that mapping to `parse_run_config` to reproduce the run. Formatting/local
-pathname are excluded. The configured hand calculation and changed-queue-limit tests
-passed with 304 tests at that checkpoint. The latest suite is 618; full paper topology
-and VM-to-host allocation remain open.
-
-## Completed v0.2 resource feasibility
-
-Schema 2 adds run-level `resource_units`, each VM's `resource_capacities`, and workload
-`required_resources`. Existing schema-1 examples remain compatible, including input
-fingerprints. Generated tasks have a constant explicit profile; hand-built workloads
-can vary task demands. A-020 records the componentwise admission, serial execution,
-queue and resource accounting semantics; there is no physical host budget inference.
-
-The 367-test suite verifies exact-fit/oversized/unknown capacity cases, distinct failures,
-fallback, reserve/release ordering, no negative balance or leak, empty/profile provenance,
-heterogeneous 100-task accounting and replay. This completes the version's synthetic
-scope, not the paper's priority/threshold, physical allocation or full Phase 7 requirements.
-
-## Completed professor demo (v0.2.1)
-
-`2083faa` adds two replaceable synthetic policies and paired evaluation with identical
-workload/config hashes, exactly-once outcomes and restored resource balances. It keeps
-the default baseline and old input fingerprints. A-021 records the metric/preset scope.
-The resource seed-42 100-task preset gives least queue 96 completed/4 failed versus
-first fit 91/9; timings use successful tasks, so show rejection counts alongside them.
-Worked example = 4/2, 4 ms; pressure = 4/21. These results do not establish paper improvements.
-
-The offline HTML includes selectors, task outcomes, timelines, VM occupancy and
-provenance; it switches stored reports rather than training/rerunning. Generation
-exports full JSON and 15 SVG/15 PNG figures. The optional demo lock extends the base
-lock; the wheel includes the template. Verification: 378 tests, clean pip check, valid
-SVG/tooltips and inert HTML-like identifiers, hand-calculated policy timelines, paired
-resource safety/replay, all six selections and three exports in a DOM stub. Real
-browser layout is still a manual check; learning/source audit remain open.
-
-To replay a nondefault policy, pass the saved top-level `policy` to
-`configured_report(parse_run_config(saved_config_without_sha), policy=report["policy"])`.
-The shared input checksum intentionally excludes the separately recorded policy.
-
-## Initial v0.3 state/action delivery
-
-A-022 and STATE_ACTION_CONTRACT.md define provisional synthetic state schema 1.
-`simulate(..., capture_decisions=True)` and CLI `--capture-decisions` capture one
-arrival-time snapshot/vector/mask/selection per arrival, including failures. Observations
-follow same-time completions and queued starts; simultaneous arrivals see earlier
-placements. VM/resource columns are sorted and dimensions fixed within a run.
-Unknown capacity is distinct from known available zero. Busy VMs can queue tasks
-fitting total capacity. Ordinary reports remain untraced and all baseline results are
-preserved. Resource fixture: six 47-element vectors, actions 0,1,0,1,null,null.
-
-The environment still executes simple policies to completion. There is no learned
-callback or interactive step API. Rewards/transitions are opt-in exports described
-below. Raw traces keep their unscaled vectors;
-optional normalization is implemented separately below. Aggregated queued service
-does not prove a Markov-complete state. Original A-001 and
-source audit remain open. Read progress.md for actual final verification.
-
-## Completed P6.3 normalization
-
-`29debfb` and A-023 add per-column training maxima and numeric sample counts. Flags
-pass through; unknown amounts are excluded from fitting and remain zero. Zero/unseen
-columns use scale 1; larger held-out values clip before division to avoid overflow.
-Frozen fitted objects and separate fit/apply commands prevent application from updating
-statistics. Artifacts record full topology/schema hashes, provenance and checksums.
-Held-out application rejects training-source/exact-task overlap; caller split labels
-remain declarations. No independent real-dataset split audit or DQN training is claimed.
-
-See NORMALIZATION.md for the two commands. The named train/evaluation fixtures use
-seeds 42/314159 with 100 tasks each. Training fits 100 states; evaluation transforms
-100 47-feature states into [0,1], retaining the baseline's 92 completed/8 rejected.
-All 460 tests pass (41 new normalization tests), including actual CLI, save/load,
-hand ratios, extreme inputs, split isolation, malformed files and context changes.
-
-## Completed synthetic reward and transition checkpoint
-
-`72255bf`/A-024 add `--reward-config configs/reward.yaml`. Scoring implies capture;
-the raw state schema and normalizer behavior stay unchanged. A legal VM's immediate
-reward is S/(S+projected wait+own service), using only arrival-time information.
-Forced rejection gets -P; S=10 ms/P=1 are explicit fixture choices. No reward is added
-again at completion or drain. This surrogate does not resolve paper Eq. (25).
-
-One raw transition is exported per arrival, including null-action forced rejections.
-Only the last arrival is terminal, with null next fields. The pure learner adapter
-absorbs following forced rewards with explicit gamma per arrival; its next mask is
-actionable or terminal. Forced prefixes remain in episode return without fake replay
-actions. Gamma is required; normalization of current/next states remains a caller step.
-At that checkpoint there was no Q-network. The current network milestone is below;
-live agent callback, replay buffer and training loop remain pending.
-
-Verification: 510 tests pass (50 new); six-task return 23/21 with unchanged 4/2 and
-4 ms. Seeded 100-task run keeps 96/4, has 100 rewards/transitions, one terminal record
-and return 67.73152495135943. Hand values, causal extensions, forecasts versus actual
-latency, normalizer preservation, forced prefixes/chains/suffixes, gamma 0/0.5/1,
-invalid configs/actions, empty/all-rejected cases, replay and actual CLI pass.
-
-## Completed CPU Q-network/selection checkpoint
-
-v0.3.0a4/A-025 implements 47 -> 50/ReLU -> 50/ReLU -> 3 for the resource fixture,
-5,103 CPU float32 parameters; dimensions derive from the schema and widths are
-configurable. Local initialization/selection seeds preserve caller RNG. Greedy ties
-pick the first legal action; epsilon exploration samples legal indices only and
-all-false returns None. Forward requires explicit full artifact context and finite
-normalized batches. Observation inference derives scaling/context from real artifacts.
-Strict checksummed JSON saves architecture, full schema/topology, normalizer/reward
-checksums, Torch version and weights. This is a network snapshot, not training state.
-
-66 new tests and all 576 tests pass; pip check is clean. Hand outputs/gradients,
-shapes, local RNG, mask/ties, malformed/context-mismatched checkpoints, exact reload,
-real observations and actual CLI pass. The standalone command in Q_NETWORK.md fits
-100 training states, infers on 100 held-out baseline observations (92 legal/8 None),
-and reloads identical Q-values. These choices are untrained and were not executed.
-Simulator/scaler/reward results remain intact. No learned-policy result is claimed.
-
-## Latest network-aware policy and immediate pickup
-
-The user requested fog preference when fog's overall completion is no later than
-cloud, including busy fog. A-026/FOG_CLOUD_POLICY.md define explicit decimal kB/Mbps/ms
-links and source-end reachability. Compare max(upload-ready, FCFS queue-tail finish)
-+ service, with fog winning equal finishes. Actual execution waits for upload and
-reserves resources only when running. Uploading tasks occupy queue slots. All three
-policies use the same network when comparing schema-3 runs; old schemas stay unchanged.
-
-618 tests pass (41 new); forecast/actual timestamps, busy fog/faster cloud/ties,
-source routing, queue pressure, resources, causality, manifest replay and real CLI
-are verified. Network demo: 9 choices/3 exports in DOM stub, 21 PNG/21 SVG, decision
-table. Seed-42 fixture: fog-first 65/35 versus baselines 62/38; this is not a general
-performance claim. See the policy doc for the command and limits.
-
-**Claim this before network-aware RL:** define a versioned observation, action mask,
-normalizer/checkpoint context, reward timing and forced-transition contract that can
-represent idle VMs uploading queued inputs. Include source/link readiness and test
-hand vectors, masks, upload/completion ordering, causal total-time rewards and context
-rejection. Legacy capture/reward/normalization deliberately fail on network runs;
-do not bypass that guard or reuse old checkpoints under a new timing model. The
-existing zero-network Q-network is untrained. After the new contract gate, continue
-with replay/target updates below, live agent control and training.
-
-## Remaining replay and target update gate (zero-network contracts already available)
-
-1. Claim P10 in progress.md. Record provisional gamma, optimizer/learning rate,
-   batch size, replay capacity, seed and sync interval under a new assumption/config;
-   A-009 remains a paper ambiguity. No unexplained paper defaults.
-2. Implement bounded replay with copied/detached normalized transitions, explicit
-   dimension/context checks and local seeded sampling without global RNG mutation.
-3. Use `build_learning_transitions(...,gamma=...)`: its accumulated reward and
-   bootstrap_discount already account for forced chains. Normalize both states with
-   the frozen scaler. Never gather None or max an all-false next mask.
-4. Test hand targets `reward + bootstrap_discount * max_legal(target_Q(next))`;
-   terminal target is reward. Target network is separate, frozen/no-grad and initially
-   copied exactly. Verify online updates leave target unchanged until explicit sync.
-5. Test capacity/eviction/sampling, gamma boundaries, illegal actions, terminal/forced
-   chains, finite loss/gradients and a real parameter update. Retain all 618 tests.
-6. Update reports and commit the verified gate. Live agent control (P11), CPU smoke
-   training/checkpoints/evaluation (P12) remain the following tasks.
-
-Finish criterion: hand-correct masked Bellman targets and finite reproducible updates
-from valid transitions, with independently verified target synchronization. This does
-not yet establish an interactive learned policy or paper reproduction.
-
-Keep each change small enough to review. v0.3 is partially implemented, not complete.
-Do not begin DQN training until state/action/reward definitions, metrics and simulator
-prerequisites are verified. Source ambiguity should become a recorded assumption or
-open item, never an undocumented formula or a claim of reproduced results.
+The repo targets DRLMOTS cloud/fog (DOI 10.1007/s10586-024-04712-z). The supplied
+DRL-MLS Kubernetes PDF (DOI 10.1016/j.future.2026.108459) is different. Original-source
+audit, real data, host mapping, richer network/service models, energy/reliability,
+paper reward/thresholds and paper comparators remain open. See NEXT_STEPS.md.

@@ -1,5 +1,9 @@
 # Synthetic CPU Q-network and legal action selection
 
+**Current update:** the legacy network API described here is retained. v0.3.1 adds
+actual live training, resume and evaluation for both environments via LIVE_DQN.md.
+The historical P9 checkpoint below intentionally describes the earlier untrained stage.
+
 Version 0.3.0a4 implements the P9 prototype subset under A-025. It produces
 untrained Q-values and legal selections. Replay, Bellman targets, optimizer updates,
 live agent control and training remain subsequent milestones. This is separate from

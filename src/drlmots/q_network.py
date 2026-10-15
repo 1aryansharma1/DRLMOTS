@@ -120,7 +120,7 @@ class QNetwork(nn.Module):
             return self(torch.tensor([scaled], dtype=torch.float32, device="cpu"),
                         context=context)[0].detach().clone()
 
-    def save(self, path):
+    def artifact(self):
         weights = {}
         for name, value in self.state_dict().items():
             if value.dtype != torch.float32 or value.device.type != "cpu" or not torch.isfinite(value).all():
@@ -130,6 +130,10 @@ class QNetwork(nn.Module):
                    "architecture": self.config.manifest(), "context": self.context.manifest(),
                    "runtime": {"torch": str(torch.__version__)}, "weights": weights}
         artifact = {**payload, "sha256": _digest(payload)}
+        return artifact
+
+    def save(self, path):
+        artifact = self.artifact()
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(_canonical(artifact) + "\n", encoding="utf-8")
@@ -137,9 +141,12 @@ class QNetwork(nn.Module):
 
     @classmethod
     def load(cls, path, *, context):
+        return cls.from_artifact(_read_json(Path(path).read_text(encoding="utf-8")), context=context)
+
+    @classmethod
+    def from_artifact(cls, artifact, *, context):
         if not isinstance(context, NetworkContext):
             raise TypeError("load requires NetworkContext")
-        artifact = _read_json(Path(path).read_text(encoding="utf-8"))
         fields = {"schema_version", "kind", "architecture", "context", "runtime", "weights", "sha256"}
         if not isinstance(artifact, dict) or set(artifact) != fields:
             raise ValueError("invalid Q-network checkpoint fields")

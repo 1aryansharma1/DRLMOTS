@@ -1,5 +1,9 @@
 # Fog-first completion-time policy
 
+**Current update:** v0.3.1 now provides end-to-end live DQN on this timing model,
+including standard and explicitly fog-constrained variants. See LIVE_DQN.md. The
+contract-1 guard below is retained; new training uses a separate version-2 callback.
+
 Version 0.3.0a5 implements the user's requested policy, `fog_first_completion`, under
 A-026. It is a deterministic scheduling rule; it is not learned RL or the paper's
 unresolved fog/cloud threshold formula.
@@ -98,7 +102,7 @@ The original observation/reward contract assumes zero network delay and cannot e
 idle VMs with uploading queues. Network-aware runs therefore **reject legacy decision
 capture/reward/normalization**, rather than silently emitting incompatible learning
 data. Placement estimates/transfers are exported in a separate report section.
-The existing zero-network RL prerequisites and untrained Q-network remain available.
-Before training on this model, version the observation/action/normalizer context and
-reward/transitions to include origin, link/upload readiness and FCFS upload waiting.
-Replay/target updates and live agent control/training then follow.
+The original zero-network APIs remain available. A-027/LIVE_DQN.md implement the
+new observation/normalizer context, reward, forced transitions, replay/targets and
+live agent-controlled training for both timing models. No contract-1 artifact is
+silently reinterpreted as a network-aware model.

@@ -2,6 +2,46 @@
 
 Do not treat any item below as an explicit specification from the paper. Each choice remains **PENDING** until a microtask explicitly resolves it.
 
+## A-027 — End-to-end CPU DQN, retained standard mode and fog-preferred variant
+
+- **Date/owner:** 2026-10-15, Codex for Aravindak3 / Aravind; requested live training,
+  placement, resume and evaluation across both existing and new environments.
+- **Status:** DECIDED for the synthetic prototype; paper A-009/A-010 remain open.
+- **Contract 2:** retain contract-1 encoder/checkpoints. New causal frames contain
+  ordered queued upload readiness/service/resource demands, reachable VM flags,
+  input upload and queue-tail duration plus the known remaining arrival budget.
+  Future task values remain hidden. No proof of general real-world Markov completeness
+  or audited paper state is claimed. New schema/context includes full topology,
+  links/origin/model, queue capacities, action variant and reward version.
+- **Standard DQN:** choose among all resource/queue/reachability-legal VMs.
+- **Fog-preferred DQN:** apply the user's deterministic completion preference as an
+  explicit action constraint; among qualifying VMs DQN learns placement. If best fog
+  <= best cloud, only fog VMs no slower than best cloud are allowed; otherwise only
+  cloud VMs faster than best fog. Do not call this constraint a learned discovery.
+- **Reward:** immediate S/(S+causal end-to-end duration), forced rejection -P, with
+  S=10 ms and P=1 by default. No completion/drain bonus. All-arrival return includes
+  forced prefixes; learner transitions fold following forced rewards with gamma per
+  arrival and gamma**steps bootstrap. Only final actionable transition is terminal.
+- **Learning:** configurable (50,50) ReLU CPU float32 network, Adam lr .001,
+  betas (.9,.999), eps 1e-8, no weight decay; Smooth L1 loss, norm clip 10,
+  gamma .95, replay 2000, batch 32, target hard-copy every 50 updates. These are
+  explicit prototype settings, not verified paper hyperparameters.
+- **Exploration:** epsilon linearly decreases 1 -> .05 across 2000 actionable training
+  choices; evaluation epsilon 0. Local seeded sampling/selection; forced choices
+  consume no action RNG. CPU execution uses one thread inside a restored context.
+- **Splits:** default 20 episode seeds starting at 2000, first 3 used only as the
+  training calibration fit. Held-out seeds 3000/3001/3002 never fit/update/select a
+  checkpoint. Reject overlap in seeds and exact task hashes, even across seed labels.
+  No tuning/model selection on test results; report all requested variants honestly.
+- **Persistence:** checksummed JSON online/target weights, Adam moments, replay,
+  local RNG states, scaler/provenance, counters/config and losses/history. Resume
+  requires matching Python/Torch runtime for deterministic continuation. JSON is not
+  executable pickle; checksum is corruption detection, not an authenticity signature.
+- **Evaluation:** pair baselines and trained agents on identical inputs within each
+  environment/seed; zero-network and network timings are separate experiments. No
+  guaranteed DQN superiority; report completed/rejected tasks, successful latency,
+  all-arrival return, seed counts and sample standard deviations.
+
 ## A-026 — User-requested fog-first completion-time scheduling
 
 - **Date/owner:** 2026-10-15, Codex for Aravindak3 / Aravind.

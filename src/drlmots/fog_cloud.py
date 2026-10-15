@@ -127,13 +127,13 @@ class PlacementDecision:
     candidates: tuple[CompletionEstimate, ...]
 
 
-def simulate_network(topology, tasks, *, task_length_unit, resource_units, policy, placement):
+def simulate_network(topology, tasks, *, task_length_unit, resource_units, policy, placement, controller=None):
     # Local import avoids a cycle while returning the shared result/outcome contract.
     from drlmots.environment import SimulationResult, TaskOutcome
 
     if not isinstance(placement, FogCloudSettings):
         raise TypeError("network simulation requires FogCloudSettings")
-    if policy not in (*BASELINE_POLICIES, FOG_FIRST_POLICY):
+    if controller is None and policy not in (*BASELINE_POLICIES, FOG_FIRST_POLICY):
         raise ValueError("unknown network scheduling policy")
     if task_length_unit != "bytes":
         raise ValueError("task_length_unit must explicitly be 'bytes' for this model")
@@ -205,6 +205,14 @@ def simulate_network(topology, tasks, *, task_length_unit, resource_units, polic
                 feasible = [vm for vm in candidates if fits_resources(task, vm)]
                 eligible = [vm for vm in feasible if len(queues[vm.vm_id]) < vm.queue_capacity]
                 estimates = tuple(estimate(vm, task) for vm in eligible)
+                controlled_vm_id = None
+                if controller is not None:
+                    from drlmots.control import checked_action, decision_frame
+                    uploads = {vm.vm_id: links[vm.vm_id].upload_ms(task.data_size_kb) for vm in candidates}
+                    frame = decision_frame(task, env.now, topology.vms, units, queues, running, durations,
+                                           ledger, estimates, remaining=len(incoming) - index,
+                                           reachable=links, ready=ready, uploads=uploads)
+                    controlled_vm_id = checked_action(controller, frame)
                 if not eligible:
                     task.transition_to(TaskStatus.FAILED)
                     reason = ("no reachable VM can satisfy task resources" if not feasible
@@ -213,7 +221,10 @@ def simulate_network(topology, tasks, *, task_length_unit, resource_units, polic
                                                         task.arrival_time, None, None, reason)
                     decisions.append(PlacementDecision(task.task_id, env.now, None, reason, ()))
                     continue
-                if policy == FOG_FIRST_POLICY:
+                if controller is not None:
+                    selected = next(item for item in estimates if item.vm_id == controlled_vm_id)
+                    reason = policy
+                elif policy == FOG_FIRST_POLICY:
                     selected = choose_completion_vm(estimates)
                     has_fog = any(item.tier is ResourceTier.FOG for item in estimates)
                     has_cloud = any(item.tier is ResourceTier.CLOUD for item in estimates)

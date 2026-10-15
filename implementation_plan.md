@@ -20,7 +20,8 @@ microtasks stay pending. This staged scope is documented in assumptions A-017.
 | 0.3.0a3 | Initial synthetic P8/P11: causal reward, arrival transitions and forced-chain adapter | VERIFIED `72255bf` under A-024; 510 tests and clean dependency check |
 | 0.3.0a4 | Synthetic P9 / P10 selection subset: CPU Q-network, legal epsilon-greedy and compatible snapshots | VERIFIED under A-025; 576 tests, exact reload and held-out inference; see Q_NETWORK.md |
 | 0.3.0a5 | User-requested P5.7/P7 subset: explicit uploads, local fog reachability and fog-preferred finish-time selection | VERIFIED under A-026; 618 tests, network-aware CLI/three-policy demo; legacy RL capture intentionally guarded |
-| 0.3 | P6-P12: documented state/action/reward, network/replay, CPU learning and checkpoints | Partial: network/selection delivered; next replay/targets; live control/training pending |
+| 0.3.1 | A-027 synthetic P6/P8/P10-P13: live state/control, replay/targets/Adam, full resume and both environment modes | VERIFIED; 677 tests; 3 x 20 actual training episodes and paired held-out evaluation; LIVE_DQN.md |
+| 0.3 | P6-P12: documented synthetic state/action/reward, network/replay, CPU learning and checkpoints | Delivered for prototype scope; paper fidelity and larger statistical studies remain open |
 | 1.0 | Original-paper audit, experiment sizes, appropriate baselines and evaluation | Numerical reproduction only where source/data/definitions support it |
 
 v0.1 does not complete P4.3-P4.5, the full P5.1 topology builder, P5.7 transfer delays,

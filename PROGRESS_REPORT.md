@@ -2,7 +2,8 @@
 
 **Report date:** 2026-10-15 (Asia/Kolkata)
 **Branch:** main
-**Implementation checkpoint:** v0.3.0a5 user-requested fog-first completion/network timing VERIFIED;
+**Implementation checkpoint:** v0.3.1 live DQN for both environments VERIFIED;
+prior fog-first `2ad7e4b`;
 prior Q-network `96a5407` and template fix `6f87c53`;
 prior rewards `72255bf`;
 normalization `29debfb`;
@@ -13,20 +14,56 @@ prior configured/seeded checkpoints `e97a14d` / `7ebf8d6`.
 **Working status:** state/action, normalization, synthetic rewards and Q-network completed by Codex for **Aravindak3 /
 Aravind**. Repository-local commit identity uses `195939576+Aravindak3@users.noreply.github.com`
 and credential selection requests that account. v0.1/v0.2 and the prior professor
-demo are verified. Network-aware observation/reward/transition versioning is next,
-unassigned; the existing zero-network replay/target gate remains available;
-interactive agent control, replay and DQN training remain pending.
+demo are verified. Contract-2 state/reward, live placement, replay, Adam/target updates,
+full resume and held-out evaluation are complete. Standard and fog-preferred models
+were actually trained. Next is an independent initialization/validation study.
 
 **Pickup status:** no active implementation task; next owner unassigned. The complete
 ordered remaining-work list is [NEXT_STEPS.md](NEXT_STEPS.md), including the immediate
-network-aware RL contract, replay/target acceptance criteria and later source/evaluation gates.
+multi-initialization/validation experiment and later source/model-fidelity gates.
 
 **Git publication:** the prior state/action implementation/handoff was pushed by the
 user and confirmed on main at `9604536`. For the latest checkpoint compare local HEAD
 with GitHub's main reference. Authentication may require a normal user terminal when
 the sandbox cannot run Git Credential Manager.
 
-## Latest checkpoint - v0.3.0a5 fog-first completion and actual upload timing
+## Latest checkpoint - v0.3.1 end-to-end live CPU DQN
+
+The Q-network now chooses actual VM placements during the event loop. Both the
+original zero-network simulator and new upload/propagation model support immutable
+contract-2 states with ordered queue readiness, legal masks and immediate causal
+end-to-end rewards. Standard DQN chooses all legal VMs; fog-preferred DQN learns
+inside an explicit completion preference. Reference rules and old contracts remain.
+
+Bounded replay folds forced arrivals without fake actions; masked Bellman targets,
+Smooth L1/Adam, finite clipped gradients and a separate frozen/synchronized target
+network are implemented. Checkpoints contain weights, optimizer, replay, local RNG,
+training-only scaler/provenance, configs and counters. Exact resume, immutable greedy
+evaluation and seed/task overlap rejection are tested. Windows atomic-save lock retry
+was exercised in the actual run; it resumed without restarting or refitting.
+
+**677 tests pass**, including **59 new live-training tests**; pip check is clean.
+Three actual models trained for 20 episodes each: standard-zero **1878** updates,
+standard-network **1885**, fog-preferred-network **1920** (total **5683**). All changed
+initial weights and reloaded full checkpoints. Held-out seeds 3000/3001/3002 were
+evaluated without any update/refit; comparisons pair exact inputs within each model.
+
+Mean completions per 100 tasks: zero-network least-queue 95.67, first-fit 93.00,
+standard DQN 93.00; network least-queue 94.33, first-fit 93.00, fog-first rule 97.67,
+standard DQN 94.33, fog-preferred DQN 96.00. These short runs do not beat every
+heuristic and do not establish convergence or statistical robustness. Only one
+initialization seed was used per model. Do not tune on the reported test seeds.
+
+The static offline training report includes loss/return curves, paired results,
+actual traces, resumable checkpoints and a ZIP with verified local links/integrity.
+Five PNG/five SVG figures were generated; representative figures were inspected.
+Browser layout remains a manual check. Full commands/results/contracts and the
+next research gate are in LIVE_DQN.md/NEXT_STEPS.md. Generated outputs are ignored.
+
+Collaborator documentation through main `5dffde0` was merged without discarding the
+new scheduling work. Commit identity remains Aravind / Aravindak3.
+
+## Previous checkpoint - v0.3.0a5 fog-first completion and actual upload timing
 
 The requested policy compares eligible local fog and cloud predicted finishes and
 prefers fog on equal or earlier finish, including busy fog with queue space. Schema-3
@@ -323,7 +360,7 @@ paper's scheduling algorithm, or its reported experimental improvements are repr
 ## Verification
 
 The v0.1 checks below were rerun on 2026-10-13 using this checkout's Python 3.11.9
-virtual environment before its publication. The latest suite is 618 tests above:
+virtual environment before its publication. The latest suite is 677 tests above:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -363,21 +400,22 @@ exist; current untrained network snapshots are described above.
 - Source-audited resource values and physical VM-to-host allocation remain unresolved.
   Explicit synthetic per-VM feasibility/reservation is implemented, with no inferred host budget.
 - Paper priorities, thresholds, source-audited state/action encoding, reward, energy/fault metrics,
-  DQN training/checkpoints and full paper comparators/evaluation: pending. Two simple
+  full paper comparators/evaluation: pending. Synthetic DQN training/checkpoints and
+  the reference policies are now implemented. Two simple
   synthetic policies and paired demo evaluation are now verified under A-021.
 - The original DRLMOTS source needs an independent audit against `paper_requirements.md`.
   The 16-page DRL-MLS Kubernetes PDF supplied in this session is a different paper;
   its GPU/resource/reward definitions have not been merged into DRLMOTS.
 - The existing source extraction has unresolved units, rewards, training parameters,
-  dataset identity and conflicting experiment settings. See assumptions A-001 through A-026.
+  dataset identity and conflicting experiment settings. See assumptions A-001 through A-027.
 
 ## Next delivery
 
 v0.2's scoped baseline and the initial v0.3 state/action implementation are delivered.
 Training-only normalization, synthetic rewards/transitions and CPU Q-network/selection are verified;
-Fog-first network timing is verified; next is a versioned network-aware RL contract,
-followed by replay/Bellman targets and target-network updates. Remaining source/learning checks
-must pass before DQN training. Keep original paper-specific tasks open until verified.
+Fog-first/network-aware and standard live DQN training are verified. Next is the
+predeclared multi-initialization/validation study in NEXT_STEPS.md; original
+paper-specific tasks remain open until independently verified.
 
 See [HANDOFF.md](HANDOFF.md) for concrete starting steps and acceptance criteria.
 Update [progress.md](progress.md) when a task is claimed or actually verified.

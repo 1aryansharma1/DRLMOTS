@@ -134,7 +134,7 @@ def generate_demo(config_path, output_dir):
     bundle = {
         "title": "DRLMOTS · Scheduling prototype",
         "version": scenarios[0]["comparison"]["reports"][0]["version"],
-        "scope": "Synthetic resource-aware simulator; no trained reinforcement-learning agent or paper reproduction claim.",
+        "scope": "Reference-rule comparisons only; trained DQN runs are in the separate training report. No paper reproduction claim.",
         "policy_labels": {policy: POLICY_LABELS[policy] for policy in scenarios[0]["comparison"]["policies"]},
         "default_policy": FOG_FIRST_POLICY if config.placement else "least_queue_fcfs",
         "scenarios": scenarios,

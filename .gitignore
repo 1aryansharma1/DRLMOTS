@@ -31,6 +31,7 @@ outputs/metrics/
 outputs/figures/
 outputs/checkpoints/
 outputs/demos/
+outputs/training/
 
 # Downloaded/raw datasets
 data/raw/*
