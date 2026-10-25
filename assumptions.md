@@ -572,3 +572,26 @@ The paper's unresolved items remain OPEN/PENDING unless separately resolved with
   before evaluation. It is not the delivered experiment; final run uses the declared
   fresh-seed configuration. Existing generated outputs were preserved, not deleted.
 - Source/data/failure/physical-host/paper-baseline gaps remain open. See MULTI_OBJECTIVE.md.
+
+
+## A-029 - Observed node failures, bounded passive restart and accounting
+
+Date: 2026-10-25. User requested failure/recovery and time/energy reports before the
+next training study. Failure domains follow fog/cloud topology membership. A fixed,
+exogenous node outage trace is shared across policies; optional pre-sampling uses
+local per-node streams. Immediate detection, durable source input, restart from zero
+on another current up/reachable/feasible node, bounded retries and backup waits.
+Completions precede same-time faults. Recovery dispatch precedes new arrivals.
+All tasks settle by a common fixed observation horizon; unfinished work fails.
+
+Joules use actual partial service and bytes serialized, idle uptime excluding service
+and downtime, and explicit coordinator active delay. Retry costs are never erased.
+Task latency partitions into attempt time plus recovery blocking. Metrics distinguish
+rejection, permanent execution failure and recovered completion. No active replicas,
+checkpoint migration, real power calibration or physical-host allocation is implied.
+
+Legacy simulator/DQN/reward contracts remain unchanged. The new observed objective
+vector is makespan/total energy/unsuccessful fraction. Old analytical risk coefficients
+are not sampled as failures or used as future fault information. Fault-aware DQN state,
+actions and delayed rewards are explicitly the next contract before new training.
+See FAILURE_RECOVERY.md and RECOVERY_RESULTS.md for tests, commands and actual scope.

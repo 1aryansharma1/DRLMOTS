@@ -1,5 +1,7 @@
 # Multi-objective scheduling and efficiency reports
 
+Current extension (2026-10-25, A-029): actual node outages, bounded restart recovery and full time/energy accounting now exist in a separate environment. See [FAILURE_RECOVERY.md](FAILURE_RECOVERY.md) and [RECOVERY_RESULTS.md](RECOVERY_RESULTS.md). The analytical-risk mode described below is retained; its DQN checkpoints are not fault-aware and are not relabelled as observed recovery results.
+
 Updated 2026-10-25 (Asia/Calcutta). Prototype decision A-028.
 
 The original latency-only training remains available. An optional reward contract 3

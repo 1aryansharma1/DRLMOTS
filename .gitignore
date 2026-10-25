@@ -33,6 +33,7 @@ outputs/checkpoints/
 outputs/demos/
 outputs/training/
 outputs/efficiency/
+outputs/recovery/
 outputs/paper-audit/
 
 # Downloaded/raw datasets

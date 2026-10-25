@@ -1,5 +1,7 @@
 # End-to-end live DQN: standard and network-aware modes
 
+Current extension (2026-10-25, A-029): actual node outages, bounded restart recovery and full time/energy accounting now exist in a separate environment. See [FAILURE_RECOVERY.md](FAILURE_RECOVERY.md) and [RECOVERY_RESULTS.md](RECOVERY_RESULTS.md). The analytical-risk mode described below is retained; its DQN checkpoints are not fault-aware and are not relabelled as observed recovery results.
+
 Version **0.3.1**, assumption A-027. The Q-network now controls actual VM placement
 inside the SimPy event loop and learns from those placements. All earlier reference
 policies, YAML schemas, raw contract-1 traces and demos remain available.

@@ -15,7 +15,7 @@ It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **698 tests** with the demo dependencies on Python 3.12.14
+The current suite passes **732 tests** with the demo dependencies on Python 3.12.14
 (2026-10-25); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
@@ -38,6 +38,26 @@ not reproduce the paper's experimental results. The source supplied during this 
 different DRL-MLS Kubernetes paper (DOI 10.1016/j.future.2026.108459); its algorithm has
 not been merged into the DRLMOTS model. Before making paper-fidelity claims, review the
 original DRLMOTS paper against the existing extraction.
+
+## Observed failures and restart recovery (2026-10-25)
+
+A separate versioned mode now interrupts actual simulated tasks when fog/cloud nodes
+fail, retries eligible tasks on another node, and accounts for partial/repeated uploads,
+execution, idle power and recovery overhead over a common observation horizon.
+Existing no-failure simulators and analytical-risk DQN results are preserved.
+See [FAILURE_RECOVERY.md](FAILURE_RECOVERY.md) for the teaching approach/contracts,
+and [RECOVERY_RESULTS.md](RECOVERY_RESULTS.md) for verified results and remaining work.
+
+~~~powershell
+.\.venv312\Scripts\python.exe -m drlmots.recovery_report --config configs/rl_network.yaml --objectives configs/objectives.yaml --recovery-config configs/failure_recovery.yaml --seeds 5200 5201 5202 5203 5204 --output-dir outputs/recovery/professor
+Start-Process .\outputs\recovery\professor\recovery-report.html
+~~~
+
+The report compares no failures, failures without recovery, and identical failures
+with recovery. It contains actual task attempts, energy/time ledgers, charts and a
+ZIP/CSV/JSON/Markdown bundle. The old DQN state/reward lacks these fault/retry events;
+a fault-aware learning contract is the next step before training on this environment.
+
 
 ## Multi-objective efficiency extension (2026-10-25)
 
@@ -101,7 +121,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 698 passing tests with the demo extra. Optional figure/report tests may skip without it. The last command prints
+Expected checks: no broken requirements; 732 passing tests with the demo extra. Optional figure/report tests may skip without it. The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.

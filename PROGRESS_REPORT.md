@@ -1,5 +1,31 @@
 # DRLMOTS progress report
 
+## Latest verified delivery - actual failure/recovery (2026-10-25)
+
+Owner: Codex for ashishjha20. A-029 implements a separate observed node-failure and
+bounded restart-recovery environment, retaining all previous simulators/models.
+732 tests pass (34 new); dependency check clean. Artifact checks: 69 local links,
+75 ZIP entries/CRC, 60 task/resource traces and 5 PNG/5 SVG plots. Representative
+figures inspected; browser layout remains a manual presentation check. Node failures affect all member VMs;
+interrupted work is retried on another node with complete partial/repeated time and
+energy accounting. CPU/memory releases, input immutability, no future-fault leakage,
+shared outage traces and no-failure baseline parity are verified.
+
+Actual report: 60 simulations (four rules x three modes x five workloads), fixed
+250 ms energy horizon. Fog-first completed 69.8/100 without recovery vs 76.0 with it,
+but energy and successful latency rise; retries also displace new admissions. No
+DQN has been trained for this new fault environment; old analytical-risk checkpoints
+are preserved and incompatible by design. Next: version the fault-aware state/action/
+reward and delayed terminal credit, then untrained/validation experiments.
+
+Read [FAILURE_RECOVERY.md](FAILURE_RECOVERY.md) and [RECOVERY_RESULTS.md](RECOVERY_RESULTS.md).
+Open outputs/recovery/professor/recovery-report.html; share its ZIP after extraction.
+Generated artifacts are ignored. Existing analytical-risk reports remain at their
+old paths and must not be compared as if the energy definitions were identical.
+No implementation task remains active after this delivery; source-fidelity and
+hardware-calibration gaps remain explicit. Earlier records below are historical.
+
+
 ## Latest verified delivery - 2026-10-25
 
 Owner: Codex for Aravindak3 / Aravind. Multi-objective extension A-028 is VERIFIED

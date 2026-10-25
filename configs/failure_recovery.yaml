@@ -1,0 +1,15 @@
+# A-029: fixed synthetic node outages, not measured hardware failure rates.
+schema_version: 1
+kind: node_restart_recovery
+horizon_ms: 250
+max_retries: 2
+recovery_delay_ms: 1
+recovery_wait_ms: 8
+recovery_power_w: 2
+idle_power_w: {cloud-1: 10, cloud-2: 8, fog-a1: 5, fog-a2: 4, fog-b1: 4, fog-b2: 2}
+outages:
+  - {node_id: 'fog:fog-a', start_ms: 10, end_ms: 28}
+  - {node_id: 'fog:fog-b', start_ms: 20, end_ms: 38}
+  - {node_id: 'cloud:cloud', start_ms: 65, end_ms: 85}
+  - {node_id: 'fog:fog-a', start_ms: 90, end_ms: 105}
+  - {node_id: 'fog:fog-b', start_ms: 110, end_ms: 130}
