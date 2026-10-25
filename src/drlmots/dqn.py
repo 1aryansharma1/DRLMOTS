@@ -11,6 +11,7 @@ from torch.nn import functional as F
 
 from drlmots.entities import ResourceTier, Task
 from drlmots.normalization import _digest
+from drlmots.objectives import MultiObjectiveConfig, frame_objectives
 from drlmots.q_network import MaskedSelector, NetworkConfig, NetworkContext, QNetwork, _seed
 from drlmots.rl_state import RLRewardConfig, RLStateSchema, VARIANTS, encode_frame, frame_reward, variant_mask
 
@@ -51,6 +52,7 @@ class TrainingConfig:
     max_grad_norm: float = 10.0
     latency_scale_ms: float = 10.0
     rejection_penalty: float = 1.0
+    multi_objective: MultiObjectiveConfig | None = None
 
     def __post_init__(self):
         for name in ("episodes", "calibration_episodes", "replay_capacity", "batch_size",
@@ -81,13 +83,19 @@ class TrainingConfig:
             raise ValueError("epsilon end must not exceed epsilon start")
         object.__setattr__(self, "evaluation_seeds", seeds)
         object.__setattr__(self, "hidden_widths", widths)
+        if self.multi_objective is not None and not isinstance(self.multi_objective, MultiObjectiveConfig):
+            object.__setattr__(self, "multi_objective", MultiObjectiveConfig.parse(self.multi_objective))
 
     def manifest(self):
-        return asdict(self)
+        payload = asdict(self)
+        payload.pop("multi_objective")
+        if self.multi_objective is not None:
+            payload["multi_objective"] = self.multi_objective.manifest()
+        return payload
 
     @classmethod
     def parse(cls, data):
-        if not isinstance(data, dict) or set(data) != set(cls().manifest()):
+        if not isinstance(data, dict) or set(data) - {"multi_objective"} != set(cls().manifest()):
             raise ValueError("training config must contain exactly the documented fields")
         return cls(**data)
 
@@ -190,7 +198,9 @@ class Learner:
         if variant not in VARIANTS or not isinstance(normalizer.context.schema, RLStateSchema):
             raise ValueError("learner requires a contract-2 scaler and a supported variant")
         self.normalizer, self.config, self.variant = normalizer, config, variant
-        self.reward = RLRewardConfig(config.latency_scale_ms, config.rejection_penalty)
+        self.reward = RLRewardConfig(config.latency_scale_ms, config.rejection_penalty, config.multi_objective)
+        if config.multi_objective is not None:
+            config.multi_objective.validate_vm_ids(normalizer.context.schema.vm_ids)
         self.context = NetworkContext.from_artifacts(normalizer, self.reward)
         self.context_sha = _digest(self.context.manifest())
         self.online = QNetwork(self.context, NetworkConfig(config.hidden_widths, config.seed))
@@ -264,6 +274,9 @@ class BaselineController:
         self.records.append({"task_id": frame.task_id, "time_ms": frame.time_ms, "action": action,
                              "vm_id": frame.vms[action].vm_id if action is not None else None,
                              "legal_mask": frame.mask, "action_mask": frame.mask, "reward": reward})
+        if self.reward_config.multi_objective is not None and action is not None:
+            self.records[-1]["objectives"] = frame_objectives(frame, action, self.reward_config.multi_objective,
+                                                            self.reward_config.latency_scale_ms)
         return self.records[-1]["vm_id"]
 
 
@@ -317,6 +330,9 @@ class EpisodeController:
                              "raw_state": raw, "normalized_state": state, "q_values": values,
                              "epsilon": epsilon, "reward": reward,
                              "predicted_finish_time_ms": estimate.predicted_finish_time_ms if estimate else None})
+        if agent.reward.multi_objective is not None and action is not None:
+            self.records[-1]["objectives"] = frame_objectives(frame, action, agent.reward.multi_objective,
+                                                            agent.reward.latency_scale_ms)
         return vm_id
 
     def finish(self):

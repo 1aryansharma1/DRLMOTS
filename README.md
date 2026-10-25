@@ -15,8 +15,8 @@ It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **677 tests** with the demo dependencies on Python 3.12.14
-(2026-10-15); the dependency check is clean.
+The current suite passes **698 tests** with the demo dependencies on Python 3.12.14
+(2026-10-25); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
 
@@ -38,6 +38,26 @@ not reproduce the paper's experimental results. The source supplied during this 
 different DRL-MLS Kubernetes paper (DOI 10.1016/j.future.2026.108459); its algorithm has
 not been merged into the DRLMOTS model. Before making paper-fidelity claims, review the
 original DRLMOTS paper against the existing extraction.
+
+## Multi-objective efficiency extension (2026-10-25)
+
+The original latency-only modes are retained. Optional reward contract 3 combines
+latency, active/input-transmission energy and **analytical failure risk** with explicit
+weights and synthetic VM coefficients. This is not an implementation of backup/failover
+or a source-faithful paper reward. See [MULTI_OBJECTIVE.md](MULTI_OBJECTIVE.md) for units,
+methodology, checkpoint compatibility and report interpretation, and
+[MULTI_OBJECTIVE_RESULTS.md](MULTI_OBJECTIVE_RESULTS.md) for actual results.
+
+~~~powershell
+.\.venv312\Scripts\python.exe -m drlmots.efficiency --config configs/rl_network.yaml --training-config configs/efficiency_training.yaml --objectives configs/objectives.yaml --output-dir outputs/efficiency/professor-fresh --model-seeds 42 43 44
+Start-Process .\outputs\efficiency\professor-fresh\efficiency-report.html
+~~~
+
+Add --resume for matching existing output. The experiment compares seven policies,
+three independent training initializations, five fresh workload seeds and three load
+scenarios. HTML, CSV, JSON, written reports, plots and an offline ZIP are generated.
+Generated artifacts are ignored; collaborators regenerate or receive the ZIP separately.
+
 
 ## Documents
 
@@ -81,8 +101,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m drlmots --output outputs/metrics/smoke.json
 ```
 
-Expected checks: no broken requirements; 677 passing tests with the demo extra
-(674 pass/three figure tests skip without it). The last command prints
+Expected checks: no broken requirements; 698 passing tests with the demo extra. Optional figure/report tests may skip without it. The last command prints
 JSON and saves the exact topology, workload, input checksum, queue rules, per-task
 start/finish times and metrics. The fixture is deterministic, so repeated runs produce
 identical JSON. Generated results are ignored by Git.
@@ -159,7 +178,7 @@ terminal. Forced rejections have null actions; they never become fake VM choices
 `build_learning_transitions(decisions, gamma=...)` absorbs intervening forced costs
 with the correct arrival discount power before the next legal-action bootstrap.
 See REWARD_CONTRACT.md for prefix/terminal handling and the provisional reward's limits.
-There is no interactive agent, replay buffer or DQN training in this checkpoint.
+This section describes the preserved reward/transition API; live replay and DQN training are available through train.py.
 
 ## Professor demo and paired comparisons
 

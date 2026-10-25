@@ -32,6 +32,8 @@ outputs/figures/
 outputs/checkpoints/
 outputs/demos/
 outputs/training/
+outputs/efficiency/
+outputs/paper-audit/
 
 # Downloaded/raw datasets
 data/raw/*

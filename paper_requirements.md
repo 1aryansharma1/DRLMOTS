@@ -263,3 +263,7 @@ Status meanings: **EXTRACTED** = found in the paper; **OPEN** = paper lacks suff
 | R038 | Reproducible configuration and random seeds | Not stated; needed for verification | `seeding.py`, run manifest | Repeat-run deterministic check | IMPLEMENTATION REQUIREMENT (not specified by paper) |
 | R039 | Preserve and audit source results/claims | Tables 4–19 and abstract/conclusion | `results_audit.py` or validation notebook | Recalculate percentages from raw tables | IMPLEMENTATION REQUIREMENT; source inconsistencies noted |
 | R040 | Document unavailable data and approximations | Data availability pp. 24–25 | `assumptions.md`, `README.md` | Audit each OPEN item | IMPLEMENTATION REQUIREMENT |
+
+## Source check on 2026-10-25
+
+The user supplied the original 26-page DRLMOTS PDF. Objective/reward pages 9-11 were extracted and pages 10/11 rendered and visually checked. This confirms the existing energy/redundancy/reward ambiguities. A-028 now implements an explicitly separate scalarized latency/energy/analytical-risk surrogate and paired efficiency reports. R019/R029/R030/R031 remain OPEN for source-faithful reproduction; this targeted check does not close the full-paper audit. See MULTI_OBJECTIVE.md and MULTI_OBJECTIVE_RESULTS.md.

@@ -1,5 +1,7 @@
 # Synthetic reward and transition contract - version 1
 
+Current extension (2026-10-25): optional live reward contract 3 combines latency, energy and analytical failure risk under A-028. See [MULTI_OBJECTIVE.md](MULTI_OBJECTIVE.md). This file documents the preserved contract-1 API; live DQN/replay is implemented separately.
+
 This v0.3.0a3 checkpoint implements A-024's causal reward and baseline transition
 export. The paper's multi-objective reward, energy and reliability remain unresolved.
 This does not implement an interactive agent, Q-network, replay or learning loop.

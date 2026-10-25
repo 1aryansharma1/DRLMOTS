@@ -7,6 +7,7 @@ from drlmots.control import DecisionFrame
 from drlmots.entities import ResourceTier, Task
 from drlmots.normalization import NormalizationContext, _digest
 from drlmots.reward import RewardConfig
+from drlmots.objectives import MultiObjectiveConfig, frame_objectives
 from drlmots.state import StateSchema
 
 
@@ -149,7 +150,23 @@ def variant_mask(frame, variant):
 
 @dataclass(frozen=True)
 class RLRewardConfig(RewardConfig):
+    multi_objective: MultiObjectiveConfig | None = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.multi_objective is not None and not isinstance(self.multi_objective, MultiObjectiveConfig):
+            raise TypeError("multi_objective must be MultiObjectiveConfig")
+
     def manifest(self):
+        if self.multi_objective is not None:
+            payload = {"schema_version": 3, "kind": "live_scheduler_reward",
+                       "algorithm": "weighted_latency_energy_risk_v1",
+                       "latency_scale_ms": self.latency_scale_ms, "rejection_penalty": self.rejection_penalty,
+                       "multi_objective": self.multi_objective.manifest(),
+                       "timing": "causal prediction at arrival; no drain bonus", "discount_unit": "arrivals",
+                       "risk_scope": "analytical constant destination hazard over arrival-to-finish; no injected faults",
+                       "energy_scope": "active compute plus input transmission; no idle energy"}
+            return {**payload, "sha256": _digest(payload)}
         payload = {"schema_version": 2, "kind": "live_scheduler_reward",
                    "algorithm": "causal_end_to_end_v2", "latency_scale_ms": self.latency_scale_ms,
                    "rejection_penalty": self.rejection_penalty,
@@ -164,6 +181,8 @@ def frame_reward(frame, action, config):
         return -float(config.rejection_penalty)
     if type(action) is not int or not 0 <= action < len(frame.vms) or not frame.mask[action]:
         raise ValueError("cannot reward an illegal live action")
+    if config.multi_objective is not None:
+        return frame_objectives(frame, action, config.multi_objective, config.latency_scale_ms)["utility"]
     latency = frame.vms[action].estimate.completion_duration_ms
     Task._validate_number("causal completion duration", latency, allow_zero=False)
     scale = config.latency_scale_ms

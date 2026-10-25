@@ -545,3 +545,30 @@ This sequence isolates basic software errors before introducing stochastic workl
 
 
 The paper's unresolved items remain OPEN/PENDING unless separately resolved with evidence. This decision defines the implementation order only; it does not close those scientific or methodological questions.
+
+
+## A-028 - Explicit multi-objective reward and paired efficiency experiments
+
+- Date: 2026-10-25. Status: IMPLEMENTED; verification results in MULTI_OBJECTIVE_RESULTS.md.
+- User direction: extend the latency-focused scheduler and produce efficiency reports.
+- Original source: supplied s10586-024-04712-z.pdf, pp. 9-11, with pp. 10/11 rendered
+  and inspected. Confirms makespan, energy and fault tolerance, and the previously
+  identified unit/direction ambiguities. This does not close the entire source audit.
+- Decision: retain legacy rewards and add optional live reward contract 3: normalized
+  weighted latency/active+input-energy/analytical destination risk; all coefficients
+  and weights explicit and checkpoint-bound. Default .4/.4/.2; synthetic values.
+- Energy in joules, using seconds for W*time; do not repeat Eq. (19)'s energy/time
+  label. Exclude idle/host/network-contention/output/backup energy explicitly.
+- Risk: constant destination hazard over arrival-to-finish; expected successes and
+  rejections reported separately. No fault sampling, redundancy or recovery claims.
+- Latency is a makespan-related surrogate. Actual makespan is reported separately.
+- Experiment: three independent model seeds (42/43/44), fixed 20-episode budget,
+  training seeds 2000-2019, calibration 2000-2002, fresh tests 4100-4104; no held-out
+  tuning/selection. Light/normal/burst workloads, seven policies, exact paired hashes.
+- Reports: task-level energy/risk ledger, completion/makespan/mean/p95/energy/expected
+  success/common utility, separate model/workload SD, signed paired changes and
+  descriptive Pareto screen. No guaranteed superiority or statistical significance.
+- Initial exploratory run using old 3000-series evaluation settings was interrupted
+  before evaluation. It is not the delivered experiment; final run uses the declared
+  fresh-seed configuration. Existing generated outputs were preserved, not deleted.
+- Source/data/failure/physical-host/paper-baseline gaps remain open. See MULTI_OBJECTIVE.md.

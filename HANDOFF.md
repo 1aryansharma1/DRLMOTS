@@ -1,5 +1,49 @@
 # DRLMOTS collaborator handoff
 
+## Latest verified delivery - 2026-10-25
+
+Owner: Codex for Aravindak3 / Aravind. Multi-objective extension A-028 is VERIFIED
+for its documented synthetic scope. Standard latency-only scheduling is retained.
+Optional live reward contract 3 uses weighted latency, active/input energy and
+analytical destination risk. Actual failure/backup/recovery simulation is still open.
+
+**Verification:** 698 tests pass; final packaging test rerun passed; pip check clean.
+Nine actual 20-episode models: 180 episodes / 18,000 training tasks / 17,062 optimizer
+updates. Three independent model seeds, five fresh workload seeds 4100-4104 and three
+load scenarios; 195 distinct evaluation simulations, represented in 315 paired rows.
+All checkpoints round-tripped and evaluation left training fingerprints unchanged.
+
+**Results:** normal-load fog-balanced DQN versus least queue: mean paired modeled
+energy reduction 18.710%, successful mean latency reduction 4.163%; admitted-task
+analytical failure risk is worse (11.547% relative increase). The fog-first heuristic
+still performs better in normal/burst aggregate comparisons. Burst admission is only
+12/100 across all policies; do not interpret low energy from rejection as efficiency.
+
+**Reports:** outputs/efficiency/professor-fresh/efficiency-report.html and
+ efficiency-report.zip (extract first), plus CSV/JSON/Markdown and 9 PNG/9 SVG plots.
+All 86 local links, 96 ZIP entries/CRC, 45 paired trace groups and resource balances
+verified; representative figures inspected and overlapping labels corrected. Normal
+browser desktop/mobile layout remains a manual presentation check. Generated outputs
+are ignored; share the ZIP or regenerate. Source/config/tests and the tracked results
+summary provide the collaborator handoff.
+
+Read [MULTI_OBJECTIVE.md](MULTI_OBJECTIVE.md) and
+[MULTI_OBJECTIVE_RESULTS.md](MULTI_OBJECTIVE_RESULTS.md) first. Run:
+
+~~~powershell
+python -m drlmots.efficiency --config configs/rl_network.yaml --training-config configs/efficiency_training.yaml --objectives configs/objectives.yaml --output-dir outputs/efficiency/professor-fresh --model-seeds 42 43 44
+~~~
+
+Use --resume for matching existing output; choose a fresh folder for a different plan.
+Next work: calibrated coefficients and real failure/backup behavior with its costs;
+validation-only tuning and a new untouched test set; larger task/VM sweeps and paper
+baseline/source fidelity. Independent initializations are implemented, but this fixed
+budget study has no validation tuning or significance claim. No implementation task
+is currently active.
+
+## Earlier milestone context (2026-10-15)
+
+
 **Updated:** 2026-10-15. **Current:** v0.3.1 end-to-end synthetic CPU DQN VERIFIED.
 **Tests:** 677 pass with demo dependencies; pip check clean.
 **Owner:** Codex for Aravindak3 / Aravind; no task active.

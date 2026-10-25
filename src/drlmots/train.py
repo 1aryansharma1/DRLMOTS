@@ -69,7 +69,7 @@ def task_hash(config):
 
 def fit_training_states(config, settings, variant):
     context = learning_context(config, variant)
-    reward = RLRewardConfig(settings.latency_scale_ms, settings.rejection_penalty)
+    reward = RLRewardConfig(settings.latency_scale_ms, settings.rejection_penalty, settings.multi_objective)
     batches = []
     actionable = False
     for offset in range(settings.calibration_episodes):
@@ -115,6 +115,8 @@ def validate_split_plan(config, settings):
 
 def initialize(config, settings, variant):
     validate_split_plan(config, settings)
+    if settings.multi_objective is not None:
+        settings.multi_objective.validate_vm_ids(vm.vm_id for vm in config.topology.vms)
     normalizer = fit_training_states(config, settings, variant)
     learner = Learner(normalizer, settings, variant)
     learner.run_config = config

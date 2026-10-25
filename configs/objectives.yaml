@@ -1,0 +1,12 @@
+# A-028: illustrative synthetic coefficients, not measurements from the paper.
+# Risk is an analytical proxy; backup/failover and failure injection are not implemented.
+schema_version: 1
+weights: {latency: 0.4, energy: 0.4, failure_risk: 0.2}
+energy_scale_j: 0.15
+vms:
+  - {vm_id: cloud-1, active_power_w: 180, transmission_j_per_kb: 0.0004, failure_rate_per_s: 1}
+  - {vm_id: cloud-2, active_power_w: 160, transmission_j_per_kb: 0.00035, failure_rate_per_s: 2}
+  - {vm_id: fog-a1, active_power_w: 70, transmission_j_per_kb: 0.00005, failure_rate_per_s: 25}
+  - {vm_id: fog-a2, active_power_w: 35, transmission_j_per_kb: 0.00003, failure_rate_per_s: 8}
+  - {vm_id: fog-b1, active_power_w: 45, transmission_j_per_kb: 0.00004, failure_rate_per_s: 12}
+  - {vm_id: fog-b2, active_power_w: 15, transmission_j_per_kb: 0.000015, failure_rate_per_s: 4}
