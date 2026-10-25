@@ -647,3 +647,35 @@ use does not establish calibration, exact paper fidelity or real VM deployment.
 No DQN checkpoint is compatible with this environment. Fault-aware state/action/reward
 and delayed terminal credit require a new contract and training/validation study.
 See OBJECTIVE_MODEL_PRESENTATION.md and OBJECTIVE_MODEL_RESULTS.md.
+
+
+## A-031 - Enhanced RL observation/action/reward contract, milestone 1 only
+
+Date: 2026-10-26. User limited the next aim to five milestones and requested starting
+with the first. Implemented standalone contract 4 in enhanced_rl_contract.py; no live
+DQN/controller/replay/training integration is installed in the enhanced simulator.
+
+Public immutable context binds observed telemetry schema, sorted VM actions, physical
+model parameters, fixed public feature scales, task budget/horizon, objective weights,
+service floors and penalty coefficients. Seeds and sampled future events are excluded.
+253 features for the current six-VM topology: task/episode, health/telemetry ages, host
+utilization estimates, shared traffic, resource information and ordered FCFS slots.
+Unknown health is masked; busy VMs may queue if total resources fit. Recovery excludes
+the latest failed node. None is only an environment-owned no-legal-action outcome.
+
+Observations use delivered telemetry, not physical fault truth; no adapter exists yet.
+Timestamp/allowlist tests establish API invariants, not engine-level non-leakage.
+Actual causal telemetry and paired hidden-world tests remain milestones 2/3.
+
+Reward uses cumulative actual system joules, successful-makespan increments and
+all-arrival unsuccessful outcomes, gamma=1, plus explicit terminal service shortfalls.
+Default shortfall coefficients are 10 each, configurable starting hyperparameters.
+No completions uses H as a training time surrogate without inventing a report makespan.
+Finite-horizon training termination has zero bootstrap at H; report unfinished remains
+censored. Prefix/forced-event rewards must be preserved without invented VM actions.
+No hard-constraint guarantee follows from a finite penalty; evaluation floors remain.
+
+Hand calculations, interval partition equality, delayed costs, strict context guards,
+masking and terminal reward parity with actual reports from all four rules are tested.
+All earlier simulator, DQN, reward, report and checkpoint interfaces remain unchanged.
+Read ENHANCED_DQN_CONTRACT.md for formulas and the five-milestone handoff.

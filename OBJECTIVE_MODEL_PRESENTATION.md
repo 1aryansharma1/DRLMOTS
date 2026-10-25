@@ -3,6 +3,10 @@
 Implemented 2026-10-26. Start here for the professor presentation. This is a
 simulation with configured workloads and machines, not real deployed cloud VMs.
 
+Update: [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) now defines the standalone
+observation/action/reward contract (milestone 1 of 5). Live enhanced DQN integration
+and training remain pending.
+
 ## The ten improvements, in simple language
 
 | # | Implemented change | What it improves / benefit | Evidence to show |
@@ -272,8 +276,8 @@ traffic, down/reboot and coordinator coefficients, the full-window total is **3.
    show actual bytes, phase durations, resource events and host energy segments.
 7. State the RL boundary clearly: live trained DQN exists for the preserved earlier
    environment. **No DQN has been trained or connected to this enhanced host/network/
-   outage environment.** It needs a new state/action/reward contract and training
-   study before a claim about learned scheduling in this mode.
+   outage environment.** A standalone state/action/reward contract is now defined; live integration and a
+   training study are needed before a claim about learned scheduling in this mode.
 
 The report frontend is an offline static HTML artifact with real precomputed tables,
 SVG charts and links to CSV/JSON/ZIP. Opening it does not run Python or train a model.

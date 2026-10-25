@@ -4,6 +4,20 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
+## Enhanced DQN: contract milestone 1 of 5 (2026-10-26)
+
+The standalone [enhanced DQN contract](ENHANCED_DQN_CONTRACT.md) now specifies and
+validates what the future agent observes, which VM actions are legal, and how actual
+energy/time/outcomes produce rewards. It includes immutable context hashes, observed
+telemetry, 253 features for the current topology, initial/recovery masks, cumulative
+reward accounting and finite-horizon termination. **DQN is not yet connected or trained
+in this enhanced environment.** Existing baselines and DQN interfaces remain unchanged.
+
+The agreed remaining milestones are: connect basic masked DQN; verify the connected
+system; run a small training sanity check; compare frozen untrained/trained DQN against
+the four heuristics. Double DQN and other algorithm extensions are outside this scope.
+See the contract guide for simple examples, API usage and presentation talking points.
+
 ## Enhanced objective model and presentation reference (2026-10-26)
 
 All ten objective-model improvements are available in a separate A-030 mode:
@@ -39,7 +53,7 @@ It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **782 tests** with the demo dependencies on Python 3.12.14
+The current suite passes **839 tests** with the demo dependencies on Python 3.12.14
 (2026-10-26); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
