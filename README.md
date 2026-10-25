@@ -4,6 +4,30 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
+## Enhanced objective model and presentation reference (2026-10-26)
+
+All ten objective-model improvements are available in a separate A-030 mode:
+MI/MIPS runtime, explicit VM/host mapping, utilization-based host energy, sampled
+exponential/Weibull outages, separate detection/repair/reboot/restart, shared upload
+and output bandwidth, deadlines versus censoring, reliability metrics, paired failure
+trials and constrained multi-objective reporting. Legacy baselines and trained DQN
+contracts are preserved; **the enhanced mode does not yet have a trained DQN**.
+
+Start with [OBJECTIVE_MODEL_PRESENTATION.md](OBJECTIVE_MODEL_PRESENTATION.md): the
+1-10 checklist, formulas, simple examples, file map and professor walkthrough.
+[OBJECTIVE_MODEL_RESULTS.md](OBJECTIVE_MODEL_RESULTS.md) records actual results from
+132 simulations. The new coefficients are synthetic, with measured-curve input support.
+
+~~~powershell
+.\.venv312\Scripts\python.exe -m drlmots.objective_report --config configs/rl_network.yaml --model-config configs/objective_model.yaml --output-dir outputs/objective-model/professor-final
+Start-Process ".\outputs\objective-model\professor-final\objective-report.html"
+~~~
+
+The generated offline HTML includes charts, reliability/availability tables, a recovered
+task example and CSV/JSON/ZIP downloads. Extract the ZIP before sharing/opening elsewhere.
+Generated outputs are ignored; source, configuration, presentation guide and results
+summary are tracked. Old report commands below retain their original meanings.
+
 ## Current status
 
 Version **0.3.1** delivers actual end-to-end CPU DQN: live VM placement, replay,
@@ -15,8 +39,8 @@ It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **732 tests** with the demo dependencies on Python 3.12.14
-(2026-10-25); the dependency check is clean.
+The current suite passes **782 tests** with the demo dependencies on Python 3.12.14
+(2026-10-26); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
 

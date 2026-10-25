@@ -595,3 +595,55 @@ vector is makespan/total energy/unsuccessful fraction. Old analytical risk coeff
 are not sampled as failures or used as future fault information. Fault-aware DQN state,
 actions and delayed rewards are explicitly the next contract before new training.
 See FAILURE_RECOVERY.md and RECOVERY_RESULTS.md for tests, commands and actual scope.
+
+
+## A-030 - Explicit compute, physical host power, stochastic reliability and shared traffic
+
+Date: 2026-10-26. User requested all ten objective-model improvements and a
+presentation reference. Implemented as a separate host_network_objectives schema-1
+contract; A-028 analytical/DQN and A-029 restart baselines are retained unchanged.
+
+Work is explicit MI with VM aggregate MIPS, independent input/output decimal kB,
+absolute optional task deadlines and a fixed observation cutoff. One compute slot per
+VM; fixed reservations fit physical host MIPS and GB memory budgets without overcommit.
+Each VM maps to exactly one host within its topology node. Host power is integrated
+once using a piecewise linear utilization/power curve, with explicit idle/down/reboot
+power. Task energy attribution includes dynamic host share and actual transferred
+bytes, keeping shared host/link overhead separate from task allocations.
+
+Shared half-duplex bottlenecks split capacity equally among active uploads/downloads.
+Propagation releases bandwidth. Fully serialized output already in propagation survives
+a subsequent host failure; partial output is lost. There is one configured bottleneck
+per VM route, not packet-level or multi-hop routing. Input source/controller are durable
+and reliable. Working-memory reservations cover computation, with input/queue/durable
+storage outside that budget.
+
+Nodes have independent per-node seeded renewal streams, exponential or Weibull uptime,
+deterministic repair/reboot, perfect age reset and simultaneous member-VM outages.
+Detection, restart overhead and backup waiting are separate. Health can remain stale;
+physical failures interrupt work immediately, but retry dispatch waits for detection.
+Restart on another node repeats full work/input, bounded by retries/wait/deadline.
+No checkpointing, cross-node common-cause faults, DVFS, host sleep or facility cooling.
+
+Deadline failure is distinct from right-censoring at cutoff. Full-batch makespan is
+undefined unless all tasks complete. Availability, matured-deadline success, rejection,
+execution failure, successful recovery delay and all-arrival completion are separate.
+Conditional Weibull survival uses current node age; analytical estimates do not reveal
+the sampled future trace or replace observed results.
+
+Fixed-scale weighted ratios and predeclared completion/deadline floors prevent cheap
+reject-all winners. Scores are null for infeasible runs; empirical Pareto recommendations
+require feasibility in every evaluated run. Candidate estimates are causal heuristics,
+not exact future completion forecasts or a global optimizer.
+
+Default study: 3 workload seeds x 5 failure seeds x 4 policies x 2 fault/recovery modes,
+plus 12 nonduplicated no-fault controls = 132 simulations. Paired hashes and effects;
+intervals use five independent failure-seed means conditional on the fixed workload
+panel, rather than treating crossed/duplicated runs as independent evidence.
+
+All bundled coefficients are explicitly synthetic. Forms are motivated by NIST
+reliability, CloudSim Plus MI/MIPS/host power and SPEC measurement methodology; their
+use does not establish calibration, exact paper fidelity or real VM deployment.
+No DQN checkpoint is compatible with this environment. Fault-aware state/action/reward
+and delayed terminal credit require a new contract and training/validation study.
+See OBJECTIVE_MODEL_PRESENTATION.md and OBJECTIVE_MODEL_RESULTS.md.

@@ -1,5 +1,45 @@
 # DRLMOTS progress report
 
+## Latest verified delivery - enhanced objective model (2026-10-26)
+
+Owner: Codex for ashishjha20. All ten requested improvements are implemented in
+A-030, a separate host/network objective contract. MI/MIPS runtime, VM-to-host MIPS/GB
+budgets, host utilization/piecewise power, shared upload/output bandwidth, sampled
+exponential/Weibull node outages, separate detection/repair/reboot/restart, censoring
+versus deadlines, reliability metrics, paired failure-seed trials and constrained
+weighted/Pareto reports are implemented. A-028/A-029 baselines remain unchanged.
+
+**Verification:** 782 tests passed (50 new); dependency check clean. Actual artifact
+audit: 132 full traces with source/workload/outage hashes, paired inputs, time/energy
+conservation, resource restoration and link capacity; 142 local report links;
+146 ZIP entries/CRC/byte parity; four PNG/four SVG figures. Representative figures
+were visually inspected. Browser desktop/mobile layout remains a manual demo check.
+
+**Results:** 3 workloads x 5 independent failure traces x 4 policies x 2 fault modes
+plus 12 no-fault controls = 132 simulations / 7,920 task arrivals across runs.
+Multi-objective recovery delivered 58.8/60 versus 55.6 without retries, with energy
+40.877 versus 40.327 J and successful mean latency 19.749 versus 16.608 ms. First fit
+does not consistently benefit: retries can displace new admissions. Confidence
+intervals use failure-seed means conditional on the fixed three-workload panel.
+No generic superiority, calibrated hardware or faithful paper reproduction is claimed.
+
+**Presentation:** read [OBJECTIVE_MODEL_PRESENTATION.md](OBJECTIVE_MODEL_PRESENTATION.md)
+for the 1-10 mapping, formulas, hand-calculated examples, workflow and talking points.
+Read [OBJECTIVE_MODEL_RESULTS.md](OBJECTIVE_MODEL_RESULTS.md) for the recorded results.
+Open outputs/objective-model/professor-final/objective-report.html; share the ZIP after
+extraction. Generated artifacts are ignored; model, source, config, tests and the
+presentation/results guides are tracked. The source hashes use the project's canonical
+JSON digest of normalized source text. Choose a fresh output directory for a new plan.
+
+**Next owner / remaining:** unassigned. No trained DQN supports the enhanced engine;
+legacy checkpoints are incompatible. Next research contract: fault/network/host-aware
+state/actions, delayed terminal rewards and fresh training/validation comparisons.
+Measured MI/power/link/failure calibration, distribution fit, cross-node common-cause
+faults, multi-hop routing, checkpoints and facility energy remain explicitly open.
+No implementation item from the ten-point request remains active. Earlier entries
+below describe historical versions and should not be read as current limitations.
+
+
 ## Latest verified delivery - actual failure/recovery (2026-10-25)
 
 Owner: Codex for ashishjha20. A-029 implements a separate observed node-failure and

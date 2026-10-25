@@ -1,0 +1,52 @@
+# A-030: synthetic stress study, not measured hardware or paper reproduction.
+schema_version: 1
+kind: host_network_objectives
+coefficient_provenance: Synthetic demonstration coefficients; replace with measured host curves, workload MI and uptime logs before hardware claims.
+horizon_ms: 400
+workload:
+  task_count: 60
+  seed: 6200
+  interarrival_ms: [2, 5]
+  compute_mi: [2, 12]
+  input_kb: [20, 90]
+  output_kb: [2, 20]
+  relative_deadline_ms: [45, 90]
+  required_resources: {cpu_units: 2, memory_gb: 4}
+hosts:
+  hf-a:
+    capacity_mips: 2000
+    power_curve: [[0, 15], [0.5, 38], [1, 60]]
+    down_power_w: 1
+    reboot_power_w: 40
+  hf-b:
+    capacity_mips: 1600
+    power_curve: [[0, 12], [0.5, 27], [1, 45]]
+    down_power_w: 1
+    reboot_power_w: 30
+  hc:
+    capacity_mips: 6000
+    power_curve: [[0, 55], [0.5, 105], [1, 165]]
+    down_power_w: 3
+    reboot_power_w: 100
+vms:
+  fog-a1: {host_id: hf-a, mips: 1200, link_id: fog-a-access}
+  fog-a2: {host_id: hf-a, mips: 800, link_id: fog-a-access}
+  fog-b1: {host_id: hf-b, mips: 1000, link_id: fog-b-access}
+  fog-b2: {host_id: hf-b, mips: 600, link_id: fog-b-access}
+  cloud-1: {host_id: hc, mips: 3500, link_id: cloud-wan}
+  cloud-2: {host_id: hc, mips: 2500, link_id: cloud-wan}
+# Each link is a shared half-duplex bottleneck for both directions and all mapped VMs.
+links:
+  fog-a-access: {bandwidth_mbps: 100, propagation_ms: 0.3, joules_per_kb: 0.00003, idle_power_w: 0.5}
+  fog-b-access: {bandwidth_mbps: 80, propagation_ms: 0.5, joules_per_kb: 0.00002, idle_power_w: 0.4}
+  cloud-wan: {bandwidth_mbps: 60, propagation_ms: 4, joules_per_kb: 0.0003, idle_power_w: 1}
+failures:
+  fog:fog-a: {distribution: exponential, scale_ms: 120, shape: 1, repair_ms: 14, reboot_ms: 4, detection_ms: 2}
+  fog:fog-b: {distribution: weibull, scale_ms: 170, shape: 1.5, repair_ms: 18, reboot_ms: 5, detection_ms: 3}
+  cloud:cloud: {distribution: exponential, scale_ms: 500, shape: 1, repair_ms: 25, reboot_ms: 8, detection_ms: 4}
+recovery: {max_retries: 2, restart_ms: 1, wait_ms: 15, coordinator_power_w: 2}
+objective:
+  weights: {time: 0.4, energy: 0.4, failure: 0.2}
+  scales: {time_ms: 400, energy_j: 50, decision_time_ms: 50, decision_energy_j: 0.2}
+  minimum_completion_rate: 0.8
+  minimum_deadline_success_rate: 0.8
