@@ -1,5 +1,9 @@
 # Frozen six-policy comparison (A-035): milestone 5 of 5
 
+For the concise presentation version, read [DQN_SIMPLE_REPORT.md](DQN_SIMPLE_REPORT.md):
+three methods, three metrics and one combined-cost ranking. The full study below
+retains all six policies and its original results.
+
 Date: 2026-10-27. **All five agreed enhanced-DQN milestones are complete.** This
 delivery compares the actual A-034 initialization and final trained checkpoint with
 all four preserved native heuristics. It does not retrain or select a model using

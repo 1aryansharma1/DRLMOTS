@@ -6,6 +6,15 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 ## Frozen enhanced DQN comparison: milestone 5 of 5 complete (2026-10-27)
 
+**Short report:** [three methods, three metrics and one overall ranking](DQN_SIMPLE_REPORT.md).
+Create the simple offline page from the saved results:
+
+~~~powershell
+.\.venv312\Scripts\python.exe -X utf8 -m drlmots.simple_comparison_report --output-dir outputs/objective-model/simple-comparison/my-report
+Start-Process ".\outputs\objective-model\simple-comparison\my-report\report.html"
+~~~
+
+
 Frozen untrained DQN, the actual final A-034 trained checkpoint and all four native
 heuristics were evaluated on the same held-out workloads and failure traces:
 **108 simulations, 18 matched scenarios, 6,480 task arrivals**. Neither DQN learned
