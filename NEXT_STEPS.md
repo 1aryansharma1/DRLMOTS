@@ -1,43 +1,28 @@
 # Remaining work and collaborator pickup
 
-## Latest verified delivery - enhanced DQN contract, milestone 1 of 5 (2026-10-26)
+## Latest delivery - enhanced masked DQN connection, milestone 2 of 5 (2026-10-26)
 
-Owner: Codex for ashishjha20. **Milestone 1 is complete.** User scoped the next aim to:
-(1) contract, (2) basic masked-DQN integration, (3) connected small-scenario tests,
-(4) small training sanity run, (5) frozen untrained/trained/four-heuristic comparison.
-Only milestone 1 is implemented in this delivery. Double DQN/PPO and larger studies
-are outside this agreed aim. Earlier entries below describe historical deliveries.
+Owner: Codex for ashishjha20. **Milestones 1 and 2 are implemented.** The scoped
+sequence is contract; masked-DQN connection; broader connected checks; small training
+sanity run; frozen untrained/trained/four-rule comparison. Double DQN/PPO and larger
+studies remain outside this aim.
 
-Read [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) first. The executable module
-src/drlmots/enhanced_rl_contract.py defines contract 4, immutable public context hashes,
-253 fixed-scale observation features for this topology, six sorted VM actions,
-initial/recovery masks, and cumulative actual-energy/time/outcome rewards. Seeds,
-sampled future faults and exact future repair times are excluded. Gamma=1; finite
-training horizon H terminates with zero bootstrap, while report unfinished stays
-censored. Service shortfall penalties default to 10 each and do not guarantee hard
-constraints; report service floors still gate recommendations.
+The new opt-in `masked_dqn` path connects contract 4 to both initial and recovery
+placement. It uses six VM actions, delivered periodic telemetry, legal-action masks,
+actual delayed energy/time/outcome rewards, bounded replay, a target network and
+context-bound JSON checkpoints. The default CLI is frozen, untrained inference only.
+The four reference rules and the legacy DQN remain available on their existing paths.
 
-**Verified:** 839 full-suite tests passed (57 new), dependency check clean and whitespace
-check passed. New checks include strict/canonical context guards, unknown/stale/future
-telemetry rules, ordered queues, total-resource fit, prior-node recovery exclusion,
-masked actions, hand-calculated rewards, delayed costs, interval partition invariance,
-cutoff semantics and reward parity with actual reports from all four existing rules.
-No simulator/controller/DQN/replay/checkpoint behavior was changed. No new enhanced
-DQN training or learned-policy performance result exists yet.
+Focused integration acceptance tests are present in
+`tests/integration/test_enhanced_dqn.py`; this delivery has not run them. **Next is
+milestone 3:** run and expand connected checks for hidden faults, delayed health notices,
+initial/recovery masks, resource conservation and reward totals. Then perform milestone
+4's small learning-update/behavior sanity check and milestone 5's frozen paired
+comparison against the four rules. Do not report learning gains before those experiments.
 
-**Next: milestone 2, unassigned.** Build a causal scheduler-visible telemetry adapter;
-do not dump private physical state/queue cleanup into observations before detection.
-Mask greedy/exploratory actions and Bellman targets. Fold forced no-action intervals
-without inventing VM actions, and log costs before the first real action as a prefix.
-Accrue OPEN recovery overhead continuously and keep background power accounting to H.
-Preserve original event ordering and four heuristic results. Reuse the contract's
-fixed encoding directly; reject old context/checkpoint hashes. Then milestones 3-5
-verify the connected adapter, train a small model, and evaluate frozen paired policies.
-
-The schema tests establish API invariants, not live-adapter non-leakage. Paired hidden-
-world tests, actual replay transitions, training and evaluation remain pending.
-The enhanced physics/presentation/results guides and their existing reports remain
-available; the main presentation guide now links this milestone's contract reference.
+See [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for operation and
+commands, [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) for the feature/action/
+reward contract, and `assumptions.md` A-032 for telemetry and checkpoint assumptions.
 
 
 ## Latest verified delivery - enhanced objective model (2026-10-26)

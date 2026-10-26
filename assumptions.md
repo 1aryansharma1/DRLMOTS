@@ -679,3 +679,36 @@ Hand calculations, interval partition equality, delayed costs, strict context gu
 masking and terminal reward parity with actual reports from all four rules are tested.
 All earlier simulator, DQN, reward, report and checkpoint interfaces remain unchanged.
 Read ENHANCED_DQN_CONTRACT.md for formulas and the five-milestone handoff.
+
+
+## A-032 - Optional basic masked DQN for enhanced initial/recovery placement
+
+Date: 2026-10-26. User requested milestone 2, keeping rules and documentation.
+Enhanced_dqn.py and enhanced_telemetry.py connect contract 4 to an opt-in masked_dqn
+path in objective_sim.py. Four original rules take the original path without sensor
+poll events; eight full baseline reports matched pre-edit canonical hashes exactly.
+
+Telemetry protocol: fixed public polling period (default 1 ms), zero-latency successful
+reports from up nodes, absent responses from down nodes, held report values/ages,
+explicit detection and service-ready notices. Sensor traffic has no extra power/latency
+cost in this version. Local sends reserve observed waiting slots immediately. Link
+observations aggregate only participating nodes' latest reports. Hidden physical cleanup,
+private uptime reset and future fault edges never enter observations. Missing responses
+and actual changed throughput in delivered healthy-node reports are legitimate signals.
+This remains a partially observed environment, not an exact current-state oracle.
+
+System rewards accrue true host/link/OPEN recovery costs between real decisions;
+forced intervals fold into prior actions, with a separate prefix before the first.
+Finite H terminates with zero bootstrap and all task outcomes accounted. Both initial
+and recovery requests use the same six-action network/masks. Bounded replay, local
+RNGs, Adam/Huber/clipping, warmup and target sync are wired; frozen inference fingerprints
+all learning state. New JSON checkpoints bind contract, host map, telemetry period and
+recovery mode and save complete between-episode learner state. No mid-episode resume.
+Legacy checkpoints are rejected. CPU/runtime resume equality is tested, not promised
+across hardware/library versions.
+
+No tuned training study or learned-performance improvement is claimed. The delivered
+runnable example is frozen UNTRAINED inference. Tests exercise synthetic optimizer
+updates and tiny below-warmup live replay plumbing only. Broader connected verification,
+actual training sanity run and frozen comparative evaluation remain milestones 3-5.
+See ENHANCED_DQN_INTEGRATION.md for scope, commands and explicit telemetry limitations.

@@ -7,7 +7,9 @@ Horizon: 400 ms; 60 tasks per run; workload seeds 6200-6202; failure seeds 7100-
 Four reference rules, 12 no-fault runs and 120 fault runs: **132 simulations / 7,920 task arrivals across runs**.
 Verification: **782 tests passed (50 new)**; dependency check clean. Final artifact audit: 132 traces, source/input hashes and paired accounting, 142 local links, 146 ZIP entries with CRC/byte parity, four PNG/four SVG figures. Representative plots inspected; browser layout remains a manual presentation check.
 
-No DQN was trained or evaluated in this enhanced environment. Earlier baselines are unchanged.
+No DQN was trained or evaluated in this 132-run heuristic study. The later basic
+DQN connection is documented in ENHANCED_DQN_INTEGRATION.md; its frozen inference
+check is not part of these results. Earlier baselines are unchanged.
 
 ## Mean results across the declared panel
 

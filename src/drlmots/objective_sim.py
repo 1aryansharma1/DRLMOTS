@@ -20,9 +20,11 @@ PHASES = ("upload", "upload_propagation", "queue", "compute", "download", "downl
 
 
 def simulate_objectives(config, model, *, policy="multi_objective", workload_seed=None,
-                        failure_seed=0, tasks=None, outages=None, recovery_enabled=True):
-    if policy not in MODEL_POLICIES:
-        raise ValueError("objective model supports reference rules; old DQN checkpoints are incompatible")
+                        failure_seed=0, tasks=None, outages=None, recovery_enabled=True, controller=None):
+    if policy not in MODEL_POLICIES and policy != "masked_dqn":
+        raise ValueError("objective model supports reference rules or enhanced masked_dqn; old DQN checkpoints are incompatible")
+    if (controller is not None) != (policy == "masked_dqn"):
+        raise ValueError("masked_dqn requires an enhanced controller; rules keep their original path")
     if not isinstance(model, ObjectiveModel) or type(recovery_enabled) is not bool:
         raise ValueError("expected ObjectiveModel and boolean recovery flag")
     # Revalidate mutable caller settings and make the simulation independent of later mutation.
@@ -73,6 +75,68 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
     host_energy = {h: dict(idle_j=0.0, dynamic_j=0.0, down_j=0.0, reboot_j=0.0, up_ms=0.0, busy_ms=0.0, utilization_ms=0.0) for h in d["hosts"]}
     link_energy = {l: dict(traffic_j=0.0, idle_j=0.0, transmitted_kb=0.0) for l in d["links"]}
     affected = set()
+
+    telemetry = None
+    poll_index = 0
+    if controller is not None:
+        from drlmots.enhanced_rl_contract import (EnhancedRLContract, HostTelemetry, LinkTelemetry,
+            QueuedTelemetry, RewardSnapshot, VMTelemetry)
+        from drlmots.enhanced_telemetry import ObservedTelemetry
+        if not isinstance(getattr(controller,"contract",None),EnhancedRLContract):
+            raise ValueError("enhanced contract-4 controller required")
+        public = controller.contract.context
+        expected = EnhancedRLContract.from_configs(config,model,planned_task_count=len(work),
+            completion_penalty=public["completion_penalty"],deadline_penalty=public["deadline_penalty"])
+        controller.begin(expected,host_nodes,recovery_enabled)
+        telemetry = ObservedTelemetry(expected,host_nodes)
+        period = controller.settings.telemetry_period_ms
+
+    def reward_cursor():
+        # These evaluator measurements are not observation features. Open recovery
+        # intervals accrue continuously, rather than being billed early or at close.
+        host_j=sum(e[k] for e in host_energy.values() for k in ("idle_j","dynamic_j","down_j","reboot_j"))
+        net_j=sum(e["traffic_j"]+e["idle_j"] for e in link_energy.values())
+        recovery_j=sum(b["energy_j"] for b in blocks)
+        for p in pending.values():
+            detection=min(now,p["detect_at_ms"])-p["failed_at_ms"]
+            restart=max(0,min(now,p["ready_ms"])-p["detect_at_ms"])
+            recovery_j+=(detection+restart)*d["recovery"]["coordinator_power_w"]/1000
+        counts={status:sum(o["status"]==status for o in outcomes.values()) for status in
+                ("completed","rejected","execution_failure","deadline_missed","unfinished")}
+        matured=[i for i in incoming[:arrival_index] if work[i].deadline_ms is not None and work[i].deadline_ms<=now]
+        return RewardSnapshot(now,host_j+net_j+recovery_j,arrival_index,counts["completed"],counts["rejected"],
+            counts["execution_failure"],counts["deadline_missed"],counts["unfinished"],len(matured),
+            sum(i in outcomes and outcomes[i]["status"]=="completed" for i in matured),
+            max((o["finish_ms"] for o in outcomes.values() if o["status"]=="completed"),default=0))
+
+    def deliver_sensor_reports():
+        # A request is periodic and public. A failed node sends no report: retain
+        # its previous cache until a real response or an explicit failure notice.
+        # Raw physical dictionaries are never passed to the controller.
+        for node in sorted(physical):
+            if physical[node] != "up":
+                continue
+            vm_views=[]
+            for vm in sorted(v for v in vms if nodes[v]==node):
+                waiting=[]
+                for a in queues[vm]:
+                    phase={"upload":"upload","upload_propagation":"propagation","queue":"ready"}[a["phase"]]
+                    waiting.append(QueuedTelemetry(phase,a["remaining_kb"] if phase=="upload" else 0,
+                        max(0,a["phase_end_ms"]-now) if phase=="propagation" else 0,
+                        work[a["task_index"]].compute_mi,tuple(sorted(work[a["task_index"]].required_resources.items()))))
+                vm_views.append(VMTelemetry(vm,now,max(0,running[vm]["phase_end_ms"]-now) if vm in running else None,
+                                             tuple(waiting),tuple(sorted(ledger.available(vm).items()))))
+            host_views=[]
+            for host in sorted(h for h in d["hosts"] if host_nodes[h]==node):
+                used=sum(d["vms"][vm]["mips"] for vm in running if d["vms"][vm]["host_id"]==host)
+                host_views.append(HostTelemetry(host,now,used/d["hosts"][host]["capacity_mips"]))
+            traffic=[]
+            for link in sorted(d["links"]):
+                flows=[a for a in active.values() if a["node_id"]==node and d["vms"][a["vm_id"]]["link_id"]==link]
+                up=[a for a in flows if a["phase"]=="upload"]
+                down=[a for a in flows if a["phase"]=="download"]
+                traffic.append(LinkTelemetry(link,now,len(up),len(down),sum(a["remaining_kb"] for a in up),sum(a["remaining_kb"] for a in down)))
+            telemetry.receive(node,now,vms=tuple(vm_views),hosts=tuple(host_views),traffic=tuple(traffic))
 
     def service(i, vm):
         return 1000 * work[i].compute_mi / d["vms"][vm]["mips"]
@@ -218,21 +282,36 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
 
     def dispatch(i, retry=False):
         excluded = pending[i]["excluded_node"] if retry else None
-        candidates = estimates(i, excluded)
-        if not candidates:
-            return False
-        # Hard task deadlines are also used by multi-objective placement when a predicted feasible VM exists.
-        selectable = candidates
-        if policy == "multi_objective" and any(c["predicted_deadline_met"] for c in candidates):
-            selectable = [c for c in candidates if c["predicted_deadline_met"]]
-        if policy == "first_fit_fcfs":
-            chosen = min(selectable, key=lambda c: c["vm_id"])
-        elif policy == "least_queue_fcfs":
-            chosen = min(selectable, key=lambda c: (c["load"], c["vm_id"]))
-        elif policy == "fog_first_completion":
-            chosen = min(selectable, key=lambda c: (c["predicted_finish_ms"], c["tier"] == "cloud", c["vm_id"]))
+        if controller is not None:
+            current=reward_cursor()
+            observation=controller.contract.encode(telemetry.snapshot(now,work[i],arrived=arrival_index,
+                completed=current.completed_count,unsuccessful=current.unsuccessful_count,
+                attempts_used=len(by_task[i]),previous_node=excluded,
+                wait_remaining=max(0,pending[i]["expires_ms"]-now) if retry else 0))
+            action=controller(observation,current)
+            selected=controller.contract.validate_action(observation,action)
+            if selected is None:
+                return False
+            if len(queues[selected])>=vms[selected].queue_capacity:
+                raise RuntimeError("observed admission undercounted the physical queue")
+            candidates=[]  # Do not expose private placement predictions to the agent.
+            chosen={"vm_id":selected}
         else:
-            chosen = min(selectable, key=lambda c: (c["score"], c["tier"] == "cloud", c["vm_id"]))
+            candidates = estimates(i, excluded)
+            if not candidates:
+                return False
+            # Hard task deadlines are also used by multi-objective placement when a predicted feasible VM exists.
+            selectable = candidates
+            if policy == "multi_objective" and any(c["predicted_deadline_met"] for c in candidates):
+                selectable = [c for c in candidates if c["predicted_deadline_met"]]
+            if policy == "first_fit_fcfs":
+                chosen = min(selectable, key=lambda c: c["vm_id"])
+            elif policy == "least_queue_fcfs":
+                chosen = min(selectable, key=lambda c: (c["load"], c["vm_id"]))
+            elif policy == "fog_first_completion":
+                chosen = min(selectable, key=lambda c: (c["predicted_finish_ms"], c["tier"] == "cloud", c["vm_id"]))
+            else:
+                chosen = min(selectable, key=lambda c: (c["score"], c["tier"] == "cloud", c["vm_id"]))
         if retry:
             close_pending(i)
         vm, n = chosen["vm_id"], len(by_task[i])+1
@@ -246,8 +325,11 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
         by_task[i].append(a)
         active[i] = a
         queues[vm].append(a)
+        if telemetry is not None:
+            telemetry.admitted(vm,work[i])
         decisions.append(dict(time_ms=now, task_id=work[i].task_id, attempt_id=a["attempt_id"], retry=retry,
-                              selected_vm_id=vm, observed_up_nodes=sorted(n for n in known if known[n]), candidates=candidates))
+                              selected_vm_id=vm, observed_up_nodes=sorted(n for n in known if known[n]) if telemetry is None else
+                              sorted(n for n,v in telemetry.nodes.items() if v.available is True), candidates=candidates))
         if physical[nodes[vm]] != "up":
             # A stale health view can route into a failed node. Physics rejects it;
             # the scheduler learns at detection, never by reading future outage edges.
@@ -308,8 +390,12 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
                 physical[node] = "reboot"
             elif rank == 2:
                 physical[node], known[node], last_up[node] = "up", True, now
+                if telemetry is not None:
+                    telemetry.ready(node,now)
             elif current_outage.get(node) is o and physical[node] != "up":
                 known[node] = False
+            if rank == 3 and telemetry is not None:
+                telemetry.detected(node,now,o["start_ms"])
             node_events.append(dict(time_ms=now, node_id=node, event=("failure", "repair_finished", "reboot_finished", "failure_detected")[rank], observed_available=known[node]))
         # Deadlines are terminal application requirements; the cutoff is censoring.
         for i in tuple(active.keys() | pending.keys()):
@@ -320,6 +406,9 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
                 terminal(i, "unfinished", "observation_cutoff")
             break
         start_ready()
+        if telemetry is not None and now >= poll_index*period:
+            deliver_sensor_reports()
+            poll_index += 1
         for i, p in sorted(tuple(pending.items())):
             retries_used = len(by_task[i])-1
             max_retries = d["recovery"]["max_retries"] if recovery_enabled else 0
@@ -342,6 +431,8 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
             if not changed:
                 break
         future = [horizon]
+        if telemetry is not None:
+            future.append(poll_index*period)
         if arrival_index < len(incoming):
             future.append(work[incoming[arrival_index]].arrival_ms)
         if edge_index < len(edges):
@@ -424,7 +515,7 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
             raise RuntimeError("original task time accounting mismatch")
     balances = ledger.final_balances()
     payload = [asdict(w) for w in work]
-    return dict(schema_version=1, kind="host_network_objective_simulation", policy=policy,
+    report = dict(schema_version=1, kind="host_network_objective_simulation", policy=policy,
         run_configuration=config.manifest(), model_configuration=d, recovery_enabled=recovery_enabled,
         workload=dict(tasks=payload, sha256=_digest(payload)),
         outage_trace=dict(outages=trace, sha256=_digest(trace), failure_seed=failure_seed if outages is None else None),
@@ -439,3 +530,7 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
             task_attribution="dynamic host energy shared by active VM MIPS plus its actual transferred bytes; excludes shared idle",
             predictions="causal approximations using present queues and traffic; no future failure trace or arrivals",
             censoring="unfinished at cutoff is distinct from terminal failure; eventual batch makespan is undefined unless all complete"))
+    if controller is not None:
+        report["rl"]=controller.finish(reward_cursor())
+        report["rl"]["telemetry_messages"]=telemetry.messages
+    return report

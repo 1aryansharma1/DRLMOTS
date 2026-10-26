@@ -2,13 +2,14 @@
 
 Date: 2026-10-26. Status: executable standalone contract implemented and tested.
 Verification: **839 full-suite tests passed, including 57 new contract checks**;
-dependency check clean. This document is also a presentation reference. The enhanced simulator still runs
-its four reference rules; it does not call DQN. No enhanced DQN has been trained.
+dependency check clean. This document is also a presentation reference. The enhanced simulator now also supports the optional basic masked-DQN connection
+documented in [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md). No enhanced
+DQN training/performance experiment has been delivered.
 
 The agreed scope is five milestones:
 
 1. **Done:** define and test the enhanced observation/action/reward contract.
-2. Pending: connect a basic masked DQN to initial and recovery placement.
+2. **Done (A-032):** connect a basic masked DQN to initial and recovery placement.
 3. Pending: verify the connected system on small scenarios and hidden-failure tests.
 4. Pending: run a small training sanity check and demonstrate actual updates.
 5. Pending: frozen paired evaluation of untrained DQN, trained DQN and four heuristics.
@@ -111,9 +112,8 @@ current_outage, future edges or completed report.** In particular:
   differ from actual physics. Observed uptime age is an estimate, not true hidden age.
 
 The current API prevents extra raw physics fields and future timestamps from being
-encoded. It cannot prove that a caller labelled its telemetry honestly. There is no
-engine extractor in milestone 1. Milestones 2/3 must test the actual adapter with two
-worlds that have the same delivered information and different hidden/future failures.
+encoded. It cannot prove that a caller labelled its telemetry honestly. The A-032 connection supplies the live adapter and initial paired hidden-world tests;
+see its integration guide. Milestone 3 expands that connected scenario matrix.
 
 This is an **observation**, not a claim of a fully observable Markov state. Delayed
 health information and aggregated link traffic leave uncertainty. A feed-forward DQN
@@ -267,8 +267,9 @@ This does not change the scientific meaning of right-censoring in reports. An ex
 interruption before H is not a completed finite-horizon episode: do not fabricate final
 unfinished counts, service penalties or terminal targets from that interruption.
 
-Full replay transitions, target computation, checkpoint adapters and DQN execution are
-milestone 2. This module defines their required boundary but does not install them.
+Full replay transitions, target computation, checkpoint adapters and DQN execution
+are now provided by milestone 2 (A-032). This contract module defines their required
+boundary; see the integration guide for the installed connection.
 
 ## 5. What is implemented and tested now
 
@@ -283,9 +284,9 @@ milestone 2. This module defines their required boundary but does not install th
 - Actual reports from each of the four existing rules: feasible terminal reward equals
   negative objective score, and configuration mismatches are rejected.
 
-These tests establish contract invariants. They do not claim that a live adapter,
-connected DQN, training loop, causal telemetry extraction or learned performance is
-implemented. Those remain the next four agreed milestones.
+These tests establish contract invariants. The A-032 integration adds a live adapter,
+connected DQN and acceptance tests separately. Broader connected verification, actual
+training and learned performance comparisons remain milestones 3-5.
 
 ## Minimal API example
 

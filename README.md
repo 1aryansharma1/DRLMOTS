@@ -4,19 +4,27 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
-## Enhanced DQN: contract milestone 1 of 5 (2026-10-26)
+## Enhanced masked DQN connection: milestone 2 of 5 (2026-10-26)
 
-The standalone [enhanced DQN contract](ENHANCED_DQN_CONTRACT.md) now specifies and
-validates what the future agent observes, which VM actions are legal, and how actual
-energy/time/outcomes produce rewards. It includes immutable context hashes, observed
-telemetry, 253 features for the current topology, initial/recovery masks, cumulative
-reward accounting and finite-horizon termination. **DQN is not yet connected or trained
-in this enhanced environment.** Existing baselines and DQN interfaces remain unchanged.
+Basic masked DQN now controls **initial and recovery placement** in the enhanced
+simulator. The original four rule schedulers and earlier trained DQN interfaces are
+preserved. Periodic delivered telemetry, actual delayed costs, masked replay/targets,
+CPU optimization, frozen inference and separate JSON checkpoints are connected.
+**No enhanced DQN training/performance experiment has been delivered yet.**
 
-The agreed remaining milestones are: connect basic masked DQN; verify the connected
-system; run a small training sanity check; compare frozen untrained/trained DQN against
-the four heuristics. Double DQN and other algorithm extensions are outside this scope.
-See the contract guide for simple examples, API usage and presentation talking points.
+Read [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for how it works,
+checkpoint boundaries and the runnable inference command, and
+[ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) for the 253-feature contract.
+
+~~~powershell
+.\.venv312\Scripts\python.exe -m drlmots.enhanced_dqn --dqn-config configs/enhanced_dqn.yaml --output outputs/objective-model/dqn-integration/inference.json
+~~~
+
+This command uses an untrained initialization, freezes learning and exports a full
+JSON trace. The four-heuristic HTML report remains separate. The agreed next milestones
+are broader connected-scenario verification, an actual small training sanity run,
+and frozen untrained/trained/four-heuristic comparison. Double DQN/PPO remain outside
+this scope. The next owner and acceptance criteria are recorded in HANDOFF.md.
 
 ## Enhanced objective model and presentation reference (2026-10-26)
 

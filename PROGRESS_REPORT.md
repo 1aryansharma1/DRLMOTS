@@ -1,43 +1,27 @@
 # DRLMOTS progress report
 
-## Latest verified delivery - enhanced DQN contract, milestone 1 of 5 (2026-10-26)
+## Latest delivery - enhanced masked DQN connection, milestone 2 of 5 (2026-10-26)
 
-Owner: Codex for ashishjha20. **Milestone 1 is complete.** User scoped the next aim to:
-(1) contract, (2) basic masked-DQN integration, (3) connected small-scenario tests,
-(4) small training sanity run, (5) frozen untrained/trained/four-heuristic comparison.
-Only milestone 1 is implemented in this delivery. Double DQN/PPO and larger studies
-are outside this agreed aim. Earlier entries below describe historical deliveries.
+Owner: Codex for ashishjha20. **Contract and basic connection are complete.** The new
+optional masked DQN now chooses both initial and recovery VMs from 253 inputs and six
+actions. It reads delivered, periodically refreshed telemetry; masks illegal actions
+for selection and Bellman targets; and stores delayed actual energy, makespan and task
+outcome rewards in bounded replay. The same implementation includes a CPU Q-network,
+target network, optimizer, local random streams and context-bound JSON checkpoints.
 
-Read [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) first. The executable module
-src/drlmots/enhanced_rl_contract.py defines contract 4, immutable public context hashes,
-253 fixed-scale observation features for this topology, six sorted VM actions,
-initial/recovery masks, and cumulative actual-energy/time/outcome rewards. Seeds,
-sampled future faults and exact future repair times are excluded. Gamma=1; finite
-training horizon H terminates with zero bootstrap, while report unfinished stays
-censored. Service shortfall penalties default to 10 each and do not guarantee hard
-constraints; report service floors still gate recommendations.
+The four existing rule schedulers remain available through their prior path, and the
+earlier DQN/checkpoints remain separate. `python -m drlmots.enhanced_dqn` runs frozen
+inference and makes no training claim. Detailed operation and commands are in
+[ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md); the 253-input contract is
+in [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md); modeling assumptions are in
+`assumptions.md` A-032.
 
-**Verified:** 839 full-suite tests passed (57 new), dependency check clean and whitespace
-check passed. New checks include strict/canonical context guards, unknown/stale/future
-telemetry rules, ordered queues, total-resource fit, prior-node recovery exclusion,
-masked actions, hand-calculated rewards, delayed costs, interval partition invariance,
-cutoff semantics and reward parity with actual reports from all four existing rules.
-No simulator/controller/DQN/replay/checkpoint behavior was changed. No new enhanced
-DQN training or learned-policy performance result exists yet.
-
-**Next: milestone 2, unassigned.** Build a causal scheduler-visible telemetry adapter;
-do not dump private physical state/queue cleanup into observations before detection.
-Mask greedy/exploratory actions and Bellman targets. Fold forced no-action intervals
-without inventing VM actions, and log costs before the first real action as a prefix.
-Accrue OPEN recovery overhead continuously and keep background power accounting to H.
-Preserve original event ordering and four heuristic results. Reuse the contract's
-fixed encoding directly; reject old context/checkpoint hashes. Then milestones 3-5
-verify the connected adapter, train a small model, and evaluate frozen paired policies.
-
-The schema tests establish API invariants, not live-adapter non-leakage. Paired hidden-
-world tests, actual replay transitions, training and evaluation remain pending.
-The enhanced physics/presentation/results guides and their existing reports remain
-available; the main presentation guide now links this milestone's contract reference.
+Focused connected acceptance tests are present in
+`tests/integration/test_enhanced_dqn.py`, but were not run for this delivery. The next
+work is milestone 3: verify and broaden connected hidden-failure, delayed-notice,
+recovery, resource-release and reward-accounting scenarios. Milestones 4 and 5 remain
+the small training sanity experiment and frozen comparison with the four heuristics.
+No enhanced learned-policy performance claim exists yet.
 
 
 ## Latest verified delivery - enhanced objective model (2026-10-26)
