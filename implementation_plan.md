@@ -1,5 +1,11 @@
 # DRLMOTS — Phased Implementation Roadmap
 
+Latest scoped delivery (2026-10-27): **all five enhanced-DQN milestones A-031-A-035
+are complete**, including the frozen 108-run six-policy comparison. Read
+[ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md) for current results, commands,
+limits and optional research. The original paper-level phases below remain a separate
+roadmap; completion of this scoped aim does not establish source-faithful reproduction.
+
 This roadmap is intentionally incremental. Each implementation microtask will be delivered in a later response with exact file contents/changes, exact command(s), expected output, verification, troubleshooting, and a completion criterion. Do not skip a verification gate or mark a task VERIFIED without actual evidence.
 
 ## Version milestones (2026-10-15)

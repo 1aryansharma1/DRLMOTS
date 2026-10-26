@@ -11,7 +11,11 @@ Connected small-scenario verification is also complete (milestone 3); see
 reward examples and hidden-failure checks. Milestone 4 now has an actual small training
 run, learning curves and recorded behavior changes; see
 [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md). Its diagnostic results
-are mixed. The broader frozen four-rule comparison remains milestone 5.
+are mixed. Milestone 5 is now complete: [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md)
+contains the 108-run frozen six-policy study, professor walkthrough, paired intervals
+and offline comparison dashboard. All five scoped milestones are complete. Show its
+outcome counts before energy/makespan, and disclose the native rules' different
+information access; the small trained DQN does not outperform every reference rule.
 
 ## The ten improvements, in simple language
 

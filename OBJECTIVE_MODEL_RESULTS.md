@@ -1,5 +1,10 @@
 # Recorded enhanced-objective results (A-030)
 
+Historical A-030 four-heuristic experiment; its 132 runs and results below remain
+unchanged. The later **108-run frozen enhanced-DQN/six-policy comparison** is complete
+in [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md). Its panel, seeds and
+information-access limits differ; do not combine the two experiments into one table.
+
 Run date: 2026-10-26. These are actual synthetic simulation results, not forecasts.
 
 Model: configs/objective_model.yaml; topology/source: configs/rl_network.yaml.
@@ -53,7 +58,9 @@ First fit completed slightly fewer tasks with retries on average (56.133 to 55.9
 - Node uptime differs between no-fault and faulted modes, so failures may lower energy simply because hosts are down. Read delivered counts and deadline outcomes first.
 - Successful makespan and successful mean latency exclude losses. Full-batch makespan is null if any task does not complete.
 - Failure coefficients, MI, link rates and host power curves are synthetic demonstration values. No real hardware calibration or faithful paper replication is claimed.
-- No cross-node correlated disasters, packet-level routing, checkpointing, facility cooling or fault-aware DQN training is included.
+- This A-030 experiment includes no cross-node correlated disasters, packet-level routing,
+  execution checkpoint recovery or facility cooling. Fault-aware DQN training/evaluation
+  was added later in A-034/A-035, separately from this historical heuristic panel.
 
 ## Reproduce and present
 

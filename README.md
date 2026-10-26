@@ -4,30 +4,37 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
-## Enhanced DQN training sanity: milestone 4 of 5 (2026-10-27)
+## Frozen enhanced DQN comparison: milestone 5 of 5 complete (2026-10-27)
 
-The connected enhanced DQN has completed a small actual training run: **16 episodes,
-999 optimizer updates, 913 initial and 117 recovery transitions**. Weights changed,
-and legal actions changed on 87/156 identical initial and 5/20 recovery observations.
-Frozen diagnostics and checkpoint restoration were verified. **Performance is mixed;
-convergence and superiority to the four rules remain unestablished.**
+Frozen untrained DQN, the actual final A-034 trained checkpoint and all four native
+heuristics were evaluated on the same held-out workloads and failure traces:
+**108 simulations, 18 matched scenarios, 6,480 task arrivals**. Neither DQN learned
+or changed during evaluation. All five agreed milestones are complete.
 
-Read [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md) for results,
-curves, seed separation and how to load the trained checkpoint. **970 full-suite tests passed**; dependencies and whitespace clean.
+With failures, trained DQN averaged **58.07/60 completions versus 55.87/60 untrained**,
+with more energy (41.779 vs 41.450 J) and a later successful makespan (249.728 vs
+245.153 ms). Combined return was almost unchanged. The native multi-objective rule
+averaged 59.27/60, 41.502 J and 231.342 ms. Its information access differs from DQN:
+this is an implementation comparison, not proof of algorithm superiority.
+
+Read [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md) for all results, uncertainty,
+method limits, charts, the portable HTML/ZIP report and professor notes.
+**997 full-suite tests passed**, including 27 new comparison checks.
 
 ~~~powershell
-.\.venv312\Scripts\python.exe -m drlmots.enhanced_sanity --plan-config configs/enhanced_sanity.yaml --output-dir outputs/objective-model/dqn-sanity/my-sanity-run
+.\.venv312\Scripts\python.exe -X utf8 -m drlmots.enhanced_comparison --training-dir outputs/objective-model/dqn-sanity/milestone4-20261027 --output-dir outputs/objective-model/frozen-comparison/my-comparison
+Start-Process ".\outputs\objective-model\frozen-comparison\my-comparison\comparison-report.html"
 ~~~
 
-Choose a new output directory. The predeclared final episode is retained; validation
-does not select a favorable checkpoint or extend training. Point 5 is the frozen
-untrained/trained/four-heuristic comparison on matching held-out traces. Earlier
-baselines and default inference behavior remain: enhanced_dqn without --checkpoint
-initializes an untrained network. Double DQN/PPO remain outside this scoped aim.
+Choose a new output directory. On another checkout, first regenerate the checkpoints
+with [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md). The final
+16-episode checkpoint is fixed; this comparison does not tune or select it.
+The existing enhanced_dqn inference command still initializes an untrained network
+when --checkpoint is omitted. Earlier report commands keep their original meaning.
 
 See [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for the live connection,
 [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) for the 253-input contract and
-[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for connected scenario checks.
+[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for connected checks.
 
 ## Enhanced objective model and presentation reference (2026-10-26)
 
@@ -37,7 +44,7 @@ exponential/Weibull outages, separate detection/repair/reboot/restart, shared up
 and output bandwidth, deadlines versus censoring, reliability metrics, paired failure
 trials and constrained multi-objective reporting. Legacy baselines and trained DQN
 contracts are preserved; the enhanced mode now has a small sanity-trained checkpoint,
-with broader frozen comparative evaluation remaining.
+with frozen comparative results recorded in ENHANCED_DQN_COMPARISON.md.
 
 Start with [OBJECTIVE_MODEL_PRESENTATION.md](OBJECTIVE_MODEL_PRESENTATION.md): the
 1-10 checklist, formulas, simple examples, file map and professor walkthrough.
@@ -65,8 +72,8 @@ It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **839 tests** with the demo dependencies on Python 3.12.14
-(2026-10-26); the dependency check is clean.
+The current suite passes **997 tests** with the demo dependencies on Python 3.12.14
+(2026-10-27); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).
 
@@ -105,8 +112,8 @@ Start-Process .\outputs\recovery\professor\recovery-report.html
 
 The report compares no failures, failures without recovery, and identical failures
 with recovery. It contains actual task attempts, energy/time ledgers, charts and a
-ZIP/CSV/JSON/Markdown bundle. The old DQN state/reward lacks these fault/retry events;
-a fault-aware learning contract is the next step before training on this environment.
+ZIP/CSV/JSON/Markdown bundle. The old DQN state/reward lacks these fault/retry events. The later enhanced contract,
+training and frozen comparison are documented in ENHANCED_DQN_COMPARISON.md.
 
 
 ## Multi-objective efficiency extension (2026-10-25)

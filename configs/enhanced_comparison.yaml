@@ -1,0 +1,5 @@
+# Fixed unseen panel; no retraining or selection of checkpoints from these results.
+schema_version: 1
+kind: frozen_enhanced_dqn_comparison
+workload_seeds: [82000, 82001, 82002]
+failure_seeds: [92000, 92001, 92002, 92003, 92004]

@@ -1,5 +1,48 @@
 # Remaining work and collaborator pickup
 
+## Latest verified delivery - frozen six-policy comparison, milestone 5 of 5 (2026-10-27)
+
+Owner: Codex for ashishjha20. **All five agreed enhanced-DQN milestones are complete.**
+The saved A-034 untrained initialization and final episode-16 checkpoint were
+compared with all four unchanged native heuristics on **108 simulations**: three
+fresh workloads, one no-fault case plus five fault traces per workload, six policies.
+All six receive the same tasks/outages/model/horizon/recovery settings. Both DQNs
+were frozen at epsilon 0; full learner fingerprints, optimizer/replay/RNG/counters
+remained unchanged. No training, checkpoint selection or tuning used this panel.
+
+**Actual fault-panel means:** untrained 55.87/60 done, 41.450 J, 245.153 ms successful
+makespan; trained 58.07/60, 41.779 J, 249.728 ms. Trained-minus-untrained completion
+change is +2.20 with approximate 95% interval [-.427, +4.827]; combined-return change
+is +.000126 [-.018487, +.018738]. More work completed on average at an energy cost;
+a convincing overall-return gain is not established. The native multi-objective
+rule averaged 59.27/60, 41.502 J and 231.342 ms, better on all three mean objectives
+than trained DQN. All policies passed both service floors on every run of this panel.
+
+**Method limitation:** DQN shares delivered periodic telemetry before/after training;
+native rules preserve their event-loop estimates, including physical queue cleanup
+before delayed failure detection. Rule comparisons evaluate these implementations,
+not algorithms with identical information. Fault intervals use five failure-seed
+means over the fixed three-workload panel, not 15 independent crossed runs. Only
+one model initialization/training realization was evaluated.
+
+Read [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md) for actual tables, paired
+intervals, commands, presentation notes and interpretation. New runner:
+src/drlmots/enhanced_comparison.py; plan: configs/enhanced_comparison.yaml.
+**997 full-suite tests passed**, including 27 new comparison checks. Report evidence
+passed independent accounting/hash/link/archive checks and PNG visual review.
+
+Open outputs/objective-model/frozen-comparison/milestone5-20261027-release/comparison-report.html.
+The ZIP beside it contains charts, all 108 raw traces, CSV/JSON and the Markdown
+report; extract before opening elsewhere. Generated outputs/checkpoints stay ignored;
+the tracked results guide and reproducible source/plan/tests carry the handoff.
+
+**Next owner: unassigned; no required work remains in the five-point aim.** Optional
+research: equal-information heuristic adapters and predeclared multi-seed/budget
+experiments with new validation/test seeds. Do not tune on the now-seen 82000-82002 /
+92000-92004 panel, silently select an intermediate model or claim DQN superiority.
+Double DQN/PPO and calibrated/source-faithful paper replication require a new scope.
+Earlier entries below are historical deliveries and retain their original results.
+
 ## Latest verified delivery - enhanced DQN training sanity, milestone 4 of 5 (2026-10-27)
 
 Owner: Codex for ashishjha20. **Milestones 1-4 are complete.** The actual fixed-budget

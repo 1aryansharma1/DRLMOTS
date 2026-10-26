@@ -5,7 +5,7 @@ Milestone 1 verification: **839 full-suite tests passed, including 57 new contra
 dependency check clean. This document is also a presentation reference. The enhanced simulator now also supports the optional basic masked-DQN connection
 documented in [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md). A small actual
 training sanity run is now recorded in [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md);
-the broader frozen four-heuristic comparison remains pending. Connected scenario verification
+the frozen six-policy comparison is complete in [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md). Connected scenario verification
 is complete in [ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md).
 
 The agreed scope is five milestones:
@@ -14,7 +14,7 @@ The agreed scope is five milestones:
 2. **Done (A-032):** connect a basic masked DQN to initial and recovery placement.
 3. **Done (A-033):** verify the connected system on small scenarios and hidden-failure tests.
 4. **Done (A-034):** run a small training sanity check and demonstrate actual updates.
-5. Pending: frozen paired evaluation of untrained DQN, trained DQN and four heuristics.
+5. **Done (A-035):** frozen paired evaluation of untrained DQN, trained DQN and four heuristics.
 
 Double DQN, PPO, larger experiments and further algorithm upgrades are outside this
 five-milestone scope. Existing A-028 DQN and A-030 objective results are preserved.
@@ -288,7 +288,7 @@ boundary; see the integration guide for the installed connection.
 
 These tests establish contract invariants. The A-032 integration adds a live adapter,
 connected DQN and acceptance tests separately. Broader connected verification is recorded in A-033, and the small training sanity
-run is recorded in A-034. The frozen four-heuristic comparison remains milestone 5.
+run is recorded in A-034. A-035 completes milestone 5; see ENHANCED_DQN_COMPARISON.md.
 
 ## Minimal API example
 

@@ -223,7 +223,7 @@ def render(output, result, sample):
         "Unfinished at cutoff is censored, not automatically execution failure. Batch makespan is defined only when every task completes; successful makespan excludes losses.",
         "Deadline success denominator includes only tasks whose absolute deadline has matured by cutoff. Rejected and failed tasks in that set count against it.",
         "Weighted scores are linear fixed-scale ratios without clipping. A run below either service floor has no score. Only policies feasible on every run enter the Pareto recommendation.",
-        "Placement is a heuristic using causal predictions, not a global optimizer. The enhanced environment has no trained fault-aware DQN; legacy DQN models remain separate.",
+        "This A-030 report evaluates four native heuristics using causal predictions. Frozen enhanced DQN comparisons are available separately through enhanced_comparison; legacy DQN models remain separate.",
         "All coefficients are synthetic. Curves can accept measurements, but no measured calibration or real VM deployment is claimed.", result["experiment"]["uncertainty"]]
     md = ["# Host/network multi-objective study (A-030)", "", *["- "+n for n in notes], "",
           f"Simulations: {len(result['rows'])}; workload seeds: {list(result['experiment']['workload_seeds'])}; failure seeds: {list(result['experiment']['failure_seeds'])}.", ""]

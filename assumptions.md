@@ -788,3 +788,58 @@ record counts and trained CLI metrics were audited. Two PNG/two SVG figures were
 generated from actual data and the PNGs visually inspected. Generated artifacts stay
 under ignored outputs/objective-model/dqn-sanity/milestone4-20261027; tracked sources,
 plan and ENHANCED_DQN_TRAINING_SANITY.md let collaborators regenerate them.
+
+## A-035 - Frozen enhanced-DQN and four-native-rule paired comparison
+
+Date: 2026-10-27. User requested milestone 5: compare frozen untrained/trained DQN
+and all four heuristics on identical workloads/failures, with reports/charts/docs.
+Status: DECIDED/DELIVERED for the synthetic prototype; all five scoped milestones done.
+
+The runner enhanced_comparison.py loads the exact saved A-034 initialization and
+fixed episode-16 checkpoint, verifies their full fingerprints, six training source
+hashes, environment, learner settings, plan and training result. No retraining,
+optimization, replay insertion, exploration or model selection uses the new panel.
+Before/after fingerprints include counters, optimizer, replay and RNG state.
+
+Plan configs/enhanced_comparison.yaml uses workload seeds 82000-82002 and failure
+seeds 92000-92004, disjoint from training and sanity diagnostics. Six policies share
+explicit tasks, outages, coefficients, deadlines, horizon H=400 and recovery enabled.
+No-fault cases run once per workload, not once per failure seed: 18 scenarios,
+108 simulations, 6480 arrivals. Both initial and recovery actions retain legal masks.
+
+Native rules are preserved without an equal-information adapter. DQN uses periodic
+delivered telemetry; native event-loop estimates may reflect queue cleanup before
+delayed failure detection. Therefore native-rule comparisons evaluate the existing
+implementations, not a controlled algorithm-only effect. The trained/untrained pair
+shares the same telemetry. All six receive the same offline contract-4 terminal
+return; this does not imply that heuristics learn from that return.
+
+Fault intervals average within each failure seed over the fixed three-workload
+panel, then use five Student-t seed means; no-fault intervals use three work seeds.
+Paired deltas preserve full inputs/individual pairs. These approximate exploratory
+intervals do not cover independently trained model seeds or all deployments.
+Undefined timing stays null; contributing counts are explicit. Recommendations and
+mean Pareto screening require service feasibility in every run of a mode. Pareto
+objectives are mean energy, successful makespan and all-arrival unsuccessful fraction.
+
+Actual faulted trained-minus-untrained means: +2.2 completions, +.329095 J and
++4.574831 ms successful makespan, return +.000125745. Completion and return intervals
+span zero. Native multi-objective has better mean E/M/unsuccessful fraction than
+trained DQN in both modes, subject to information differences. Every policy is
+service-feasible throughout this new panel; earlier diagnostic failures remain valid.
+
+HTML/Markdown reports include outcomes, feasible/full-batch counts, pooled reliability,
+paired intervals, data and all raw traces. Portable ZIP contains local assets with
+SHA256 evidence hashes; large checkpoints remain referenced separately. Generated
+outputs stay ignored. ENHANCED_DQN_COMPARISON.md tracks actual results and commands.
+Chart-layout-only reruns keep identical metric/paired rows and checkpoint fingerprints;
+no panel/model/budget selection is performed. Tests verify native full-report hashes,
+frozen loading, strict leakage/provenance guards, accounting and portable links.
+997 full-suite tests passed including 27 new checks; final report adjustments also
+receive focused comparison verification. The saved 108-run artifacts receive an
+independent accounting/integrity audit and PNG visual inspection.
+
+Optional further research needs a new scope and fresh untouched test panel. Do not
+use these now-seen test seeds to select checkpoints/hyperparameters. Multiple model
+seeds, equal-information adapters, realistic calibration and original-paper audit
+remain research limitations, not uncompleted items in the five-point delivery.

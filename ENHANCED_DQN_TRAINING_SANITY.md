@@ -4,7 +4,8 @@ Run date: 2026-10-27. **The enhanced DQN has now been trained for a small fixed
 budget, with verified optimizer updates, changed weights and changed legal actions.**
 This establishes that the connected learning pipeline works. It does not establish
 convergence, optimal hyperparameters or superiority to the four rules. Milestone 5
-remains the broader frozen untrained/trained/four-heuristic comparison.
+is now complete in [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md): a separate
+frozen untrained/trained/four-heuristic comparison. This guide retains A-034 results.
 
 Verification: **970 full-suite tests passed in 261.86 seconds**, including 21 new
 runner checks. Dependency/whitespace checks are clean. An independent saved-artifact
@@ -158,6 +159,8 @@ protection of prior outputs. Cross-library/hardware bitwise equality is not prom
 
 For the professor: show the weight/update counts, then the identical-observation
 action changes, then the frozen return curves. Explain the mixed diagnostic results
-and service failures. **The remaining point 5 must compare frozen untrained DQN,
-this trained DQN and all four heuristics on matching held-out scenarios before making
-a claim about which scheduler performs better.**
+and service failures. **Point 5 is now complete:** [ENHANCED_DQN_COMPARISON.md](ENHANCED_DQN_COMPARISON.md)
+compares frozen untrained DQN, this trained DQN and all four heuristics on matching
+held-out scenarios. It reports mixed learned tradeoffs and better native-rule mean
+results on the panel, with information-access and statistical limits. These later
+results do not replace this historical diagnostic panel.
