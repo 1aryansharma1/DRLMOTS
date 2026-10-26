@@ -3,8 +3,9 @@
 Date: 2026-10-26. Status: executable standalone contract implemented and tested.
 Milestone 1 verification: **839 full-suite tests passed, including 57 new contract checks**;
 dependency check clean. This document is also a presentation reference. The enhanced simulator now also supports the optional basic masked-DQN connection
-documented in [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md). No enhanced
-DQN training/performance experiment has been delivered. Connected scenario verification
+documented in [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md). A small actual
+training sanity run is now recorded in [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md);
+the broader frozen four-heuristic comparison remains pending. Connected scenario verification
 is complete in [ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md).
 
 The agreed scope is five milestones:
@@ -12,7 +13,7 @@ The agreed scope is five milestones:
 1. **Done:** define and test the enhanced observation/action/reward contract.
 2. **Done (A-032):** connect a basic masked DQN to initial and recovery placement.
 3. **Done (A-033):** verify the connected system on small scenarios and hidden-failure tests.
-4. Pending: run a small training sanity check and demonstrate actual updates.
+4. **Done (A-034):** run a small training sanity check and demonstrate actual updates.
 5. Pending: frozen paired evaluation of untrained DQN, trained DQN and four heuristics.
 
 Double DQN, PPO, larger experiments and further algorithm upgrades are outside this
@@ -286,8 +287,8 @@ boundary; see the integration guide for the installed connection.
   negative objective score, and configuration mismatches are rejected.
 
 These tests establish contract invariants. The A-032 integration adds a live adapter,
-connected DQN and acceptance tests separately. Broader connected verification is recorded in A-033; actual
-training and learned performance comparisons remain milestones 4-5.
+connected DQN and acceptance tests separately. Broader connected verification is recorded in A-033, and the small training sanity
+run is recorded in A-034. The frozen four-heuristic comparison remains milestone 5.
 
 ## Minimal API example
 

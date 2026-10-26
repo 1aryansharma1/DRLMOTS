@@ -8,8 +8,10 @@ observation/action/reward contract (milestone 1 of 5). The optional basic DQN co
 is now complete (milestone 2); see [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md).
 Connected small-scenario verification is also complete (milestone 3); see
 [ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for independent time/energy/
-reward examples and hidden-failure checks. Actual enhanced training and performance
-comparisons remain milestones 4-5.
+reward examples and hidden-failure checks. Milestone 4 now has an actual small training
+run, learning curves and recorded behavior changes; see
+[ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md). Its diagnostic results
+are mixed. The broader frozen four-rule comparison remains milestone 5.
 
 ## The ten improvements, in simple language
 

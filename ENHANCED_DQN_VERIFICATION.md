@@ -2,8 +2,9 @@
 
 Date: 2026-10-26. This document records controlled software verification of initial
 placement, recovery, actual rewards and hidden failures. It is also a presentation
-reference. The enhanced DQN is connected; an actual training sanity experiment and
-the frozen untrained/trained/four-rule comparison are the remaining milestones.
+reference. Update 2026-10-27: a small actual training sanity experiment is now complete;
+see [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md). The broader frozen
+untrained/trained/four-rule comparison remains milestone 5. This guide records A-033.
 
 Verification: **949 tests passed in 159.24 seconds** (pytest console result), including
 **167 focused enhanced checks: 40 existing connection + 70 new scenarios + 57 contract**.
@@ -162,10 +163,12 @@ throughput, different observations are expected and legitimate.
 For a professor: explain the two hand calculations, show a failed attempt followed by
 a different-node restart, then show how reward includes the failed partial work and
 the full retry. Say that the controller is connected and verified on these scenarios.
-Training quality and any efficiency advantage require milestones 4 and 5.
+Learning activity is now recorded in A-034; broader efficiency conclusions require
+milestone 5's frozen comparative evaluation.
 
-**Next: milestone 4.** Record a small reproducible training sanity run with real
-optimizer updates, weight changes, losses and frozen before/after behavior on fixed
-scenarios. This will establish that learning happens, without assuming improvement.
-Then milestone 5 evaluates frozen untrained/trained DQN and the four heuristics on
+**Milestone 4 is now complete in A-034.** Its agreed scope was a small reproducible
+training sanity run with real optimizer updates, weight changes, losses and frozen
+before/after behavior on fixed
+scenarios. The recorded run establishes learning activity with mixed diagnostics.
+The remaining milestone 5 evaluates frozen untrained/trained DQN and the four heuristics on
 matching held-out work/fault traces. Double DQN/PPO remain outside the agreed scope.

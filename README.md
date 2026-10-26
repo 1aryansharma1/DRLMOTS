@@ -4,31 +4,30 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
-## Enhanced masked DQN verified scenarios: milestone 3 of 5 (2026-10-26)
+## Enhanced DQN training sanity: milestone 4 of 5 (2026-10-27)
 
-Basic masked DQN now controls **initial and recovery placement** in the enhanced
-simulator. The original four rule schedulers and earlier trained DQN interfaces are
-preserved. Periodic delivered telemetry, actual delayed costs, masked replay/targets,
-CPU optimization, frozen inference and separate JSON checkpoints are connected.
-The connected scenario verification is complete: see
-[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for exact hand calculations,
-hidden-failure checks and fixes. **949 full-suite tests passed**, including 70 new
-scenario checks and 167 focused enhanced checks overall.
-**No enhanced DQN training/performance experiment has been delivered yet.**
+The connected enhanced DQN has completed a small actual training run: **16 episodes,
+999 optimizer updates, 913 initial and 117 recovery transitions**. Weights changed,
+and legal actions changed on 87/156 identical initial and 5/20 recovery observations.
+Frozen diagnostics and checkpoint restoration were verified. **Performance is mixed;
+convergence and superiority to the four rules remain unestablished.**
 
-Read [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for how it works,
-checkpoint boundaries and the runnable inference command, and
-[ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) for the 253-feature contract.
+Read [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md) for results,
+curves, seed separation and how to load the trained checkpoint. **970 full-suite tests passed**; dependencies and whitespace clean.
 
 ~~~powershell
-.\.venv312\Scripts\python.exe -m drlmots.enhanced_dqn --dqn-config configs/enhanced_dqn.yaml --output outputs/objective-model/dqn-integration/inference.json
+.\.venv312\Scripts\python.exe -m drlmots.enhanced_sanity --plan-config configs/enhanced_sanity.yaml --output-dir outputs/objective-model/dqn-sanity/my-sanity-run
 ~~~
 
-This command uses an untrained initialization, freezes learning and exports a full
-JSON trace. The four-heuristic HTML report remains separate. The agreed next milestones
-are an actual small training sanity run and frozen
-untrained/trained/four-heuristic comparison. Double DQN/PPO remain outside
-this scope. The next owner and acceptance criteria are recorded in HANDOFF.md.
+Choose a new output directory. The predeclared final episode is retained; validation
+does not select a favorable checkpoint or extend training. Point 5 is the frozen
+untrained/trained/four-heuristic comparison on matching held-out traces. Earlier
+baselines and default inference behavior remain: enhanced_dqn without --checkpoint
+initializes an untrained network. Double DQN/PPO remain outside this scoped aim.
+
+See [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for the live connection,
+[ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) for the 253-input contract and
+[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for connected scenario checks.
 
 ## Enhanced objective model and presentation reference (2026-10-26)
 
@@ -37,7 +36,8 @@ MI/MIPS runtime, explicit VM/host mapping, utilization-based host energy, sample
 exponential/Weibull outages, separate detection/repair/reboot/restart, shared upload
 and output bandwidth, deadlines versus censoring, reliability metrics, paired failure
 trials and constrained multi-objective reporting. Legacy baselines and trained DQN
-contracts are preserved; **the enhanced mode does not yet have a trained DQN**.
+contracts are preserved; the enhanced mode now has a small sanity-trained checkpoint,
+with broader frozen comparative evaluation remaining.
 
 Start with [OBJECTIVE_MODEL_PRESENTATION.md](OBJECTIVE_MODEL_PRESENTATION.md): the
 1-10 checklist, formulas, simple examples, file map and professor walkthrough.

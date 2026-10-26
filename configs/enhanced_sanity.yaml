@@ -1,0 +1,10 @@
+# Fixed diagnostic budget and seed split; no checkpoint selection or tuning on validation.
+schema_version: 1
+kind: enhanced_dqn_training_sanity
+training_episodes: 16
+validation_every_episodes: 4
+training_workload_seed_start: 10000
+training_failure_seed_start: 20000
+evaluation_workload_seeds: [81000, 81001]
+evaluation_failure_seeds: [91000, 91001]
+recovery_probe_workload_seed: 81002

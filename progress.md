@@ -1,5 +1,40 @@
 # DRLMOTS Implementation Progress
 
+## Latest verified delivery - enhanced DQN training sanity, milestone 4 of 5 (2026-10-27)
+
+Owner: Codex for ashishjha20. **Milestones 1-4 are complete.** The actual fixed-budget
+run trained the enhanced DQN for 16 episodes / 960 arrivals using unchanged learner
+defaults. It produced 999 optimizer updates, 19 target synchronizations and 1,030
+transitions (913 initial / 117 recovery). Parameter L2 change was 4.6359729004.
+Actions changed on identical saved inputs: 87/156 initial and 5/20 recovery probes.
+All diagnostic evaluations were frozen; the final checkpoint restored exactly.
+
+Read [ENHANCED_DQN_TRAINING_SANITY.md](ENHANCED_DQN_TRAINING_SANITY.md) for the actual
+results, charts, seed split, checkpoint paths and commands. The runner is
+src/drlmots/enhanced_sanity.py with configs/enhanced_sanity.yaml. Training seeds are
+10000-10015 / 20000-20015; generated diagnostic seeds are 81000/91000 and 81001/91001;
+the separate explicit recovery probe uses workload seed 81002. No validation data
+enters replay or selects a checkpoint. Episode 16 is retained even though some
+intermediate diagnostics were better. Final training epsilon is .51075; evaluation is 0.
+
+The result is mixed: generated-1 retains 42/60 completions with a slightly better
+return; generated-2 retains 58/60 but its return worsens slightly; the recovery probe
+improves from 44/60 to 47/60. Two final diagnostics still fail service floors. This
+verifies learning activity and behavior change, not convergence or rule superiority.
+
+**Verification:** **970 full-suite tests passed**; dependencies and whitespace clean. The 21 new checks cover actual training,
+frozen diagnostics, repeatability on a small fixture, exact restored traces, seed
+separation, insufficient-budget reporting, final-budget selection and output protection.
+The trained checkpoint also works through the existing frozen inference CLI.
+
+**Next: milestone 5, unassigned.** Compare frozen untrained DQN, the trained final
+checkpoint and four heuristics on matching held-out workloads/fault traces. Keep
+service floors and all outcome counts visible. Do not silently extend this budget,
+select an intermediate model on these diagnostics or claim learned superiority.
+Double DQN/PPO remain outside scope. Generated checkpoints/evidence stay in ignored
+outputs/objective-model/dqn-sanity/milestone4-20261027; collaborators can regenerate
+them with the documented command. Earlier entries below are historical deliveries.
+
 ## Latest verified delivery - connected DQN scenarios, milestone 3 of 5 (2026-10-26)
 
 Owner: Codex for ashishjha20. **Milestones 1-3 are complete.** Initial and recovery

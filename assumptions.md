@@ -747,3 +747,44 @@ Eight full reference-report canonical hashes captured from fac9513 are retained 
 fixtures; all four heuristic branches must match them exactly. Verification covers
 declared synthetic scenarios, not all possible inputs or measured deployment behavior.
 No enhanced training or comparative learned-efficiency claim follows from this work.
+
+
+## A-034 - Fixed small enhanced-DQN training sanity experiment
+
+Date: 2026-10-27. User requested milestone 4: run actual training, verify updates and
+behavior changes, and document results. The new enhanced_sanity.py runner uses an
+explicit configs/enhanced_sanity.yaml plan, existing model/config/learner defaults,
+and a fixed final-episode checkpoint. It never selects a checkpoint or extends its
+budget from diagnostic scores. Earlier simulator/rule/DQN interfaces are preserved.
+
+Actual run: 16 episodes x 60 tasks, model seed 42, training work/fault seeds
+10000-10015 / 20000-20015; diagnostic generated pairs 81000/91000, 81001/91001;
+a separate constructed recovery probe uses work seed 81002 and explicit outages.
+No diagnostic observation enters training replay, fitting or optimization. Validation
+is greedy and frozen before training and after episodes 4/8/12/16. Full workload and
+outage hashes match across these stages. The constructed probe is not statistical
+reliability evidence. Source hashes/runtime/configuration are saved in experiment.json.
+
+There were 1,030 collected transitions (913 initial, 117 recovery), 999 optimizer
+updates and 19 target synchronizations. Parameter L2 change was 4.6359729004. Actions
+changed on 87/156 identical initial and 5/20 identical recovery observation probes.
+The final JSON checkpoint restored exactly and reproduced a full frozen diagnostic
+trace, and loaded through the normal inference CLI without updates. All losses were
+finite. Training stopped at epsilon .51075, before the .05 floor, as predeclared.
+Collected request counts are not per-minibatch sampling coverage counts.
+
+Results are mixed: generated-1 retains 42/60 completions with a slightly better return;
+generated-2 retains 58/60 but its return worsens; the probe improves 44/60 to 47/60.
+Generated-1 and the probe still fail service floors. Episode 12 had some better
+diagnostics but was not chosen after inspection. Lower ending average loss, changed
+weights and actions do not establish convergence or general efficiency. This actual
+16-episode experiment was run once; exact repetition is tested on a smaller fixture
+on this CPU/runtime, not promised across library/hardware versions or as statistical
+evidence across model seeds. Milestone 5's four-rule comparison remains pending.
+
+Verification: 970 full-suite tests passed, including 21 new runner checks. Dependencies
+and whitespace are clean; 32 saved training/frozen traces, six source hashes, CSV
+record counts and trained CLI metrics were audited. Two PNG/two SVG figures were
+generated from actual data and the PNGs visually inspected. Generated artifacts stay
+under ignored outputs/objective-model/dqn-sanity/milestone4-20261027; tracked sources,
+plan and ENHANCED_DQN_TRAINING_SANITY.md let collaborators regenerate them.
