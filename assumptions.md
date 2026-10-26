@@ -712,3 +712,38 @@ runnable example is frozen UNTRAINED inference. Tests exercise synthetic optimiz
 updates and tiny below-warmup live replay plumbing only. Broader connected verification,
 actual training sanity run and frozen comparative evaluation remain milestones 3-5.
 See ENHANCED_DQN_INTEGRATION.md for scope, commands and explicit telemetry limitations.
+
+
+## A-033 - Connected DQN scenario verification and boundary fixes
+
+Date: 2026-10-26. User requested milestone 3: test initial/recovery placement, rewards
+and hidden failures, fix exposed issues, and document the evidence. The new 70 cases
+include closed-form host/network/recovery energy, phase and repeated faults, resource/
+reachability masks, frozen scenario sweeps and hidden-world prefixes. See
+ENHANCED_DQN_VERIFICATION.md for exact fixtures, results and commands.
+
+Replay requires a legal integer VM action. Forced events are folded by the controller,
+not restored as action=None experiences. Service shortfall penalties occur only at
+terminal H; integrated energy cannot change over a zero-time feedback interval.
+These guards apply to replay insertion and checkpoint loading. Reward formulas,
+weights, normalization, contract version 4 and checkpoint schema 1 are unchanged.
+
+An error or KeyboardInterrupt aborts the controller begun by that simulator call,
+then re-raises. Its pending action without completed feedback is dropped. Closed
+nonterminal samples and existing updates remain valid; completed-episode counters do
+not advance, and no terminal outcomes/rewards are fabricated. A refused nested call
+cannot abort an existing active owner. Checkpoints can save learner state after an
+explicit abort boundary, but cannot resume an abandoned physical simulation.
+
+At recovery dispatch now >= ready_ms, so remaining wait is mathematically bounded by
+the public configured wait budget. Clamp subtraction roundoff to [0, wait_ms] before
+encoding; this prevents valid fractional-clock simulations from failing a strict
+contract check. It changes no physical time, event ordering or heuristic choice.
+The reward cursor uses math.fsum across individual recovery contributions so moving
+an interval from open to closed cannot create a same-time energy decrement through
+regrouping. Strict cumulative reward checks and physical report ledgers remain intact.
+
+Eight full reference-report canonical hashes captured from fac9513 are retained as
+fixtures; all four heuristic branches must match them exactly. Verification covers
+declared synthetic scenarios, not all possible inputs or measured deployment behavior.
+No enhanced training or comparative learned-efficiency claim follows from this work.

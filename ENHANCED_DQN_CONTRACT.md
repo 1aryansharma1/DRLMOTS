@@ -1,16 +1,17 @@
 # Enhanced DQN contract: milestone 1 of 5 (A-031)
 
 Date: 2026-10-26. Status: executable standalone contract implemented and tested.
-Verification: **839 full-suite tests passed, including 57 new contract checks**;
+Milestone 1 verification: **839 full-suite tests passed, including 57 new contract checks**;
 dependency check clean. This document is also a presentation reference. The enhanced simulator now also supports the optional basic masked-DQN connection
 documented in [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md). No enhanced
-DQN training/performance experiment has been delivered.
+DQN training/performance experiment has been delivered. Connected scenario verification
+is complete in [ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md).
 
 The agreed scope is five milestones:
 
 1. **Done:** define and test the enhanced observation/action/reward contract.
 2. **Done (A-032):** connect a basic masked DQN to initial and recovery placement.
-3. Pending: verify the connected system on small scenarios and hidden-failure tests.
+3. **Done (A-033):** verify the connected system on small scenarios and hidden-failure tests.
 4. Pending: run a small training sanity check and demonstrate actual updates.
 5. Pending: frozen paired evaluation of untrained DQN, trained DQN and four heuristics.
 
@@ -113,7 +114,7 @@ current_outage, future edges or completed report.** In particular:
 
 The current API prevents extra raw physics fields and future timestamps from being
 encoded. It cannot prove that a caller labelled its telemetry honestly. The A-032 connection supplies the live adapter and initial paired hidden-world tests;
-see its integration guide. Milestone 3 expands that connected scenario matrix.
+see its integration guide. A-033 expands and verifies that connected scenario matrix.
 
 This is an **observation**, not a claim of a fully observable Markov state. Delayed
 health information and aggregated link traffic leave uncertainty. A feed-forward DQN
@@ -285,8 +286,8 @@ boundary; see the integration guide for the installed connection.
   negative objective score, and configuration mismatches are rejected.
 
 These tests establish contract invariants. The A-032 integration adds a live adapter,
-connected DQN and acceptance tests separately. Broader connected verification, actual
-training and learned performance comparisons remain milestones 3-5.
+connected DQN and acceptance tests separately. Broader connected verification is recorded in A-033; actual
+training and learned performance comparisons remain milestones 4-5.
 
 ## Minimal API example
 

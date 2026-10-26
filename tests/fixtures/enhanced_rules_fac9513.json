@@ -1,0 +1,55 @@
+{
+  "source_commit": "fac951314304d5737ac19b1e0e380000cf0a0903",
+  "run_sha256": "ef79bd9553537445e4c306b09bd957f9c297dc4c8f7196d863de47eba59d398c",
+  "model_sha256": "3bd50ecb2a9806efe1b60976d78a9491942ea80f2ce2596870285c726dc21068",
+  "reports": [
+    {
+      "policy": "least_queue_fcfs",
+      "workload_seed": 6200,
+      "failure_seed": 7100,
+      "report_sha256": "ca8db1fa5f87ea291be843cf3b0d204ed87147735f7371fd2b510888389107d4"
+    },
+    {
+      "policy": "first_fit_fcfs",
+      "workload_seed": 6200,
+      "failure_seed": 7100,
+      "report_sha256": "eaa4585a242494dff7490760c2716fdec08c4c0e08e5c545cca7170bd84c7b6a"
+    },
+    {
+      "policy": "fog_first_completion",
+      "workload_seed": 6200,
+      "failure_seed": 7100,
+      "report_sha256": "6bd57d0ff9d33a1b48417a5d68218685007f15f74c2e2899016d76a015a64f42"
+    },
+    {
+      "policy": "multi_objective",
+      "workload_seed": 6200,
+      "failure_seed": 7100,
+      "report_sha256": "b9348ccd41b268680cf37a2ae070ecebe8c54e23e69e8c64562ed5388cd67c06"
+    },
+    {
+      "policy": "least_queue_fcfs",
+      "workload_seed": 6200,
+      "failure_seed": 7101,
+      "report_sha256": "09e3facb5aa650cdca1bbf1e33f812ead90fa96e631f06c685bcc4ca21611a66"
+    },
+    {
+      "policy": "first_fit_fcfs",
+      "workload_seed": 6200,
+      "failure_seed": 7101,
+      "report_sha256": "e3fa41ac3c1dd2bac4dbf8c4bfb694d8aa9958388fd4790433052599feed2cbb"
+    },
+    {
+      "policy": "fog_first_completion",
+      "workload_seed": 6200,
+      "failure_seed": 7101,
+      "report_sha256": "ea7eb66ff6d3592fbe868e629dad5882c5c8f6f5356359b0d0879adc10b569d6"
+    },
+    {
+      "policy": "multi_objective",
+      "workload_seed": 6200,
+      "failure_seed": 7101,
+      "report_sha256": "27e0784ad6c2002c761ef125eedbaa821e33349cb54f67a18ee5cc84959e20ff"
+    }
+  ]
+}

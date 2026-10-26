@@ -21,6 +21,23 @@ PHASES = ("upload", "upload_propagation", "queue", "compute", "download", "downl
 
 def simulate_objectives(config, model, *, policy="multi_objective", workload_seed=None,
                         failure_seed=0, tasks=None, outages=None, recovery_enabled=True, controller=None):
+    # Only release a controller begun by this invocation. A refused nested/reused
+    # controller must not cancel an independently active simulation.
+    started_before=getattr(controller,"started",False)
+    try:
+        return _simulate_objectives(config,model,policy=policy,workload_seed=workload_seed,
+            failure_seed=failure_seed,tasks=tasks,outages=outages,
+            recovery_enabled=recovery_enabled,controller=controller)
+    except BaseException:
+        # KeyboardInterrupt also leaves an incomplete episode, not a synthetic H.
+        abort=getattr(controller,"abort",None)
+        if not started_before and callable(abort):
+            abort()
+        raise
+
+
+def _simulate_objectives(config, model, *, policy="multi_objective", workload_seed=None,
+                        failure_seed=0, tasks=None, outages=None, recovery_enabled=True, controller=None):
     if policy not in MODEL_POLICIES and policy != "masked_dqn":
         raise ValueError("objective model supports reference rules or enhanced masked_dqn; old DQN checkpoints are incompatible")
     if (controller is not None) != (policy == "masked_dqn"):
@@ -94,17 +111,20 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
     def reward_cursor():
         # These evaluator measurements are not observation features. Open recovery
         # intervals accrue continuously, rather than being billed early or at close.
-        host_j=sum(e[k] for e in host_energy.values() for k in ("idle_j","dynamic_j","down_j","reboot_j"))
-        net_j=sum(e["traffic_j"]+e["idle_j"] for e in link_energy.values())
-        recovery_j=sum(b["energy_j"] for b in blocks)
+        host_j=math.fsum(e[k] for e in host_energy.values() for k in ("idle_j","dynamic_j","down_j","reboot_j"))
+        net_j=math.fsum(e[k] for e in link_energy.values() for k in ("traffic_j","idle_j"))
+        recovery_parts=[b["energy_j"] for b in blocks]
         for p in pending.values():
             detection=min(now,p["detect_at_ms"])-p["failed_at_ms"]
             restart=max(0,min(now,p["ready_ms"])-p["detect_at_ms"])
-            recovery_j+=(detection+restart)*d["recovery"]["coordinator_power_w"]/1000
+            recovery_parts.append((detection+restart)*d["recovery"]["coordinator_power_w"]/1000)
         counts={status:sum(o["status"]==status for o in outcomes.values()) for status in
                 ("completed","rejected","execution_failure","deadline_missed","unfinished")}
         matured=[i for i in incoming[:arrival_index] if work[i].deadline_ms is not None and work[i].deadline_ms<=now]
-        return RewardSnapshot(now,host_j+net_j+recovery_j,arrival_index,counts["completed"],counts["rejected"],
+        # Sum each recovery contribution once with stable precision. Closing an
+        # interval at dispatch only moves it between containers; it must not make
+        # cumulative energy change at the same timestamp through regrouping.
+        return RewardSnapshot(now,math.fsum([host_j,net_j,*recovery_parts]),arrival_index,counts["completed"],counts["rejected"],
             counts["execution_failure"],counts["deadline_missed"],counts["unfinished"],len(matured),
             sum(i in outcomes and outcomes[i]["status"]=="completed" for i in matured),
             max((o["finish_ms"] for o in outcomes.values() if o["status"]=="completed"),default=0))
@@ -287,7 +307,9 @@ def simulate_objectives(config, model, *, policy="multi_objective", workload_see
             observation=controller.contract.encode(telemetry.snapshot(now,work[i],arrived=arrival_index,
                 completed=current.completed_count,unsuccessful=current.unsuccessful_count,
                 attempts_used=len(by_task[i]),previous_node=excluded,
-                wait_remaining=max(0,pending[i]["expires_ms"]-now) if retry else 0))
+                # At a retry now >= ready_ms; cancellation roundoff in
+                # (ready_ms + wait_ms) - now must not exceed the public budget.
+                wait_remaining=min(d["recovery"]["wait_ms"],max(0,pending[i]["expires_ms"]-now)) if retry else 0))
             action=controller(observation,current)
             selected=controller.contract.validate_action(observation,action)
             if selected is None:

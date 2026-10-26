@@ -6,7 +6,10 @@ simulation with configured workloads and machines, not real deployed cloud VMs.
 Update: [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) now defines the standalone
 observation/action/reward contract (milestone 1 of 5). The optional basic DQN connection
 is now complete (milestone 2); see [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md).
-Actual enhanced training and performance comparisons remain pending.
+Connected small-scenario verification is also complete (milestone 3); see
+[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for independent time/energy/
+reward examples and hidden-failure checks. Actual enhanced training and performance
+comparisons remain milestones 4-5.
 
 ## The ten improvements, in simple language
 

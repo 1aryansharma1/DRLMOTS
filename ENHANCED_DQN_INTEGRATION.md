@@ -5,6 +5,10 @@ masked DQN.** The four A-030 rules and all earlier simulator/DQN interfaces rema
 This milestone delivers the working connection and verification, not a trained-model
 performance study. The default runnable command is frozen untrained inference.
 
+Update (A-033): connected scenario verification is complete. Read
+[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for independent totals,
+hidden-failure checks, regression results and interruption/replay fixes.
+
 Read [ENHANCED_DQN_CONTRACT.md](ENHANCED_DQN_CONTRACT.md) for the 253-feature contract,
 its reward formulas and the distinction between observed and physical state.
 
@@ -134,9 +138,12 @@ public context, telemetry protocol/period, host-node map and recovery mode are v
 Old DQN checkpoints cannot be loaded into this learner. Period and recovery mode bind
 the environment hash even though the contract-4 feature layout stays unchanged.
 
-Checkpoints are allowed BETWEEN complete episodes only. This milestone does not
-implement mid-episode resume. An interrupted episode is not a completed training run;
-do not mark unfinished tasks or invent terminal rewards from an external interruption.
+Checkpoints are allowed outside an active episode, after normal completion or an
+explicit abort boundary (A-033). Mid-episode simulator resume is not implemented.
+An interruption aborts only its own controller and re-raises the exception. The open
+action is discarded; closed nonterminal transitions/updates are retained and completed-
+episode counts do not increase. No unfinished outcome or terminal reward is fabricated.
+A checkpoint after abort stores valid learner state, not the abandoned simulator.
 Exact round-trip/subsequent-update equality is tested on this CPU/runtime; no cross-
 hardware or cross-library-version bitwise equivalence is claimed.
 
@@ -178,8 +185,8 @@ The learning path is wired via learn=True, but this delivery does not run an opt
 training experiment or claim improved behaviour. Unit tests exercise optimizer updates
 with synthetic transitions, and a tiny live replay fixture stays deliberately below
 warmup to check initial/recovery credit without calling it a training result. Next
-milestone 4 will run and record the actual training sanity experiment after milestone
-3's broader connected-scenario verification.
+milestone 4 will run and record the actual training sanity experiment after the now-complete
+milestone 3 connected-scenario verification.
 
 Default settings are explicit in configs/enhanced_dqn.yaml: seed 42, widths [64,64],
 learning rate .001, replay 2000, batch/warmup 32, target sync every 50 optimizer updates,
@@ -194,8 +201,8 @@ masking, stale and future failures, shared-link hidden cleanup, detection/repair
 open recovery energy, forced prefixes/waits, censoring, queue admission, immutable
 replay, checkpoint/optimizer/RNG restoration, frozen inference, unused hosts and CLI.
 These are integration acceptance checks required to deliver milestone 2. They do not
-replace the larger scenario matrix, fault-load/deadline sweeps, learning curves or held-
-out performance evaluation still planned in milestones 3-5.
+replace the additional A-033 scenario matrix documented in ENHANCED_DQN_VERIFICATION.md.
+Learning curves and held-out performance evaluation remain milestones 4-5.
 
 ~~~powershell
 .\.venv312\Scripts\python.exe -m pytest tests/integration/test_enhanced_dqn.py -q
@@ -212,6 +219,6 @@ File map:
 | tests/integration/test_enhanced_dqn.py | Connected acceptance and preservation checks |
 
 The roadmap is now: **1 contract done; 2 connection done; 3 broader connected small-
-scenario verification pending; 4 actual training sanity experiment pending; 5 frozen
+scenario verification done (A-033); 4 actual training sanity experiment pending; 5 frozen
 untrained/trained/four-heuristic comparison pending.** No superiority or paper-reproduction
 claim follows from connecting an untrained network.

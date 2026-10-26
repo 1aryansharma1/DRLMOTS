@@ -4,12 +4,16 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
-## Enhanced masked DQN connection: milestone 2 of 5 (2026-10-26)
+## Enhanced masked DQN verified scenarios: milestone 3 of 5 (2026-10-26)
 
 Basic masked DQN now controls **initial and recovery placement** in the enhanced
 simulator. The original four rule schedulers and earlier trained DQN interfaces are
 preserved. Periodic delivered telemetry, actual delayed costs, masked replay/targets,
 CPU optimization, frozen inference and separate JSON checkpoints are connected.
+The connected scenario verification is complete: see
+[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for exact hand calculations,
+hidden-failure checks and fixes. **949 full-suite tests passed**, including 70 new
+scenario checks and 167 focused enhanced checks overall.
 **No enhanced DQN training/performance experiment has been delivered yet.**
 
 Read [ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for how it works,
@@ -22,8 +26,8 @@ checkpoint boundaries and the runnable inference command, and
 
 This command uses an untrained initialization, freezes learning and exports a full
 JSON trace. The four-heuristic HTML report remains separate. The agreed next milestones
-are broader connected-scenario verification, an actual small training sanity run,
-and frozen untrained/trained/four-heuristic comparison. Double DQN/PPO remain outside
+are an actual small training sanity run and frozen
+untrained/trained/four-heuristic comparison. Double DQN/PPO remain outside
 this scope. The next owner and acceptance criteria are recorded in HANDOFF.md.
 
 ## Enhanced objective model and presentation reference (2026-10-26)

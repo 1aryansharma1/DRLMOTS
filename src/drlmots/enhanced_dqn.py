@@ -88,7 +88,8 @@ def _legal_actions(contract,observation):
 def validate_experience(contract,item):
     if type(item) is not EnhancedExperience or type(item.feedback) is not RewardDelta:
         raise ValueError("typed enhanced experience required")
-    _legal_actions(contract,item.state)
+    if not _legal_actions(contract,item.state) or type(item.action) is not int:
+        raise ValueError("replay requires a legal VM action; forced events are not experiences")
     contract.validate_action(item.state,item.action)
     r=item.feedback
     number("reward start",r.start_ms)
@@ -99,10 +100,14 @@ def validate_experience(contract,item):
         raise ValueError("experience reward context/time mismatch")
     if any(type(v) not in (int,float) or not math.isfinite(v) or v>0 for v in (r.energy_reward,r.time_reward,r.failure_reward,r.service_penalty_reward)):
         raise ValueError("invalid enhanced cost reward components")
+    if r.end_ms==r.start_ms and r.energy_reward!=0:
+        raise ValueError("integrated energy cannot change in zero elapsed time")
     if r.terminated:
         if item.next_state is not None or r.bootstrap_discount!=0 or r.end_ms!=contract.context["horizon_ms"]:
             raise ValueError("terminal experience cannot bootstrap")
     else:
+        if r.service_penalty_reward != 0:
+            raise ValueError("terminal service penalties cannot enter nonterminal replay")
         if item.next_state is None or r.bootstrap_discount!=1 or item.next_state.time_ms!=r.end_ms or not any(item.next_state.legal_mask):
             raise ValueError("nonterminal target needs a legal next action")
         _legal_actions(contract,item.next_state)
@@ -300,6 +305,7 @@ class EnhancedEpisodeController:
         self.learner,self.contract,self.learn=learner,learner.contract,learn
         self.settings=learner.settings
         self.started=self.finished=False
+        self.aborted=False
         self.pending=None
         self.prefix=None
         self.records=[]
@@ -326,6 +332,18 @@ class EnhancedEpisodeController:
         if self.learn:
             self.learner.remember(item)
         self.pending=None
+
+    def abort(self):
+        """Release an interrupted episode without inventing its terminal outcome.
+
+        Already closed transitions/updates remain valid. The outstanding action has
+        no completed feedback interval and is discarded; completed-episode counts
+        are untouched. The simulator cannot be resumed from a learner checkpoint.
+        """
+        if self.started and not self.finished:
+            self.pending=None
+            self.aborted=self.finished=True
+            self.learner.episode_active=False
 
     def __call__(self,observation,current):
         if not self.started or self.finished:

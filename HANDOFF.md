@@ -1,5 +1,36 @@
 # DRLMOTS collaborator handoff
 
+## Latest verified delivery - connected DQN scenarios, milestone 3 of 5 (2026-10-26)
+
+Owner: Codex for ashishjha20. **Milestones 1-3 are complete.** Initial and recovery
+DQN placement, physical costs, reward timing and hidden-failure observations are
+covered by the connected scenario verification. Read
+[ENHANCED_DQN_VERIFICATION.md](ENHANCED_DQN_VERIFICATION.md) for hand calculations,
+scope, findings and reproducible commands; use
+[ENHANCED_DQN_INTEGRATION.md](ENHANCED_DQN_INTEGRATION.md) for the live API/CLI.
+
+**Verification:** **949 full-suite tests passed** (167 focused enhanced checks);
+dependency and whitespace checks clean. The new 70 scenario checks include
+independent hand totals, phase-specific/repeated faults, deadlines/censoring,
+reachability/resources, live exploration, same-time choices, hidden/late notices,
+fractional recovery clocks and interrupted episodes. A 36-episode frozen matrix
+covers three loads, three telemetry periods, recovery off/on and two paired seeds.
+Eight full heuristic reports match pre-fix hashes from fac9513.
+
+**Fixes:** replay rejects forced no-action entries, nonterminal service penalties
+and zero-duration integrated energy. Interrupted runs release only their own
+controller without fabricated terminal outcomes; valid closed replay is retained.
+Recovery wait observations are bounded by their configured budget to avoid fractional
+clock roundoff crashes. Stable recovery-energy summation prevents same-time rounding
+decrements. Contract 4/checkpoint schema 1 and all four rule paths remain.
+
+**Next: milestone 4, unassigned.** Run a small reproducible training sanity experiment:
+show actual optimizer/weight updates and losses; freeze the learner before/after on
+fixed scenarios; report behavior changes without assuming improvement. Then milestone
+5 compares frozen untrained/trained DQN and four rules on matching held-out work/fault
+traces. No enhanced training/performance study is delivered here. Double DQN/PPO remain
+outside the agreed scope. Earlier entries below describe historical deliveries.
+
 ## Latest delivery - enhanced masked DQN connection, milestone 2 of 5 (2026-10-26)
 
 Owner: Codex for ashishjha20. **Milestones 1 and 2 are implemented.** The scoped
