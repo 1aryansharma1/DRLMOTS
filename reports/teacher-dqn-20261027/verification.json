@@ -1,0 +1,73 @@
+{
+  "kind": "teacher_dqn_verification",
+  "counts": {
+    "tests": 1064,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_sha256": "853707854710fb00973766cd77df3d2cb89bc20eb5d40b0d934ba684afcf7dbc",
+  "test_command": "python -m pytest -q --junitxml=outputs/objective-model/teacher-training/tests-20261027.xml",
+  "test_seconds": 796.357,
+  "report_zip_sha256": "9b6459b68df28a8692ace013df3c6e614eb0870428474ac4309631d68e2e394b",
+  "result_sha256": "c6c82ef4710db40b140492846e858a0088d905e9269f9702d7c105367c506d81",
+  "recovery": {
+    "source_directory": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\teacher-training\\study-20261027",
+    "source_manifest_sha256": "00d2c5c2ec435cb22118888886ca20814e2ac95ee69b717efda94021c502d2d4",
+    "source_status": "running",
+    "strategy": "complete models reused; partial model resumes complete latest/selected checkpoint; exact prefix replay required",
+    "checkpoints": [
+      {
+        "method": "rl_only",
+        "model_seed": 42,
+        "resumed_episode": 300,
+        "checkpoint_sha256": "5e45f45958057d16fdd3d437f0fba6a092ed62f5a7b30a001f35bb3df6ce3a58"
+      },
+      {
+        "method": "teacher_rl",
+        "model_seed": 42,
+        "resumed_episode": 300,
+        "checkpoint_sha256": "f96ce0f4974f88ca158d4cfbb048d18c3679299c1c2422def12933039a3a069b"
+      },
+      {
+        "method": "rl_only",
+        "model_seed": 43,
+        "resumed_episode": 120,
+        "checkpoint_sha256": "4ea95a4c04550ee0a87ebc80972168767e6ea22f0be4d72bdb4e96005357cbdc"
+      },
+      {
+        "method": "teacher_rl",
+        "model_seed": 43,
+        "resumed_episode": 0,
+        "checkpoint_sha256": null
+      },
+      {
+        "method": "rl_only",
+        "model_seed": 44,
+        "resumed_episode": 0,
+        "checkpoint_sha256": null
+      },
+      {
+        "method": "teacher_rl",
+        "model_seed": 44,
+        "resumed_episode": 0,
+        "checkpoint_sha256": null
+      }
+    ],
+    "exact_replayed_episodes": 10
+  },
+  "artifact_bytes_preserved_in_git": true,
+  "source_sha256": {
+    "enhanced_dqn.py": "f859de2f15cb0a61af958691db90c08245642f3eda372799eb1803530d1e0433",
+    "enhanced_rl_contract.py": "47f95ccac154764170f730d71f9cf6fba5682947ccda6fb67afaa8abc32e6c25",
+    "enhanced_telemetry.py": "f84fbca35fae6f28e50df73c9596b647baacff20112d8f59b2774896584662ad",
+    "objective_sim.py": "0db28658d11948c26648c26899a7b5737b0db385b3eea6a71044f844dce7c1fb",
+    "objective_model.py": "c1ab2c4c23a0082e822f6480534f856e4016d11f4d36b2cd818802c852f48a45",
+    "enhanced_sanity.py": "c69008ba43528026342fe64ffad6febb92598ed9e9d593409b9ad408f4040923",
+    "predictive_dqn.py": "6e471f53a2b5daeb81dfe0f8fb639e06e0fb0957500f2e18193866855a2b95ac",
+    "predictive_training.py": "c16544203a088187686f0eb2c0d91c8d6643eac69d734d01dc682a407d03ddcc",
+    "teacher_dqn.py": "96f467b7e7001c25fb7cb0726a2b1c64b3aeef77e3b51380d32f89fa6adb04cc",
+    "teacher_training.py": "4fffe2efaca57816ec0b6bf4bdd404f77803d09d28bf82877d80434e7ff30814",
+    "teacher_resume.py": "bb2c0a1801686a8a0c6c090169175d3913a2da674fad1693ad5ee7be054a4fbe"
+  }
+}

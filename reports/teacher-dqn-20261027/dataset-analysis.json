@@ -1,0 +1,30 @@
+{
+  "counts": {
+    "initial": {
+      "fog-b1": 739,
+      "cloud-1": 571,
+      "fog-b2": 96,
+      "fog-a1": 629,
+      "cloud-2": 174,
+      "fog-a2": 112
+    },
+    "recovery": {
+      "cloud-2": 23,
+      "fog-a2": 46,
+      "cloud-1": 45,
+      "fog-a1": 66,
+      "fog-b2": 24,
+      "fog-b1": 47
+    }
+  },
+  "all_counts": {
+    "fog-b1": 786,
+    "cloud-1": 616,
+    "fog-b2": 120,
+    "fog-a1": 695,
+    "cloud-2": 197,
+    "fog-a2": 158
+  },
+  "majority_label_fraction": 0.3055987558320373,
+  "scope": "Training dataset only; no resampling or experiment settings changed."
+}

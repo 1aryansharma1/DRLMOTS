@@ -1,0 +1,3 @@
+* -text whitespace=cr-at-eol
+*.svg -whitespace
+report.html -whitespace

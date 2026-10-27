@@ -1,0 +1,85 @@
+{
+  "selections": {
+    "rl_only/42": {
+      "episode": 280,
+      "updates": 18412,
+      "rank": [
+        0,
+        0.0,
+        0.5730729811782673,
+        280
+      ],
+      "eligible_for_promotion": true,
+      "fingerprint": "d3b998ed1e877e7fc5268c68b5a3a7b20a2a97a622f88f392fae2942da7406e6",
+      "file": "models/rl_only/seed-42/selected.json"
+    },
+    "teacher_rl/42": {
+      "episode": 260,
+      "updates": 16984,
+      "rank": [
+        0,
+        0.0,
+        0.5755459249109077,
+        260
+      ],
+      "eligible_for_promotion": true,
+      "fingerprint": "ce16f05091fc0a77471bef3006105557c2a6137757e7c43b1b45b4e8b83cc577",
+      "file": "models/teacher_rl/seed-42/selected.json"
+    },
+    "rl_only/43": {
+      "episode": 120,
+      "updates": 7773,
+      "rank": [
+        0,
+        0.0,
+        0.5751190204993356,
+        120
+      ],
+      "eligible_for_promotion": true,
+      "fingerprint": "3efe17d9d622da8586cef1f104c9f62db2b7a4edc5a4dd2041171d1d988d1ace",
+      "file": "models/rl_only/seed-43/selected.json"
+    },
+    "teacher_rl/43": {
+      "episode": 180,
+      "updates": 11724,
+      "rank": [
+        0,
+        0.0,
+        0.5749081420326425,
+        180
+      ],
+      "eligible_for_promotion": true,
+      "fingerprint": "0165b5393644843143b3b742b9b6264641c80bfa3fd6bf5a9dc55c0bf6b7e84d",
+      "file": "models/teacher_rl/seed-43/selected.json"
+    },
+    "rl_only/44": {
+      "episode": 300,
+      "updates": 19612,
+      "rank": [
+        0,
+        0.0,
+        0.5742867286791421,
+        300
+      ],
+      "eligible_for_promotion": true,
+      "fingerprint": "e8f9eb03eb833a684d8c2b940c67f9d1d07170d80f704e4534234fdf2d9346a1",
+      "file": "models/rl_only/seed-44/selected.json"
+    },
+    "teacher_rl/44": {
+      "episode": 40,
+      "updates": 2601,
+      "rank": [
+        0,
+        0.0,
+        0.5752889429050767,
+        40
+      ],
+      "eligible_for_promotion": true,
+      "fingerprint": "f05c0d7b78743df922387d3a7b0881ca6b87f17745db52b7859e60021a958f16",
+      "file": "models/teacher_rl/seed-44/selected.json"
+    }
+  },
+  "all_training_complete": true,
+  "test_inputs_generated": false,
+  "selection_rule": "trained checkpoints only; minimize (violating validation cases, mean service-floor shortfall, mean penalized cost, episode); all-case feasibility required for promotion"
+}

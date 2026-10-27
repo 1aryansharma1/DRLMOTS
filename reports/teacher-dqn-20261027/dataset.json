@@ -1,0 +1,19 @@
+{
+  "kind": "training_only_teacher_dataset",
+  "teacher": {
+    "schema_version": 1,
+    "kind": "observed_multi_objective_teacher",
+    "inputs": "contract-4 immutable observation and public configuration only",
+    "estimates": "unchanged predictive feature schema 1; delayed sample-and-hold estimates",
+    "score": "w_time*predicted_latency/decision_time_scale + w_energy*predicted_incremental_energy/decision_energy_scale + w_failure*conditional_failure_probability",
+    "choice": "legal actions only; if any predicts deadline met, filter to those; minimum score, fog on exact tie, VM ID",
+    "restrictions": "no simulator state, future arrivals, outage trace, actual outcome or native estimates",
+    "distinction": "same multi-objective scoring rule with observed estimates; not the native event-loop oracle"
+  },
+  "episodes": 40,
+  "examples": 2572,
+  "initial_count": 2321,
+  "recovery_count": 251,
+  "sha256": "d3260304da0f74516070d3d2dfa8c58d22dd803141c07e3617b62a7d67204a15",
+  "trace_sha256": "2a32aecdbc005064d587033b7124144775249b9ef8329117570562763b5cf969"
+}

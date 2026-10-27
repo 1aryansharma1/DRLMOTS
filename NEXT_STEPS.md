@@ -1,5 +1,22 @@
 # Remaining work and collaborator pickup
 
+<!-- A037:START -->
+## Latest: teacher-assisted DQN completed (2026-10-27)
+
+Point 3 is implemented and actually run: 40 observation-only multi-objective teacher episodes, fixed 20-epoch masked imitation, then 300 ordinary RL episodes for each of three seeds, plus equally budgeted RL-only controls. 1,800 RL episodes / 117,608 updates; 342 frozen fresh-test simulations. Existing baselines/default and the 40/40/20 objective are unchanged.
+
+Fault-panel teacher + RL: 232.936 ms makespan, 40.862 J, 89.19% completion; combined cost 0.640721. Versus matched RL-only, cost is 6.01% lower. The paired model-seed interval includes zero: a repeatable teacher benefit is not established. Best eligible among the main three: **Without DQN (native rule)**.
+
+**Main finding:** imitation-only was the strongest evaluated neural policy on the fresh fault panel: 95.48% completion, 0.564300 cost and 45/45 service-feasible runs, close to the native rule (95.44%, 0.563988). Continuing RL raised its cost by 13.54%, reduced completion by 6.30 percentage points and failed service floors in 3/45 runs. The fine-tuned model stays opt-in; preserving imitation during RL is the next research question.
+
+Read [TEACHER_DQN_RESULTS.md](TEACHER_DQN_RESULTS.md) for concise findings and [TEACHER_DQN.md](TEACHER_DQN.md) for the teacher equations, training protocol, limits and reproduction commands. [Portable report](reports/teacher-dqn-20261027/report.html) includes charts, imitation/RL controls, preserved checkpoints' fresh metrics and uncertainty. **1,064 tests passed; independent saved-artifact audit passed.** Earlier entries below are historical.
+
+### Next research decisions, not implemented
+
+1. Use the RL-only and imitation-only ablations to diagnose which stage helps or regresses before adding another algorithm change.
+2. If RL loses imitation benefits, separately study calibrated demonstration value targets or a controlled retained imitation loss. Classification logits are not calibrated returns; keep objective weights fixed.
+3. A later masked Double DQN or prioritized replay experiment needs explicit scope, matched controls, fixed validation selection and a new untouched test panel. Current code remains basic DQN. Do not promote a variant solely on a lower mean or a selected seed.
+<!-- A037:END -->
 ## Latest verified delivery - predictive inputs and longer training (2026-10-27)
 
 Owner: Codex for ashishjha20. **Requested improvement points 1 and 2 are complete.**

@@ -1,0 +1,18 @@
+# Fixed before testing. BC uses disjoint demonstration data, then ordinary RL.
+schema_version: 1
+kind: teacher_dqn_study
+model_seeds: [42, 43, 44]
+training_budgets: [300]
+validation_every_episodes: 20
+training_workload_seed_start: 51000
+training_failure_seed_start: 61000
+validation_workload_seeds: [86000, 86001, 86002]
+validation_failure_seeds: [96000, 96001, 96002]
+test_workload_seeds: [87000, 87001, 87002]
+test_failure_seeds: [97000, 97001, 97002, 97003, 97004]
+demonstration_episodes: 40
+demonstration_workload_seed_start: 50000
+demonstration_failure_seed_start: 60000
+cloning_epochs: 20
+cloning_batch_size: 64
+cloning_learning_rate: 0.001

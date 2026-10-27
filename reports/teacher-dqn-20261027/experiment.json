@@ -1,0 +1,600 @@
+{
+  "kind": "teacher_dqn_study",
+  "status": "complete",
+  "plan": {
+    "schema_version": 1,
+    "kind": "teacher_dqn_study",
+    "model_seeds": [
+      42,
+      43,
+      44
+    ],
+    "training_budgets": [
+      300
+    ],
+    "validation_every_episodes": 20,
+    "training_workload_seed_start": 51000,
+    "training_failure_seed_start": 61000,
+    "validation_workload_seeds": [
+      86000,
+      86001,
+      86002
+    ],
+    "validation_failure_seeds": [
+      96000,
+      96001,
+      96002
+    ],
+    "test_workload_seeds": [
+      87000,
+      87001,
+      87002
+    ],
+    "test_failure_seeds": [
+      97000,
+      97001,
+      97002,
+      97003,
+      97004
+    ],
+    "demonstration_episodes": 40,
+    "demonstration_workload_seed_start": 50000,
+    "demonstration_failure_seed_start": 60000,
+    "cloning_epochs": 20,
+    "cloning_batch_size": 64,
+    "cloning_learning_rate": 0.001
+  },
+  "teacher": {
+    "schema_version": 1,
+    "kind": "observed_multi_objective_teacher",
+    "inputs": "contract-4 immutable observation and public configuration only",
+    "estimates": "unchanged predictive feature schema 1; delayed sample-and-hold estimates",
+    "score": "w_time*predicted_latency/decision_time_scale + w_energy*predicted_incremental_energy/decision_energy_scale + w_failure*conditional_failure_probability",
+    "choice": "legal actions only; if any predicts deadline met, filter to those; minimum score, fog on exact tie, VM ID",
+    "restrictions": "no simulator state, future arrivals, outage trace, actual outcome or native estimates",
+    "distinction": "same multi-objective scoring rule with observed estimates; not the native event-loop oracle"
+  },
+  "selection_rule": "trained checkpoints only; minimize (violating validation cases, mean service-floor shortfall, mean penalized cost, episode); all-case feasibility required for promotion",
+  "run_configuration": {
+    "kind": "synthetic_baseline",
+    "placement": {
+      "data_size_unit": "decimal_kB",
+      "links": [
+        {
+          "bandwidth_mbps": 80,
+          "propagation_ms": 5,
+          "vm_id": "cloud-1"
+        },
+        {
+          "bandwidth_mbps": 100,
+          "propagation_ms": 4,
+          "vm_id": "cloud-2"
+        },
+        {
+          "bandwidth_mbps": 160,
+          "propagation_ms": 0.2,
+          "vm_id": "fog-a1"
+        },
+        {
+          "bandwidth_mbps": 100,
+          "propagation_ms": 0.3,
+          "vm_id": "fog-a2"
+        },
+        {
+          "bandwidth_mbps": 120,
+          "propagation_ms": 0.5,
+          "vm_id": "fog-b1"
+        },
+        {
+          "bandwidth_mbps": 80,
+          "propagation_ms": 0.4,
+          "vm_id": "fog-b2"
+        }
+      ],
+      "policy": "fog_first_completion",
+      "source_end_node_id": "end",
+      "upload_model": "parallel_no_contention"
+    },
+    "resource_units": {
+      "cpu_units": "abstract CPU units",
+      "memory_gb": "GB"
+    },
+    "schema_version": 3,
+    "topology": {
+      "access_points": [
+        {
+          "access_point_id": "ap",
+          "end_node_id": "end"
+        }
+      ],
+      "cloud_datacenters": [
+        {
+          "datacenter_id": "cloud",
+          "host_ids": [
+            "hc"
+          ],
+          "vm_ids": [
+            "cloud-1",
+            "cloud-2"
+          ]
+        }
+      ],
+      "end_nodes": [
+        {
+          "end_node_id": "end",
+          "fog_node_ids": [
+            "fog-a",
+            "fog-b"
+          ]
+        }
+      ],
+      "fog_nodes": [
+        {
+          "fog_node_id": "fog-a",
+          "host_ids": [
+            "hf-a"
+          ],
+          "vm_ids": [
+            "fog-a1",
+            "fog-a2"
+          ]
+        },
+        {
+          "fog_node_id": "fog-b",
+          "host_ids": [
+            "hf-b"
+          ],
+          "vm_ids": [
+            "fog-b1",
+            "fog-b2"
+          ]
+        }
+      ],
+      "hosts": [
+        {
+          "bandwidth_reported": 1000,
+          "host_id": "hf-a",
+          "memory_gb": 32,
+          "storage_tb": 3
+        },
+        {
+          "bandwidth_reported": 1000,
+          "host_id": "hf-b",
+          "memory_gb": 32,
+          "storage_tb": 3
+        },
+        {
+          "bandwidth_reported": 1000,
+          "host_id": "hc",
+          "memory_gb": 32,
+          "storage_tb": 3
+        }
+      ],
+      "vms": [
+        {
+          "bandwidth_reported": 200,
+          "queue_capacity": 2,
+          "resource_capacities": {
+            "cpu_units": 4,
+            "memory_gb": 8
+          },
+          "tier": "cloud",
+          "vm_id": "cloud-1"
+        },
+        {
+          "bandwidth_reported": 200,
+          "queue_capacity": 2,
+          "resource_capacities": {
+            "cpu_units": 4,
+            "memory_gb": 8
+          },
+          "tier": "cloud",
+          "vm_id": "cloud-2"
+        },
+        {
+          "bandwidth_reported": 200,
+          "queue_capacity": 2,
+          "resource_capacities": {
+            "cpu_units": 2,
+            "memory_gb": 4
+          },
+          "tier": "fog",
+          "vm_id": "fog-a1"
+        },
+        {
+          "bandwidth_reported": 200,
+          "queue_capacity": 2,
+          "resource_capacities": {
+            "cpu_units": 2,
+            "memory_gb": 4
+          },
+          "tier": "fog",
+          "vm_id": "fog-a2"
+        },
+        {
+          "bandwidth_reported": 200,
+          "queue_capacity": 2,
+          "resource_capacities": {
+            "cpu_units": 2,
+            "memory_gb": 4
+          },
+          "tier": "fog",
+          "vm_id": "fog-b1"
+        },
+        {
+          "bandwidth_reported": 200,
+          "queue_capacity": 2,
+          "resource_capacities": {
+            "cpu_units": 2,
+            "memory_gb": 4
+          },
+          "tier": "fog",
+          "vm_id": "fog-b2"
+        }
+      ]
+    },
+    "workload": {
+      "arrival_time_unit": "milliseconds",
+      "data_size_kb_range": [
+        20,
+        150
+      ],
+      "generator": "uniform_interarrival",
+      "interarrival_ms_range": [
+        0,
+        2
+      ],
+      "length_bytes_range": [
+        500,
+        3000
+      ],
+      "length_unit": "bytes",
+      "required_resources": {
+        "cpu_units": 2,
+        "memory_gb": 4
+      },
+      "seed": 42,
+      "task_count": 100
+    },
+    "sha256": "ef79bd9553537445e4c306b09bd957f9c297dc4c8f7196d863de47eba59d398c"
+  },
+  "model_configuration": {
+    "schema_version": 1,
+    "kind": "host_network_objectives",
+    "coefficient_provenance": "Synthetic demonstration coefficients; replace with measured host curves, workload MI and uptime logs before hardware claims.",
+    "horizon_ms": 400,
+    "workload": {
+      "task_count": 60,
+      "seed": 6200,
+      "interarrival_ms": [
+        2,
+        5
+      ],
+      "compute_mi": [
+        2,
+        12
+      ],
+      "input_kb": [
+        20,
+        90
+      ],
+      "output_kb": [
+        2,
+        20
+      ],
+      "relative_deadline_ms": [
+        45,
+        90
+      ],
+      "required_resources": {
+        "cpu_units": 2,
+        "memory_gb": 4
+      }
+    },
+    "hosts": {
+      "hf-a": {
+        "capacity_mips": 2000,
+        "power_curve": [
+          [
+            0,
+            15
+          ],
+          [
+            0.5,
+            38
+          ],
+          [
+            1,
+            60
+          ]
+        ],
+        "down_power_w": 1,
+        "reboot_power_w": 40
+      },
+      "hf-b": {
+        "capacity_mips": 1600,
+        "power_curve": [
+          [
+            0,
+            12
+          ],
+          [
+            0.5,
+            27
+          ],
+          [
+            1,
+            45
+          ]
+        ],
+        "down_power_w": 1,
+        "reboot_power_w": 30
+      },
+      "hc": {
+        "capacity_mips": 6000,
+        "power_curve": [
+          [
+            0,
+            55
+          ],
+          [
+            0.5,
+            105
+          ],
+          [
+            1,
+            165
+          ]
+        ],
+        "down_power_w": 3,
+        "reboot_power_w": 100
+      }
+    },
+    "vms": {
+      "fog-a1": {
+        "host_id": "hf-a",
+        "mips": 1200,
+        "link_id": "fog-a-access"
+      },
+      "fog-a2": {
+        "host_id": "hf-a",
+        "mips": 800,
+        "link_id": "fog-a-access"
+      },
+      "fog-b1": {
+        "host_id": "hf-b",
+        "mips": 1000,
+        "link_id": "fog-b-access"
+      },
+      "fog-b2": {
+        "host_id": "hf-b",
+        "mips": 600,
+        "link_id": "fog-b-access"
+      },
+      "cloud-1": {
+        "host_id": "hc",
+        "mips": 3500,
+        "link_id": "cloud-wan"
+      },
+      "cloud-2": {
+        "host_id": "hc",
+        "mips": 2500,
+        "link_id": "cloud-wan"
+      }
+    },
+    "links": {
+      "fog-a-access": {
+        "bandwidth_mbps": 100,
+        "propagation_ms": 0.3,
+        "joules_per_kb": 3e-05,
+        "idle_power_w": 0.5
+      },
+      "fog-b-access": {
+        "bandwidth_mbps": 80,
+        "propagation_ms": 0.5,
+        "joules_per_kb": 2e-05,
+        "idle_power_w": 0.4
+      },
+      "cloud-wan": {
+        "bandwidth_mbps": 60,
+        "propagation_ms": 4,
+        "joules_per_kb": 0.0003,
+        "idle_power_w": 1
+      }
+    },
+    "failures": {
+      "fog:fog-a": {
+        "distribution": "exponential",
+        "scale_ms": 120,
+        "shape": 1,
+        "repair_ms": 14,
+        "reboot_ms": 4,
+        "detection_ms": 2
+      },
+      "fog:fog-b": {
+        "distribution": "weibull",
+        "scale_ms": 170,
+        "shape": 1.5,
+        "repair_ms": 18,
+        "reboot_ms": 5,
+        "detection_ms": 3
+      },
+      "cloud:cloud": {
+        "distribution": "exponential",
+        "scale_ms": 500,
+        "shape": 1,
+        "repair_ms": 25,
+        "reboot_ms": 8,
+        "detection_ms": 4
+      }
+    },
+    "recovery": {
+      "max_retries": 2,
+      "restart_ms": 1,
+      "wait_ms": 15,
+      "coordinator_power_w": 2
+    },
+    "objective": {
+      "weights": {
+        "time": 0.4,
+        "energy": 0.4,
+        "failure": 0.2
+      },
+      "scales": {
+        "time_ms": 400,
+        "energy_j": 50,
+        "decision_time_ms": 50,
+        "decision_energy_j": 0.2
+      },
+      "minimum_completion_rate": 0.8,
+      "minimum_deadline_success_rate": 0.8
+    }
+  },
+  "learner_configuration": {
+    "seed": 42,
+    "hidden_widths": [
+      64,
+      64
+    ],
+    "learning_rate": 0.001,
+    "replay_capacity": 2000,
+    "batch_size": 32,
+    "warmup_transitions": 32,
+    "target_sync_updates": 50,
+    "max_grad_norm": 10,
+    "epsilon_start": 1.0,
+    "epsilon_end": 0.05,
+    "epsilon_decay_decisions": 2000,
+    "telemetry_period_ms": 1.0,
+    "recovery_enabled": true
+  },
+  "sources_sha256": {
+    "enhanced_dqn.py": "f859de2f15cb0a61af958691db90c08245642f3eda372799eb1803530d1e0433",
+    "enhanced_rl_contract.py": "47f95ccac154764170f730d71f9cf6fba5682947ccda6fb67afaa8abc32e6c25",
+    "enhanced_telemetry.py": "f84fbca35fae6f28e50df73c9596b647baacff20112d8f59b2774896584662ad",
+    "objective_sim.py": "0db28658d11948c26648c26899a7b5737b0db385b3eea6a71044f844dce7c1fb",
+    "objective_model.py": "c1ab2c4c23a0082e822f6480534f856e4016d11f4d36b2cd818802c852f48a45",
+    "enhanced_sanity.py": "c69008ba43528026342fe64ffad6febb92598ed9e9d593409b9ad408f4040923",
+    "predictive_dqn.py": "6e471f53a2b5daeb81dfe0f8fb639e06e0fb0957500f2e18193866855a2b95ac",
+    "predictive_training.py": "c16544203a088187686f0eb2c0d91c8d6643eac69d734d01dc682a407d03ddcc",
+    "teacher_dqn.py": "96f467b7e7001c25fb7cb0726a2b1c64b3aeef77e3b51380d32f89fa6adb04cc",
+    "teacher_training.py": "4fffe2efaca57816ec0b6bf4bdd404f77803d09d28bf82877d80434e7ff30814",
+    "teacher_resume.py": "bb2c0a1801686a8a0c6c090169175d3913a2da674fad1693ad5ee7be054a4fbe"
+  },
+  "prior_baselines": [
+    {
+      "path": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\dqn-sanity\\milestone4-20261027\\initialization.json",
+      "sha256": "83477102a79b8fe5b74779d963521e857421b09ccbe27be6de2fb173f77daf12"
+    },
+    {
+      "path": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\dqn-sanity\\milestone4-20261027\\trained-final.json",
+      "sha256": "b88f642570de8286874a029ec5f87405c1a10c37a9524c927acdb6611e8eae72"
+    },
+    {
+      "path": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\predictive-training\\study-20261027\\models\\seed-42\\selected-budget-300.json",
+      "sha256": "8f534f866cb0fbcb561abb4fa6b1bd1e1b1f4fefaa5f69f6430650c7c4128943",
+      "fingerprint": "0bf5cb3b6428d6e1238e82e4baa71241d315f52e6b502feca34a8bfb1add175c"
+    },
+    {
+      "path": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\predictive-training\\study-20261027\\models\\seed-43\\selected-budget-300.json",
+      "sha256": "c28cf760841dadadbdd851ec17da0f4acc6c7a186c7edee19e338d2eb91a78ab",
+      "fingerprint": "ad75057309daba6c875dfacd137a71e04f6acd632b4132e8a3164286513f5f6e"
+    },
+    {
+      "path": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\predictive-training\\study-20261027\\models\\seed-44\\selected-budget-300.json",
+      "sha256": "a903bfa27592aa542d3ab78b54df84960ae2fe7e44a7a039d5f2537c3bb1afbd",
+      "fingerprint": "140b386ae41b262ff26b01189fb1ed820b1169dfdb65b3814079471ba23979b9"
+    }
+  ],
+  "original_baseline": {
+    "training_plan": {
+      "schema_version": 1,
+      "kind": "enhanced_dqn_training_sanity",
+      "training_episodes": 16,
+      "validation_every_episodes": 4,
+      "training_workload_seed_start": 10000,
+      "training_failure_seed_start": 20000,
+      "evaluation_workload_seeds": [
+        81000,
+        81001
+      ],
+      "evaluation_failure_seeds": [
+        91000,
+        91001
+      ],
+      "recovery_probe_workload_seed": 81002
+    },
+    "checkpoints": {
+      "untrained_dqn": {
+        "fingerprint": "4a8bbe3e8531347ae7bedd6a797340a4b148240ac1499163b6b4213a021e9849",
+        "online_sha256": "c97b3d29f22037709b4ceb4a17af90ef458ea63c07072366de12b5e1225028bc",
+        "updates": 0,
+        "episodes": 0,
+        "decisions": 0,
+        "environment_sha256": "1bd20cb0b73dae8b9eddff53d1542f0701e3df02797d8e6141cef6184ba6ec6d"
+      },
+      "trained_dqn": {
+        "fingerprint": "d0759cbeaa42a49fc5862100764a267d6e56953dbd20080c4d56420801a3382c",
+        "online_sha256": "2be87c37aaea0ab967909db62663a7b1186075984ec27d7140bd935233aef1b6",
+        "updates": 999,
+        "episodes": 16,
+        "decisions": 1030,
+        "environment_sha256": "1bd20cb0b73dae8b9eddff53d1542f0701e3df02797d8e6141cef6184ba6ec6d"
+      }
+    },
+    "training_provenance_sha256": "0b3c35c34f844b5ebb82f6888024b75321e73dff9b8b11e6ab2202a52793db2a",
+    "training_result_sha256": "53494432032fd42d4892b8237ff4b3e7237c707e7ad3b931a4bf9685b47d9a24"
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "torch": "2.14.1+cpu",
+    "device": "cpu",
+    "threads": 1
+  },
+  "scope": "fixed masked behavior-cloning warm start followed by ordinary masked DQN; paired RL-only control; no teacher at DQN inference; no DQfD/PER/Double DQN/reward changes",
+  "recovery": {
+    "source_directory": "C:\\Users\\ashis\\Desktop\\Auxia Software\\Basic Project\\chat-app\\outputs\\objective-model\\teacher-training\\study-20261027",
+    "source_manifest_sha256": "00d2c5c2ec435cb22118888886ca20814e2ac95ee69b717efda94021c502d2d4",
+    "source_status": "running",
+    "strategy": "complete models reused; partial model resumes complete latest/selected checkpoint; exact prefix replay required",
+    "checkpoints": [
+      {
+        "method": "rl_only",
+        "model_seed": 42,
+        "resumed_episode": 300,
+        "checkpoint_sha256": "5e45f45958057d16fdd3d437f0fba6a092ed62f5a7b30a001f35bb3df6ce3a58"
+      },
+      {
+        "method": "teacher_rl",
+        "model_seed": 42,
+        "resumed_episode": 300,
+        "checkpoint_sha256": "f96ce0f4974f88ca158d4cfbb048d18c3679299c1c2422def12933039a3a069b"
+      },
+      {
+        "method": "rl_only",
+        "model_seed": 43,
+        "resumed_episode": 120,
+        "checkpoint_sha256": "4ea95a4c04550ee0a87ebc80972168767e6ea22f0be4d72bdb4e96005357cbdc"
+      },
+      {
+        "method": "teacher_rl",
+        "model_seed": 43,
+        "resumed_episode": 0,
+        "checkpoint_sha256": null
+      },
+      {
+        "method": "rl_only",
+        "model_seed": 44,
+        "resumed_episode": 0,
+        "checkpoint_sha256": null
+      },
+      {
+        "method": "teacher_rl",
+        "model_seed": 44,
+        "resumed_episode": 0,
+        "checkpoint_sha256": null
+      }
+    ],
+    "exact_replayed_episodes": 10
+  }
+}

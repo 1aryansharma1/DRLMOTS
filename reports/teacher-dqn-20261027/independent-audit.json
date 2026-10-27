@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "totals": {
+    "initial_transitions": 157013,
+    "recovery_transitions": 19722,
+    "reports": 2758,
+    "outcomes": 165480,
+    "attempts": 177890
+  },
+  "teacher_episodes": 40,
+  "training_episodes": 1800,
+  "validation_cases": 576,
+  "frozen_test_cases": 342,
+  "shared_test_scenarios": 18,
+  "zip_entries": 17,
+  "local_links": 10,
+  "teacher_labels_observation_only_verified": true,
+  "training_only_replay_verified": true,
+  "baseline_sources_and_checkpoints_unchanged": true,
+  "selection_and_lock_verified": true,
+  "zip_sha256": "9b6459b68df28a8692ace013df3c6e614eb0870428474ac4309631d68e2e394b"
+}

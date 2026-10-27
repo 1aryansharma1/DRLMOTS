@@ -1,6 +1,10 @@
 # Presentation reference: makespan, energy and fault tolerance (A-030)
 
-Latest DQN follow-up: [PREDICTIVE_DQN_RESULTS.md](PREDICTIVE_DQN_RESULTS.md) gives the 325-input, three-seed longer-training results and simple comparison report. [PREDICTIVE_DQN.md](PREDICTIVE_DQN.md) explains the 12 per-VM predictions and validation-only checkpoint selection. The objective models below remain unchanged.
+<!-- A037:START -->
+Latest teacher-assisted follow-up: [TEACHER_DQN_RESULTS.md](TEACHER_DQN_RESULTS.md) and [TEACHER_DQN.md](TEACHER_DQN.md). Show the [portable page](reports/teacher-dqn-20261027/report.html): three metrics and a combined score first, then RL-only/imitation-only controls and validation curves. Explain that the teacher sees delayed observations and uses configured time/energy/risk estimates; the neural network imitates it, then learns from actual simulator rewards, and runs independently at inference. Both initial and recovery decisions use the same legal masks. Disclose actual tradeoffs and the difference from the native rule's information access; this is BC then basic DQN, not a full DQfD or paper reproduction.
+**Main finding:** imitation-only was the strongest evaluated neural policy on the fresh fault panel: 95.48% completion, 0.564300 cost and 45/45 service-feasible runs, close to the native rule (95.44%, 0.563988). Continuing RL raised its cost by 13.54%, reduced completion by 6.30 percentage points and failed service floors in 3/45 runs. The fine-tuned model stays opt-in; preserving imitation during RL is the next research question.
+<!-- A037:END -->
+Previous DQN follow-up: [PREDICTIVE_DQN_RESULTS.md](PREDICTIVE_DQN_RESULTS.md) gives the 325-input, three-seed longer-training results and simple comparison report. [PREDICTIVE_DQN.md](PREDICTIVE_DQN.md) explains the 12 per-VM predictions and validation-only checkpoint selection. The objective models below remain unchanged.
 
 Implemented 2026-10-26. Start here for the professor presentation. This is a
 simulation with configured workloads and machines, not real deployed cloud VMs.

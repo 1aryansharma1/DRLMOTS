@@ -1,0 +1,23 @@
+{
+  "kind": "teacher_dqn_report_evidence",
+  "renderer_sha256": "3e76cc2170269a095072a9be2c6554bc3278b67332fda80215aef54cff944a29",
+  "result_sha256": "c6c82ef4710db40b140492846e858a0088d905e9269f9702d7c105367c506d81",
+  "sha256": {
+    "report.html": "1a979c44be6b42ae88791949f8e2aa53b0000ae3cf9d4b14a760ac07bbed2920",
+    "REPORT.md": "9cdcd567496f89da296cd64844119c8a3f28572dbb5a56fc980c55e68e209c98",
+    "test-metrics.csv": "db09d859c1a95a0dfd7a16437fb0ab73281957f6e248065b40906ff46bd82e34",
+    "training.csv": "2b55fdd382aae6a1644982f08eb75d3d392440b11646fe454d948d92cf89ecd9",
+    "validation.csv": "aea45d3a2e4a8731d53e861b3d8c73c50a2d4d335add3ad09e7f62db92d2a7cb",
+    "demonstrations.csv": "9448c48c2f44b71c91e1e7d1432624e0470c7c218eb93abf9a78132134264715",
+    "dataset.json": "e624603e99e8e3ee3fee41bd7c8a5b12d1fec88ee63cebaa448dd8927563ccde",
+    "summary.json": "a74af0d0232cfabb1dbcba5ae2b1e987e24cf7ccaef396876879a1dbbad35dd8",
+    "selection-locked.json": "ba8bcd6555e61ec342622e4e9d1c2656fde652cc2c2a54800107393bdd850ee5",
+    "experiment.json": "dfa0a38390c76ec1cca8a17deec008d51d6858ce6ddbbab671a74f2c695428af",
+    "failures_with_recovery.png": "602b27a07a2ebfab5e4cfac0ac381791bb519c7a67e540f03e3728897c0760c3",
+    "failures_with_recovery.svg": "2289126a239e05055dfd5ae2429e75b7af60a8df1fb645c8e04aff0e5c6b8775",
+    "no_failures.png": "8a2414fff4a3a6f06149e2637a3f3cfb67be0a28ff2269735cacfba585de9c7f",
+    "no_failures.svg": "e7c2adbffe2b41d7ea91be064ffaaaef1ccb9650bc203d35a8d7019749d82767",
+    "learning.png": "b826d88b59b896e741a56a8cf25eb7b9290f0470f96bf68877970e232d232229",
+    "learning.svg": "2173f2c09ed03843a65ae105b75065898de3780faf2dd10826da5b15e58b9608"
+  }
+}
