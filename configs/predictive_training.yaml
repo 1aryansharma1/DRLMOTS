@@ -1,0 +1,12 @@
+# Predeclared before the experiment. Test results never select checkpoints/settings.
+schema_version: 1
+kind: predictive_dqn_training_study
+model_seeds: [42, 43, 44]
+training_budgets: [100, 300]
+validation_every_episodes: 20
+training_workload_seed_start: 30000
+training_failure_seed_start: 40000
+validation_workload_seeds: [84000, 84001, 84002]
+validation_failure_seeds: [94000, 94001, 94002]
+test_workload_seeds: [85000, 85001, 85002]
+test_failure_seeds: [95000, 95001, 95002, 95003, 95004]

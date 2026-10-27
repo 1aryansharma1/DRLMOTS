@@ -843,3 +843,60 @@ Optional further research needs a new scope and fresh untouched test panel. Do n
 use these now-seen test seeds to select checkpoints/hyperparameters. Multiple model
 seeds, equal-information adapters, realistic calibration and original-paper audit
 remain research limitations, not uncompleted items in the five-point delivery.
+
+## A-036 - Causal predictive features and longer validation-selected basic DQN
+
+Date/owner: 2026-10-27, Codex for ashishjha20. User requested points 1 and 2 of the
+improvement plan while preserving the current baseline and updating reports/docs.
+Status: delivered and actually run: 900 episodes across three model seeds,
+58837 optimizer updates and 216 frozen fresh-test simulations. See
+PREDICTIVE_DQN_RESULTS.md for actual outcomes and the independent audit.
+
+Keep telemetry/reward contract 4 and the six baseline implementation files unchanged.
+The new predictive_dqn.py derives 12 estimates per VM solely from the existing
+observation and public configuration: input/queue/compute/output time, latency/finish,
+incremental dynamic/traffic energy, deadline slack/lateness/met flag, conditional
+failure probability and estimate-availability flag. Default network input is 325
+(253 original plus 72 derived); widths remain 64/64 and output remains six legal VM
+actions. No physical-state dictionary, native candidate oracle, future task/outage
+or hidden repair time enters the predictor. Derived feature schema 1 and its hash
+bind a new predictive_masked_dqn_checkpoint kind; old weights remain incompatible.
+
+Predictions use held reports, approximate FCFS tails/current half-duplex backlog,
+own output wire time and reported other-VM host utilization. Measured link backlog
+may lag local admissions; original queue features retain known pending bytes.
+They are estimates rather than replayed future physics. Unknown uptime uses nominal
+zero age with an explicit unavailable flag. None/exponential/Weibull failure models
+are respected. Actual masks, energy, successful-delivery timing, fault/retry costs
+and service penalties remain unchanged. CPU float32 saturation is rejected rather
+than silently clipped. These are implementation assumptions, not paper equations.
+
+Predeclared configs/predictive_training.yaml trains seeds 42/43/44 on the same 300
+work/fault pairs (30000-30299 / 40000-40299). Budgets 100 and 300 are nested prefixes
+of each trajectory. Existing learner settings, reward weights/scales and telemetry
+cadence remain fixed. Validation has three no-fault and three paired-fault cases
+(84000-84002 / 94000-94002), every 20 episodes. Trained checkpoints are ranked by
+violating-case count, mean service shortfall, mean penalized cost and earlier episode.
+Any validation violation marks that selected checkpoint ineligible for promotion.
+Initialization is a frozen reference, never selected as a trained checkpoint.
+
+All model training/selection is complete and locked before the actual runner
+generates the fresh crossed test panel (85000-85002 / 95000-95004 plus no-fault).
+Validation/test are greedy frozen inference with full fingerprint checks. Earlier
+seen panels are excluded from all new splits. Raw compressed training traces and
+per-update losses, full validation/test traces, selected/final resumable checkpoints,
+CSV metrics, source/configuration manifests and selection history are retained.
+
+The default report uses three methods and three metrics, with the original 40/40/20
+combined-cost ranking gated by service floors. The complete details retain original
+untrained/trained-16 baselines, both new budgets, per-model selections, learning and
+validation curves and paired model-seed intervals on the fixed test panel.
+Native rules retain their different information access. Features and training budget
+change together versus the old 16-episode model, so their individual effects are not
+isolated. Averaging three predictive models is an evaluation summary, not an ensemble
+deployed scheduler. Three seeds and this synthetic panel do not prove convergence,
+general superiority, hardware calibration or source-faithful paper reproduction.
+
+No Double DQN, demonstrations, prioritized replay, reward reweighting, mask changes
+or architecture-width tuning is included. Future changes require separate experiments
+and new untouched test inputs; these final test results must not become tuning data.

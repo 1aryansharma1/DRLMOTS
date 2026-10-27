@@ -4,6 +4,18 @@ This workspace is for an incremental, test-first implementation of the DRLMOTS c
 
 > Choppara, P. and Mangalampalli, S. “An efficient deep reinforcement learning based task scheduler in cloud-fog environment.” *Cluster Computing* 28:67 (2025). DOI: 10.1007/s10586-024-04712-z.
 
+## Predictive DQN and longer validation-selected training (2026-10-27)
+
+Predictive training finished: 900 episodes / 54,000 task arrivals across three model seeds; 58,837 optimizer updates. All checkpoints were selected on validation before 216 fresh frozen test simulations.
+
+The observed mean fault-panel makespan was 1.42% lower than the same-feature initialization, while energy changed by +0.20% and completion by -0.07 percentage points. All four paired model-seed intervals include zero, so a repeatable gain is not established. The new variant did not beat the original 16-episode DQN's mean combined cost on this panel. It remains opt-in; the preserved baseline remains the default. These results do not establish an improvement on all three objectives.
+
+Read [PREDICTIVE_DQN_RESULTS.md](PREDICTIVE_DQN_RESULTS.md) for the simple three-method/three-metric results and [PREDICTIVE_DQN.md](PREDICTIVE_DQN.md) for the 325-input feature model, selection rule and commands. The current baseline remains available. **1,033 full-suite tests passed.**
+
+~~~powershell
+Start-Process ".\outputs\objective-model\predictive-training\study-20261027\report.html"
+~~~
+
 ## Frozen enhanced DQN comparison: milestone 5 of 5 complete (2026-10-27)
 
 **Short report:** [three methods, three metrics and one overall ranking](DQN_SIMPLE_REPORT.md).
@@ -81,7 +93,7 @@ It supports fixed/seeded
 workloads, configured fog/cloud topology, explicit per-VM resource capacities and task
 demands, feasible placement, queue overflow, resource reservation/release, and replayable
 JSON reports and optional arrival-time observations, raw vectors and legal VM masks.
-The current suite passes **997 tests** with the demo dependencies on Python 3.12.14
+The current suite passes **1,033 tests** with the demo dependencies on Python 3.12.14
 (2026-10-27); the dependency check is clean.
 See [STATE_ACTION_CONTRACT.md](STATE_ACTION_CONTRACT.md) and the presentation guide
 [PROFESSOR_DEMO.md](PROFESSOR_DEMO.md).

@@ -1,5 +1,7 @@
 # Presentation reference: makespan, energy and fault tolerance (A-030)
 
+Latest DQN follow-up: [PREDICTIVE_DQN_RESULTS.md](PREDICTIVE_DQN_RESULTS.md) gives the 325-input, three-seed longer-training results and simple comparison report. [PREDICTIVE_DQN.md](PREDICTIVE_DQN.md) explains the 12 per-VM predictions and validation-only checkpoint selection. The objective models below remain unchanged.
+
 Implemented 2026-10-26. Start here for the professor presentation. This is a
 simulation with configured workloads and machines, not real deployed cloud VMs.
 
